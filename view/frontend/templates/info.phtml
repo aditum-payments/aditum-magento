@@ -1,0 +1,47 @@
+<?php
+/** @var \Aditum\Payment\Block\Info $block */
+/** @var \Magento\Sales\Model\Order $order */
+$order = $block->getOrder();
+$url = $block->getPixUrl();
+?>
+<p><strong>PIX</strong></p>
+<dl class="checkout-info">
+    <dt>Valor: </dt>
+    <dd><?php echo $this->helper('Magento\Framework\Pricing\Helper\Data')->currency($order->getBaseGrandTotal(),true,false); ?></dd>
+</dl>
+<div class="primary_">
+    <a href="<?php echo $url ?>" target="_blank"  class="action_ primary_ add_ bol-tablet" style="display: block; text-align: center;">Gerar QrCode PIX</a>
+</div>
+    <style>
+        .checkout-info { width: 100% }
+        .checkout-info dd,
+        .checkout-info dt { display: inline-block; width: 42% }
+        .checkout-info dt { font-weight: bold }
+        .checkout-info dd { padding: 0 }
+        .bol-tablet { color: white !important; border-radius: 4px !important;}
+        .order-status {background: #feda31;}
+        .action_.primary_ {
+            background: #feda31;
+            border: 1px solid #feda31;
+            color: #141f78;
+            height: 50px;
+            line-height: 30px;
+            border-radius: 4px;
+            padding-left: 30px;
+            padding-right: 30px;
+        }
+        .action_.primary_:hover {
+            background: #141f78;
+            border: 1px solid #141f78;
+            color: #ffffff !important;
+            line-height: 30px;
+            border-radius: 4px;
+            padding-left: 30px;
+            padding-right: 30px;
+        }
+        .action_.primary_.add_ {
+            line-height: 2.2rem;
+            padding: 14px 41px;
+            font-size: 1.8rem;
+        }
+    </style>

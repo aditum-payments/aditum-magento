@@ -1,0 +1,17 @@
+<?php
+/** @var \Aditum\Payment\Block\Info $block */
+/** @var \Magento\Sales\Model\Order $order */
+$order = $block->getOrder();
+
+$pixID = $order->getExtOrderID();
+?>
+<p><strong>Método de pagamento PIX</strong></p>
+<dl class="checkout-info">
+    <dt>Valor total: <?php echo $this->helper('Magento\Framework\Pricing\Helper\Data')->currency($order->getBaseGrandTotal(),true,false); ?></dt>
+</dl>
+<div class="primary_">
+    ID PIX: <?php echo $pixID; ?><br>
+</div>
+<div class="primary_">
+    Link para pagamento:<br><a href="<?php echo $block->getPixUrl(); ?>" target="_blank"><?php echo $block->getPixUrl(); ?></a><br>
+</div>
