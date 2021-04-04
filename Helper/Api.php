@@ -15,7 +15,7 @@ class Api
                                 \Magento\Framework\HTTP\Client\Curl $curl,
                                 \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
                                 \Psr\Log\LoggerInterface $logger,
-                                \Aditum\Payment\Helper\DbPIX $dbAditum,
+                                \Aditum\Payment\Helper\DbAditum $dbAditum,
                                 \Magento\Store\Model\StoreManagerInterface $storeManager
                                 )
     {
@@ -41,7 +41,7 @@ class Api
         $json_array['charge']['customer']['email'] = $order->getCustomer()->getEmail();
 
         $json_array['charge']['paymentType'] = 2;
-        $grandTotal = $order->getGrandTotal() * 100
+        $grandTotal = $order->getGrandTotal() * 100;
         $json_array['charge']['amount'] = (int)$grandTotal;
         $json_array['charge']['softDescriptor'] = $order->getIncrementId();
         $json_array['charge']['merchantTransactionId'] = $order->getIncrementId();
@@ -51,8 +51,7 @@ class Api
         $this->logger->info(json_encode($json_array,JSON_PRETTY_PRINT));
         $result = $this->apiRequest($url,"POST",$json_input);
         $result_array = json_decode($result,true);
-        if(!isset($result_array['id'])) return false;
-        return $result_array['id'];
+        return $result_array;
     }
     public function apiRequest($url, $method = "GET", $json = "")
     {
@@ -79,7 +78,11 @@ class Api
         $this->logger->info("Aditum Request OUTPUT:" . $result);
         $this->logger->info("header: ".curl_getinfo($ch, CURLINFO_HTTP_CODE)." - ".$url." - ".$json);
         $this->logger->info($url." - ".$json." - ".$result);
+        $http_code = curl_getinfo($ch,CURLINFO_HTTP_CODE);
         curl_close($ch);
+        if($http_code==500){
+            return false;
+        }
         return $result;
     }
     public function getToken()

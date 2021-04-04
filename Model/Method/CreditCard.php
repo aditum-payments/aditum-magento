@@ -56,20 +56,27 @@ class CreditCard extends \Magento\Payment\Model\Method\AbstractMethod
         $this->logger->info('Inside Order');
 
         $order = $payment->getOrder();
-        if (!$pixreturn = $this->api->createOrder($order)) {
+        if (!$aditumreturn = $this->api->createOrder($order)) {
             throw new \Magento\Framework\Validator\Exception(__('Houve um erro processando seu pedido. Por favor entre em contato conosco.'));
         }
-        $this->updateOrderRaw($order->getIncrementId());
-        $order->setExtOrderId($pixreturn);
-        $order->addStatusHistoryComment('ID PIX: '.$pixreturn);
-        $payment->setAdditionalInformation('pix_id',$pixreturn);
-        $payment->setAdditionalInformation('pix_redirect_url',$this->api->getOrderRedirectUrl($pixreturn));
+        if($aditumreturn['charge']['chargeStatus']!='Authorized'){
+            throw new \Magento\Framework\Validator\Exception(__('Houve um erro cobrando o cartão. Por favor verifique os dados.'));
+        }
+        $this->updateOrderRaw($order->getIncrementId(),$aditumreturn);
+        $order->setExtOrderId($aditumreturn['charge']['id']);
+        $order->addStatusHistoryComment(
+            'ID Aditum: '.$aditumreturn['charge']['id']."<br>\n"
+            .'Cartão: '.$aditumreturn['charge']['transactions'][0]['card']['cardNumber']."<br>\n");
+        $payment->setAdditionalInformation('aditum_id',$aditumreturn['charge']['id']);
         return $this;
     }
 
     public function isAvailable(\Magento\Quote\Api\Data\CartInterface $quote = null)
     {
-        if(!$this->_scopeConfig->getValue('payment/pix/enable',\Magento\Store\Model\ScopeInterface::SCOPE_STORE)){
+        if(!$this->_scopeConfig->getValue('payment/aditum/enable',\Magento\Store\Model\ScopeInterface::SCOPE_STORE)){
+            return false;
+        }
+        if(!$this->_scopeConfig->getValue('payment/aditum/enable_cc',\Magento\Store\Model\ScopeInterface::SCOPE_STORE)){
             return false;
         }
         if ($this->adminSession->getUser()) {
