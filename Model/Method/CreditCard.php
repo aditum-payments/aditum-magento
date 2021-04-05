@@ -4,7 +4,7 @@ namespace Aditum\Payment\Model\Method;
 
 use Magento\Directory\Helper\Data as DirectoryHelper;
 
-class CreditCard extends \Magento\Payment\Model\Method\AbstractMethod
+class CreditCard extends \Magento\Payment\Model\Method\Cc
 {
     const CODE = 'aditum_cc';
 
@@ -18,7 +18,6 @@ class CreditCard extends \Magento\Payment\Model\Method\AbstractMethod
     protected $_minAmount = null;
     protected $_maxAmount = null;
     protected $_supportedCurrencyCodes = ['BRL'];
-    protected $_infoBlockType = \Aditum\Payment\Block\Info::class;
     protected $_debugReplacePrivateDataKeys = ['number', 'exp_month', 'exp_year', 'cvc'];
 
     protected $adminSession;
@@ -26,6 +25,9 @@ class CreditCard extends \Magento\Payment\Model\Method\AbstractMethod
     protected $api;
     protected $logger;
     protected $_scopeConfig;
+
+    protected $_formBlockType = \Aditum\Payment\Block\Form\CreditCard::class;
+    protected $_infoBlockType = \Aditum\Payment\Block\Payment\InfoCreditCard::class;
 
     public function __construct(
         \Magento\Framework\Model\Context $context,
@@ -69,6 +71,14 @@ class CreditCard extends \Magento\Payment\Model\Method\AbstractMethod
             .'Cartão: '.$aditumreturn['charge']['transactions'][0]['card']['cardNumber']."<br>\n");
         $payment->setAdditionalInformation('aditum_id',$aditumreturn['charge']['id']);
         return $this;
+    }
+//    public function capture()
+//    {
+//
+//    }
+    public function authorize(\Magento\Payment\Model\InfoInterface $payment, $amount)
+    {
+
     }
 
     public function isAvailable(\Magento\Quote\Api\Data\CartInterface $quote = null)
