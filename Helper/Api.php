@@ -10,20 +10,23 @@ class Api
     protected $logger;
     protected $dbAditum;
     protected $_storeManager;
+    protected $checkoutSession;
 
     public function __construct(\Magento\Framework\App\Helper\Context $context,
                                 \Magento\Framework\HTTP\Client\Curl $curl,
                                 \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
                                 \Psr\Log\LoggerInterface $logger,
                                 \Aditum\Payment\Helper\DbAditum $dbAditum,
-                                \Magento\Store\Model\StoreManagerInterface $storeManager
-                                )
+                                \Magento\Store\Model\StoreManagerInterface $storeManager,
+                                \Magento\Checkout\Model\Session $checkoutSession
+    )
     {
         $this->curl = $curl;
         $this->scopeConfig = $scopeConfig;
         $this->logger = $logger;
         $this->dbAditum = $dbAditum;
         $this->_storeManager = $storeManager;
+        $this->checkoutSession = $checkoutSession;
         $env = $this->scopeConfig->getValue('payment/aditum/environment', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
 
         if ($env == 0) {
@@ -35,10 +38,11 @@ class Api
     }
     public function createOrderCc(\Magento\Sales\Model\Order\Interceptor $order,$info)
     {
-        $url = $this->url . "/orders";
+        $url = $this->url . "/charge/authorization";
+        $quote = $this->checkoutSession->getQuote();
 
-        $json_array['charge']['customer']['name'] = $order->getCustomer()->getName();
-        $json_array['charge']['customer']['email'] = $order->getCustomer()->getEmail();
+        $json_array['charge']['customer']['name'] = $order->getBillingAddress()->getFullName();
+        $json_array['charge']['customer']['email'] = $quote->getCustomerEmail();
 
 
         $transactions['card']['cardNumber'] = preg_replace('/[\-\s]+/', '', $info->getCcNumber());
@@ -112,14 +116,15 @@ class Api
             $this->logger->info("Aditum Request OUTPUT: user/pass not found on db");
             return false;
         }
-        $payload = [
-            'grant_type' => 'client_credentials',
-            'client_id' => $client_id,
-            'client_secret'   => $client_secret
-        ];
+//        $payload = [
+//            'grant_type' => 'client_credentials',
+//            'client_id' => $client_id,
+//            'client_secret'   => $client_secret
+//        ];
         $headers = array(
             "merchantCredential: ".$client_id,
-            "Authorization: ".$client_secret
+            "Authorization: ".$client_secret,
+            "Content-Length: 0"
         );
 
         $url = $this->url . "/merchant/auth";
@@ -129,17 +134,17 @@ class Api
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
         curl_setopt($ch, CURLOPT_POST, 1);
-        curl_setopt($ch,CURLOPT_HEADER, $headers);
-//        curl_setopt($ch,CURLOPT_HEADER, false);
+        curl_setopt($ch,CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($ch,CURLOPT_HEADER, false);
 //        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($payload));
         $result = curl_exec($ch);
         $this->logger->info("Get Token Result: ".$result);
         $result_array = json_decode($result,true);
-        if(!array_key_exists("access_token",$result_array))
+        if(!array_key_exists("accessToken",$result_array))
             return $this->logError("getToken",$url,$result,"(json encoded) ".json_encode($payload));
-        $expires_in = (int)time() + intval($result_array['expires_in']);
-        $this->dbAditum->updateToken($expires_in,$result_array['access_token']);
-        return $result_array['access_token'];
+        $expires_in = time() + 3600;// intval($result_array['expires_in']);
+        $this->dbAditum->updateToken($expires_in,$result_array['accessToken']);
+        return $result_array['accessToken'];
     }
     public function logError($action,$url,$output,$input="")
     {
