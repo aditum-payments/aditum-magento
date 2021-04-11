@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<body>
+    <referenceContainer name="order.success.additional.info">
+        <block class="Aditum\Payment\Block\Success"
+               name="moip.order.success"
+               template="Aditum_Payment::order/success/additional.phtml"
+               after="-">
+        </block>
+    </referenceContainer>
+</body>

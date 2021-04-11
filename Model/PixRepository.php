@@ -1,7 +1,7 @@
 <?php
 namespace Aditum\Payment\Model;
 
-class PixRepository implements \Aditum\Payment\Api\PixRepositoryInterface
+class PixRepository //implements \Aditum\Payment\Api\PixRepositoryInterface
 {
     protected $assetRepo;
 

@@ -1,13 +1,11 @@
 <?php
-namespace Tatix\Pix\Block;
+namespace Aditum\Payment\Block;
 
 use Magento\Framework\DataObject;
 use Magento\Framework\View\Element\Template;
 
 class Info extends \Magento\Payment\Block\Info
 {
-    use \Innersite\Mundipagg\Block\MundipaggInfosTrait;
-
     /**
      * @var string
      */

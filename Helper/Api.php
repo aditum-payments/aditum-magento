@@ -33,18 +33,32 @@ class Api
             $this->url = "https://payment.aditum.com.br/v2";
         }
     }
-    public function createOrderCc($order)
+    public function createOrderCc(\Magento\Sales\Model\Order\Interceptor $order,$info)
     {
         $url = $this->url . "/orders";
 
         $json_array['charge']['customer']['name'] = $order->getCustomer()->getName();
         $json_array['charge']['customer']['email'] = $order->getCustomer()->getEmail();
 
-        $json_array['charge']['paymentType'] = 2;
+
+        $transactions['card']['cardNumber'] = preg_replace('/[\-\s]+/', '', $info->getCcNumber());
+        $transactions['card']['cvv'] = $info->getCcCid();
+        $transactions['card']['brandName'] = "MasterCard";
+        if($info->getFullName()) {
+            $transactions['card']['cardholderName'] = $info->getFullname();
+        }
+        else{
+            $transactions['card']['cardholderName'] = "Gustavo";
+        }
+        $transactions['card']['expirationMonth'] = $info->getCcExpMonth();
+        $transactions['card']['expirationYear'] = $info->getCcExpYear();
         $grandTotal = $order->getGrandTotal() * 100;
-        $json_array['charge']['amount'] = (int)$grandTotal;
-        $json_array['charge']['softDescriptor'] = $order->getIncrementId();
-        $json_array['charge']['merchantTransactionId'] = $order->getIncrementId();
+        $transactions['paymentType'] = 2;
+        $transactions['amount'] = (int)$grandTotal;
+        $transactions['softDescriptor'] = $order->getIncrementId();
+        $transactions['merchantTransactionId'] = $order->getIncrementId();
+
+        $json_array['charge']['transactions'] = [$transactions];
 
 
         $json_input = json_encode($json_array);

@@ -1,5 +1,5 @@
 <?php
-namespace RicardoMartins\PagSeguro\Block\Form;
+namespace Aditum\Payment\Block\Form;
 
 class CreditCard extends \Magento\Payment\Block\Form\Cc
 {

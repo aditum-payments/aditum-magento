@@ -1,6 +1,6 @@
 <?php
 
-namespace Tatix\Pix\Observer\Sales;
+namespace Aditum\Payment\Observer\Sales;
 
 use Magento\Sales\Model\Order;
 
