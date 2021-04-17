@@ -6,7 +6,7 @@ use Magento\Directory\Helper\Data as DirectoryHelper;
 
 class Boleto extends \Magento\Payment\Model\Method\AbstractMethod
 {
-    const CODE = 'aditum_boleto';
+    const CODE = 'aditumboleto';
 
     protected $_code = self::CODE;
     protected $_isGateway = true;
@@ -69,26 +69,15 @@ class Boleto extends \Magento\Payment\Model\Method\AbstractMethod
 
     public function isAvailable(\Magento\Quote\Api\Data\CartInterface $quote = null)
     {
-        if(!$this->_scopeConfig->getValue('payment/pix/enable',\Magento\Store\Model\ScopeInterface::SCOPE_STORE)){
+        if(!$this->_scopeConfig->getValue('payment/aditum/enable',\Magento\Store\Model\ScopeInterface::SCOPE_STORE)){
             return false;
         }
-        if ($this->adminSession->getUser()) {
+        if(!$this->_scopeConfig->getValue('payment/aditum_boleto/enable',\Magento\Store\Model\ScopeInterface::SCOPE_STORE)){
             return false;
         }
         $isAvailable = $this->getConfigData('active', $quote ? $quote->getStoreId() : null);
-        if (empty($quote)) {
-            return $isAvailable;
-        }
-        if ($this->getConfigData("group_restriction") == false) {
-            return $isAvailable;
-        }
-        $currentGroupId = $quote->getCustomerGroupId();
-        $customerGroups = explode(',', $this->getConfigData("customer_groups"));
-
-        if ($isAvailable && in_array($currentGroupId, $customerGroups)) {
-            return true;
-        }
-        return false;
+        if(!$isAvailable) return false;
+        return true;
     }
     public function refund(\Magento\Payment\Model\InfoInterface $payment, $amount)
     {

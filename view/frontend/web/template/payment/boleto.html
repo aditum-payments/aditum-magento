@@ -21,20 +21,53 @@
             <!-- ko template: getTemplate() --><!-- /ko -->
             <!--/ko-->
         </div>
+
+        <div class="field name required">
+            <label data-bind="attr: {for: getCode() + '_fullname'}" class="label">
+                <span><!-- ko i18n: 'Full Name'--><!-- /ko --></span>
+            </label>
+            <div class="control">
+                <input type="text" name="fullname" class="input-text"  value=""
+                       data-bind="attr: {
+												value: getFullName(),
+												autocomplete: off,
+												id: getCode() + '_fullname',
+												title: $t('Card Holder Name'),
+												'data-container': getCode() + '-fullname',
+												'data-validate': JSON.stringify({'required':true})}"/>
+            </div>
+        </div>
+
+        <div class="field document required">
+            <label data-bind="attr: {for: getCode() + '_document'}" class="label">
+                <span><!-- ko i18n: 'CPF'--><!-- /ko --></span>
+            </label>
+            <div class="control">
+                <input type="text" name="document" class="input-text"  value=""
+                       data-bind="attr: {
+													value: getTaxVat(),
+													autocomplete: off,
+													id: getCode() + '_document',
+													title: $t('CPF do titular do cartão'),
+													'data-container': getCode() + '-document',
+													'data-validate': JSON.stringify({'required':true,'validate-cpf':'#' + getCode() + '_document'})}"/>
+            </div>
+        </div>
+
         <!-- ko if: getInstruction() || getDue() -->
         <dl class="items check payable">
             <!-- ko if: getDue() -->
             <dt class="title"><!-- ko i18n: 'Due' --><!-- /ko --></dt>
             <dd class="content">
-                <address class="moipboleto due address" data-bind="html: getDue()"></address>
+                <address class="aditumboleto due address" data-bind="html: getDue()"></address>
             </dd>
 
-          
+
             <!-- /ko -->
             <!-- ko if: getInstruction() -->
             <dt class="title"><!-- ko i18n: 'Instruction' --><!-- /ko --></dt>
             <dd class="content">
-                <address class="moipboleto instruction address" data-bind="html: getInstruction()"></address>
+                <address class="aditumboleto instruction address" data-bind="html: getInstruction()"></address>
             </dd>
             <!-- /ko -->
         </dl>
@@ -61,4 +94,4 @@
         </div>
     </div>
 </div>
-        
+

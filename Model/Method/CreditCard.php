@@ -108,14 +108,10 @@ class CreditCard extends \Magento\Payment\Model\Method\Cc
 
     public function isAvailable(\Magento\Quote\Api\Data\CartInterface $quote = null)
     {
-        return true;
         if(!$this->_scopeConfig->getValue('payment/aditum/enable',\Magento\Store\Model\ScopeInterface::SCOPE_STORE)){
             return false;
         }
-        if(!$this->_scopeConfig->getValue('payment/aditum/enable_cc',\Magento\Store\Model\ScopeInterface::SCOPE_STORE)){
-            return false;
-        }
-        if ($this->adminSession->getUser()) {
+        if(!$this->_scopeConfig->getValue('payment/aditum_cc/enable',\Magento\Store\Model\ScopeInterface::SCOPE_STORE)){
             return false;
         }
         $isAvailable = $this->getConfigData('active', $quote ? $quote->getStoreId() : null);

@@ -2,7 +2,7 @@
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
     <system>
         <section id="payment">
-            <group id="aditum" translate="label comment" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
+            <group id="aditum" translate="label comment" sortOrder="330" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Aditum Payments</label>
                 <comment>Método de pagamento Aditum</comment>
                 <field id="enable" translate="label comment" type="select" sortOrder="5" showInDefault="1" showInWebsite="1" showInStore="1">
@@ -21,46 +21,73 @@
                 <field id="client_secret" translate="label comment" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Authorization</label>
                 </field>
-                <field id="enable_cc" translate="label comment" type="select" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="order_expiration_days" translate="label comment" type="text" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Tempo de expiração do pedido</label>
+                    <comment><![CDATA[Depois de quanto tempo o pedido pendente de pagamento deve ser cancelado. Defina em dias.]]></comment>
+                </field>
+                <field id="street" translate="label" type="select" sortOrder="100" showInDefault="1">
+                    <label>Definições do Endereço - Rua</label>
+                    <source_model>Aditum\Payment\Model\Config\AddressLines</source_model>
+                </field>
+                <field id="number" translate="label" type="select" sortOrder="110" showInDefault="1">
+                    <label>Definições do Endereço - Número</label>
+                    <source_model>Aditum\Payment\Model\Config\AddressLines</source_model>
+                </field>
+                <field id="complement" translate="label" type="select" sortOrder="120" showInDefault="1">
+                    <label>Definições do Endereço - Complemento</label>
+                    <source_model>Aditum\Payment\Model\Config\AddressLines</source_model>
+                </field>
+                <field id="district" translate="label" type="select" sortOrder="130" showInDefault="1">
+                    <label>Definições do Endereço - Bairro</label>
+                    <source_model>Aditum\Payment\Model\Config\AddressLines</source_model>
+                </field>
+            </group>
+            <group id="aditum_cc" translate="label comment" sortOrder="340" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Aditum Cartão de crédito</label>
+                <comment>Aditum - pagamentos por cartões de crédito</comment>
+                <field id="enable" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Ativar cartão de crédito</label>
                     <comment>Ativar pagamentos com cartão de crédito através da Aditum</comment>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
-                <field id="enable_dc" translate="label comment" type="select" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="new_order_status" translate="label" type="select" sortOrder="80" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Status do pedido criado</label>
+                    <source_model>Magento\Sales\Model\Config\Source\Order\Status</source_model>
+                </field>
+            </group>
+            <group id="aditum_dc" translate="label comment" sortOrder="350" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Aditum Cartão de Débito</label>
+                <comment>Aditum - pagamentos por cartões de débito</comment>
+                <field id="enable" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Ativar cartão de débito</label>
                     <comment>Ativar pagamentos com cartão de débito através da Aditum</comment>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
-                <field id="order_expiration_days" translate="label comment" type="text" sortOrder="55" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Tempo de expiração do pedido</label>
-                    <comment><![CDATA[Depois de quanto tempo o pedido pendente de pagamento deve ser cancelado. Defina em dias.]]></comment>
-                </field>
-                <field id="new_order_status" translate="label" type="select" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="new_order_status" translate="label" type="select" sortOrder="80" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Status do pedido criado</label>
                     <source_model>Magento\Sales\Model\Config\Source\Order\Status</source_model>
                 </field>
-                <field id="debug" translate="label comment" type="select" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Debug</label>
-                    <comment><![CDATA[It is recommended that you enable logging for information about any issues.]]></comment>
+            </group>
+            <group id="aditum_boleto" translate="label comment" sortOrder="360" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Aditum Boleto</label>
+                <comment>Aditum - pagamentos por boleto bancário</comment>
+                <field id="enable" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Ativar boleto</label>
+                    <comment>Ativar pagamentos com boleto bancário através da Aditum</comment>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
-                <field id="street" translate="label" type="select" sortOrder="80" showInDefault="1">
-                    <label>Definições do Endereço - Rua</label>
-                    <source_model>Aditum\Payment\Model\Config\AddressLines</source_model>
+                <field id="expiration_days" translate="label comment" type="text" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Dias para vencimento do boleto</label>
+                    <comment><![CDATA[Tempo em dias para o vencimento do boleto a partir da data de geração.]]></comment>
                 </field>
-                <field id="number" translate="label" type="select" sortOrder="90" showInDefault="1">
-                    <label>Definições do Endereço - Número</label>
-                    <source_model>Aditum\Payment\Model\Config\AddressLines</source_model>
+                <field id="new_order_status" translate="label" type="select" sortOrder="80" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Status do pedido criado</label>
+                    <source_model>Magento\Sales\Model\Config\Source\Order\Status</source_model>
                 </field>
-                <field id="complement" translate="label" type="select" sortOrder="100" showInDefault="1">
-                    <label>Definições do Endereço - Complemento</label>
-                    <source_model>Aditum\Payment\Model\Config\AddressLines</source_model>
+                <field id="instruction" translate="label comment" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Instruções</label>
+                    <comment><![CDATA[Instruções para o caixa.]]></comment>
                 </field>
-                <field id="district" translate="label" type="select" sortOrder="100" showInDefault="1">
-                    <label>Definições do Endereço - Bairro</label>
-                    <source_model>Aditum\Payment\Model\Config\AddressLines</source_model>
-                </field>
-
             </group>
         </section>
     </system>

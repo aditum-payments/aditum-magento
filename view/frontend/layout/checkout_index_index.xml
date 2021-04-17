@@ -28,10 +28,10 @@
                                                                         </item>
                                                                     </item>
                                                                 </item>
-                                                                <item name="moipboleto" xsi:type="array">
-                                                                    <item name="component" xsi:type="string">Aditum_Payment/js/view/payment/moipboleto</item>
+                                                                <item name="aditumboleto" xsi:type="array">
+                                                                    <item name="component" xsi:type="string">Aditum_Payment/js/view/payment/aditumboleto</item>
                                                                     <item name="methods" xsi:type="array">
-                                                                        <item name="aditum_boleto" xsi:type="array">
+                                                                        <item name="aditumboleto" xsi:type="array">
                                                                             <item name="isBillingAddressRequired" xsi:type="boolean">true</item>
                                                                         </item>
                                                                     </item>

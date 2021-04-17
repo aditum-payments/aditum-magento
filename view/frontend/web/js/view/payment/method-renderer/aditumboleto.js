@@ -18,15 +18,19 @@ define(
 
              /** Returns send check to info */
             getInstruction: function() {
-                return window.checkoutConfig.payment.moipboleto.instruction;
+                return window.checkoutConfig.payment.aditumboleto.instruction;
             },
 
             /** Returns payable to info */
             getDue: function() {
-                return window.checkoutConfig.payment.moipboleto.due;
+                return window.checkoutConfig.payment.aditumboleto.due;
+            },
+            getFullName: function() {
+                return window.checkoutConfig.payment.aditumboleto.fullname;
+            },
+            getTaxVat: function() {
+                return window.checkoutConfig.payment.aditumboleto.taxvat;
             }
-
-
         });
     }
 );

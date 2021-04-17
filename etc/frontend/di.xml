@@ -4,6 +4,7 @@
     <arguments>
         <argument name="configProviders" xsi:type="array">
             <item name="aditum_payment_cc_configprovider" xsi:type="object">Aditum\Payment\Model\ConfigProviderCc</item>
+            <item name="aditum_payment_boleto_configprovider" xsi:type="object">Aditum\Payment\Model\ConfigProviderBoleto</item>
         </argument>
     </arguments>
 </type>

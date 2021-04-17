@@ -10,8 +10,8 @@ define(
         'use strict';
         rendererList.push(
             {
-                type: 'moipboleto',
-                component: 'Aditum_Payment/js/view/payment/method-renderer/moipboleto'
+                type: 'aditumboleto',
+                component: 'Aditum_Payment/js/view/payment/method-renderer/aditumboleto'
             }
         );
         return Component.extend({});

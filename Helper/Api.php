@@ -36,6 +36,92 @@ class Api
             $this->url = "https://payment.aditum.com.br/v2";
         }
     }
+    public function createOrderBoleto(\Magento\Sales\Model\Order\Interceptor $order,$info)
+    {
+        $url = $this->url . "/charge/authorization";
+        $quote = $this->checkoutSession->getQuote();
+
+        $json_array['charge']['deadline'] =
+            (int)$this->_scopeConfig->getValue("payment/moipboleto/expiration");// FAZER DATA * * * *  *
+
+        $json_array['charge']['customer']['name'] = $order->getBillingAddress()->getFullName();
+        $json_array['charge']['customer']['email'] = $quote->getCustomerEmail();
+        $json_array['charge']['customer']['documentType'] = $this->getDocumentTypeId();
+        $json_array['charge']['customer']['document'] = $quote->getCustomer()->getTaxvat();
+        $json_array['charge']['customer']['phone']['countryCode'] = "55";
+        $json_array['charge']['customer']['phone']['areaCode'] = "areaCode";
+        $json_array['charge']['customer']['phone']['number'] = "areaCode";
+        $json_array['charge']['customer']['phone']['type'] = 1;
+
+        $json_array['charge']['customer']['address']['street'] = 1;
+        $json_array['charge']['customer']['address']['number'] = 1;
+        $json_array['charge']['customer']['address']['complement'] = 1;
+        $json_array['charge']['customer']['address']['neighborhood'] = 1;
+
+        $json_array['charge']['customer']['address']['city'] = 1;
+
+        $json_array['charge']['customer']['address']['state'] = 1;
+
+        $json_array['charge']['customer']['address']['country'] = 1;
+
+        $json_array['charge']['customer']['address']['zipCode'] = 1;
+
+        $transactions['amount'] = $order->getGrandTotal();
+
+        $transactions['fine']['startDate'] = "";
+        $transactions['fine']['amount'] = 1;
+        $transactions['fine']['interest'] = 1; // int	Sim	Os juros financeiros representam um valor em porcentagem que será calculado todos os dias após a data de vencimento.
+
+        $transactions['discount']['type'] = 1; // int	Sim	Tipo de desconto. Enum.
+
+
+
+//        transactions.fine.startDate	string	Sim	Data de início que multa começará a contar.
+//    transactions.fine.amount	int	Sim	Valor a ser pago após a data de vencimento.
+//    transactions.fine.interest	int	Sim	Os juros financeiros representam um valor em porcentagem que será calculado todos os dias após a data de vencimento.
+//    transactions.discount.type	int	Sim	Tipo de desconto. Enum.
+//    transactions.discount.amount	int	Sim	Valor em centavos ou porcentagem com base no tipo de desconto.
+//    transactions.discount.deadline	string	Sim	Data limite em que o desconto pode ser aplicado.
+//    transactions.instructions	string	Não	Instruções de 255 caracteres a serem adicionadas no boleto bancário.
+//    bankIssuerDaysToCancel	int	Não	Dias para cancelamento automático após o vencimento pelo emissor do boleto.
+//    source	int	Sim	Define a fonte de cobrança.. Enum.
+//    origin	string	Não	Uma propriedade que o cliente pode usar para identificar a origem da cobrança, como nome do fornecedor ou identificador.
+//    receivers.id	string	Sim	O ID do recebedor.
+//    receivers.mdrDiscount	bool	Não	IDs dos receptores envolvidos na cobrança. Isso definirá quem recebe a transação, dividindo o valor total da cobrança em pagamentos separados.
+//    receivers.fixedAmountComission	int	Não	Quantia fixa que o recebedor deve receber.
+//    receivers.chargeRemainder	bool	Não	Após o processamento dos valores de cada divisão, se sobrar centavos da divisão, este sinalizador indica o destinatário que deve receber os centavos extras. Isso pode ser usado para penny split (exemplo 100/3) ou para quando o destinatário não tem uma regra específica.
+//    receivers.percentageComission	int	Não	Essa comissão é calculada sobre o valor da transação, semelhante a Aditum.EcommerceGateway.DataContract.V1.Charge.ReceiverChargeInfo.FixedAmountComission, que é uma porcentagem.
+
+
+
+
+
+        $transactions['card']['cardNumber'] = preg_replace('/[\-\s]+/', '', $info->getCcNumber());
+        $transactions['card']['cvv'] = $info->getCcCid();
+        $transactions['card']['brandName'] = "MasterCard";
+        if($info->getFullName()) {
+            $transactions['card']['cardholderName'] = $info->getFullname();
+        }
+        else{
+            $transactions['card']['cardholderName'] = $order->getBillingAddress()->getFullName();
+        }
+        $transactions['card']['expirationMonth'] = $info->getCcExpMonth();
+        $transactions['card']['expirationYear'] = $info->getCcExpYear();
+        $grandTotal = $order->getGrandTotal() * 100;
+        $transactions['paymentType'] = 2;
+        $transactions['amount'] = (int)$grandTotal;
+        $transactions['softDescriptor'] = $order->getIncrementId();
+        $transactions['merchantTransactionId'] = $order->getIncrementId();
+
+        $json_array['charge']['transactions'] = [$transactions];
+
+
+        $json_input = json_encode($json_array);
+        $this->logger->info(json_encode($json_array,JSON_PRETTY_PRINT));
+        $result = $this->apiRequest($url,"POST",$json_input);
+        $result_array = json_decode($result,true);
+        return $result_array;
+    }
     public function createOrderCc(\Magento\Sales\Model\Order\Interceptor $order,$info)
     {
         $url = $this->url . "/charge/authorization";
@@ -52,7 +138,7 @@ class Api
             $transactions['card']['cardholderName'] = $info->getFullname();
         }
         else{
-            $transactions['card']['cardholderName'] = "Gustavo";
+            $transactions['card']['cardholderName'] = $order->getBillingAddress()->getFullName();
         }
         $transactions['card']['expirationMonth'] = $info->getCcExpMonth();
         $transactions['card']['expirationYear'] = $info->getCcExpYear();
@@ -195,5 +281,14 @@ class Api
             }
         }
         return $uf;
+    }
+    public function getDocumentTypeId($type="cpf"){
+        if($type=="cpf"){
+            return 1;
+        }
+        if($type=="cnpj"){
+            return 2;
+        }
+        return 1;
     }
 }

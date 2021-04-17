@@ -11,6 +11,15 @@
                 <send_neworder_email>1</send_neworder_email>
                 <info_brl>1</info_brl>
             </aditumcc>
+            <aditumboleto>
+                <active>1</active>
+                <payment_action>order</payment_action>
+                <model>Aditum\Payment\Model\Method\Boleto</model>
+                <title>Aditum Boleto</title>
+                <order_status>pending</order_status>
+                <send_neworder_email>1</send_neworder_email>
+                <info_brl>1</info_brl>
+            </aditumboleto>
         </payment>
     </default>
 </config>
