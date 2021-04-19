@@ -20,7 +20,7 @@
                                                         <item name="renders" xsi:type="array">
                                                             <!-- merge payment method renders here -->
                                                             <item name="children" xsi:type="array">
-                                                                <item name="moipcc" xsi:type="array">
+                                                                <item name="aditumcc\" xsi:type="array">
                                                                     <item name="component" xsi:type="string">Aditum_Payment/js/view/payment/moipcc</item>
                                                                     <item name="methods" xsi:type="array">
                                                                         <item name="aditumcc" xsi:type="array">

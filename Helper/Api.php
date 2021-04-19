@@ -40,51 +40,51 @@ class Api
     {
         $url = $this->url . "/charge/authorization";
         $quote = $this->checkoutSession->getQuote();
+        $billingAddress = $quote->getBillingAddress();
 
-        $json_array['charge']['deadline'] =
-            (int)$this->_scopeConfig->getValue("payment/moipboleto/expiration");// FAZER DATA * * * *  *
+        $tTime = time()+86400*(int)$this->_scopeConfig->getValue("payment/aditumboleto/expiration");
+        $json_array['charge']['deadline'] = date("Y-m-d",$tTime);
 
-        $json_array['charge']['customer']['name'] = $order->getBillingAddress()->getFullName();
+        $json_array['charge']['customer']['name'] = $billingAddress->getFullName();
         $json_array['charge']['customer']['email'] = $quote->getCustomerEmail();
         $json_array['charge']['customer']['documentType'] = $this->getDocumentTypeId();
+
         $json_array['charge']['customer']['document'] = $quote->getCustomer()->getTaxvat();
+
         $json_array['charge']['customer']['phone']['countryCode'] = "55";
-        $json_array['charge']['customer']['phone']['areaCode'] = "areaCode";
-        $json_array['charge']['customer']['phone']['number'] = "areaCode";
+        $phone_number = filter_var($billingAddress->getTelephone(), FILTER_SANITIZE_NUMBER_INT);
+        $json_array['charge']['customer']['phone']['areaCode'] = substr($phone_number,0,2);
+        $json_array['charge']['customer']['phone']['number'] = substr($phone_number,2);
         $json_array['charge']['customer']['phone']['type'] = 1;
-
-        $json_array['charge']['customer']['address']['street'] = 1;
-        $json_array['charge']['customer']['address']['number'] = 1;
-        $json_array['charge']['customer']['address']['complement'] = 1;
-        $json_array['charge']['customer']['address']['neighborhood'] = 1;
-
-        $json_array['charge']['customer']['address']['city'] = 1;
-
-        $json_array['charge']['customer']['address']['state'] = 1;
-
-        $json_array['charge']['customer']['address']['country'] = 1;
-
-        $json_array['charge']['customer']['address']['zipCode'] = 1;
-
+        $json_array['charge']['customer']['address']['street'] = $billingAddress
+            ->getStreet()[$this->scopeConfig->getValue("payment/aditum/street")];
+        $json_array['charge']['customer']['address']['number'] = $billingAddress
+            ->getStreet()[$this->scopeConfig->getValue("payment/aditum/number")];
+        $json_array['charge']['customer']['address']['complement'] = $billingAddress
+            ->getStreet()[$this->scopeConfig->getValue("payment/aditum/complement")];
+        $json_array['charge']['customer']['address']['neighborhood'] = $billingAddress
+            ->getStreet()[$this->scopeConfig->getValue("payment/aditum/district")];
+        $json_array['charge']['customer']['address']['city'] = $billingAddress->getCity();
+        $json_array['charge']['customer']['address']['state'] =
+            $this->codigoUF($billingAddress->getRegion());
+        $json_array['charge']['customer']['address']['country'] = "BR";
+        $json_array['charge']['customer']['address']['zipCode'] = $billingAddress->getPostcode();
         $transactions['amount'] = $order->getGrandTotal();
+        $transactions['fine']['startDate'] = date("Y-m-d",$tTime);
+        $transactions['fine']['amount'] = 0;
+        $transactions['fine']['interest'] = 0;
 
-        $transactions['fine']['startDate'] = "";
-        $transactions['fine']['amount'] = 1;
-        $transactions['fine']['interest'] = 1; // int	Sim	Os juros financeiros representam um valor em porcentagem que será calculado todos os dias após a data de vencimento.
+        $transactions['discount']['type'] = 0;
+        $transactions['discount']['amount'] = 0;
+        $transactions['discount']['deadline'] = date("Y-m-d");
+        $transactions['instructions'] = "Não aceitar pagamento após o vencimento";
 
-        $transactions['discount']['type'] = 1; // int	Sim	Tipo de desconto. Enum.
+        $json_array['transactions'][] = $transactions;
+
+        $json_array['bankIssuerDaysToCancel'] = $this->_scopeConfig->getValue("payment/aditumboleto/expiration");;
+        $json_array['source'] = 1; // Sim	Define a fonte de cobrança.. Enum.
 
 
-
-//        transactions.fine.startDate	string	Sim	Data de início que multa começará a contar.
-//    transactions.fine.amount	int	Sim	Valor a ser pago após a data de vencimento.
-//    transactions.fine.interest	int	Sim	Os juros financeiros representam um valor em porcentagem que será calculado todos os dias após a data de vencimento.
-//    transactions.discount.type	int	Sim	Tipo de desconto. Enum.
-//    transactions.discount.amount	int	Sim	Valor em centavos ou porcentagem com base no tipo de desconto.
-//    transactions.discount.deadline	string	Sim	Data limite em que o desconto pode ser aplicado.
-//    transactions.instructions	string	Não	Instruções de 255 caracteres a serem adicionadas no boleto bancário.
-//    bankIssuerDaysToCancel	int	Não	Dias para cancelamento automático após o vencimento pelo emissor do boleto.
-//    source	int	Sim	Define a fonte de cobrança.. Enum.
 //    origin	string	Não	Uma propriedade que o cliente pode usar para identificar a origem da cobrança, como nome do fornecedor ou identificador.
 //    receivers.id	string	Sim	O ID do recebedor.
 //    receivers.mdrDiscount	bool	Não	IDs dos receptores envolvidos na cobrança. Isso definirá quem recebe a transação, dividindo o valor total da cobrança em pagamentos separados.
@@ -110,7 +110,7 @@ class Api
         $grandTotal = $order->getGrandTotal() * 100;
         $transactions['paymentType'] = 2;
         $transactions['amount'] = (int)$grandTotal;
-        $transactions['softDescriptor'] = $order->getIncrementId();
+        $transactions['softDescriptor'] = $this->_storeManager->getStore()->getName() ." - ".$order->getIncrementId();
         $transactions['merchantTransactionId'] = $order->getIncrementId();
 
         $json_array['charge']['transactions'] = [$transactions];
@@ -144,8 +144,8 @@ class Api
         $transactions['card']['expirationYear'] = $info->getCcExpYear();
         $grandTotal = $order->getGrandTotal() * 100;
         $transactions['paymentType'] = 2;
-        $transactions['amount'] = (int)$grandTotal;
-        $transactions['softDescriptor'] = $order->getIncrementId();
+        $transactions['amount'] = $grandTotal;
+        $transactions['softDescriptor'] = $this->_storeManager->getStore()->getName() ." - ".$order->getIncrementId();
         $transactions['merchantTransactionId'] = $order->getIncrementId();
 
         $json_array['charge']['transactions'] = [$transactions];
@@ -290,5 +290,9 @@ class Api
             return 2;
         }
         return 1;
+    }
+    public function getCpfCnpjNumber($taxvat)
+    {
+
     }
 }
