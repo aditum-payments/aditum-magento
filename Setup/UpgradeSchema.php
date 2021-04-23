@@ -1,6 +1,6 @@
 <?php
 
-namespace Aditum\Payment\Setup;
+namespace AditumPayment\Magento2\Setup;
 
 use Magento\Framework\Setup\UpgradeSchemaInterface;
 use Magento\Framework\Setup\SchemaSetupInterface;

@@ -1,6 +1,6 @@
 <?php
 
-namespace Aditum\Payment\Model\ResourceModel;
+namespace AditumPayment\Magento2\Model\ResourceModel;
 
 
 class Order extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb

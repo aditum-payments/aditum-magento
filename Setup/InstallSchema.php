@@ -1,6 +1,6 @@
 <?php
 
-namespace Aditum\Payment\Setup;
+namespace AditumPayment\Magento2\Setup;
 
 class InstallSchema implements \Magento\Framework\Setup\InstallSchemaInterface
 {

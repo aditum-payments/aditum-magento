@@ -1,6 +1,6 @@
 <?php
 
-namespace Aditum\Payment\Model\Method;
+namespace AditumPayment\Magento2\Model\Method;
 
 use Magento\Directory\Helper\Data as DirectoryHelper;
 
@@ -18,7 +18,7 @@ class DebitCard extends \Magento\Payment\Model\Method\AbstractMethod
     protected $_minAmount = null;
     protected $_maxAmount = null;
     protected $_supportedCurrencyCodes = ['BRL'];
-    protected $_infoBlockType = \Aditum\Payment\Block\Info::class;
+    protected $_infoBlockType = \AditumPayment\Magento2\Block\Info::class;
     protected $_debugReplacePrivateDataKeys = ['number', 'exp_month', 'exp_year', 'cvc'];
 
     protected $adminSession;
@@ -35,7 +35,7 @@ class DebitCard extends \Magento\Payment\Model\Method\AbstractMethod
         \Magento\Payment\Helper\Data $paymentData,
         \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
         \Magento\Payment\Model\Method\Logger $logger,
-        \Aditum\Payment\Helper\Api $api,
+        \AditumPayment\Magento2\Helper\Api $api,
         \Magento\Backend\Model\Auth\Session $adminSession,
         \Psr\Log\LoggerInterface $mlogger,
         \Magento\Framework\Model\ResourceModel\AbstractResource $resource = null,

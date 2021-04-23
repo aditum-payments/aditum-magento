@@ -1,6 +1,6 @@
 <?php
 
-namespace Aditum\Payment\Model;
+namespace AditumPayment\Magento2\Model;
 
 use Magento\Checkout\Model\ConfigProviderInterface;
 use Magento\Framework\View\Asset\Source;

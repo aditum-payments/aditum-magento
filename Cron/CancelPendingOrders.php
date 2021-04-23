@@ -1,6 +1,6 @@
 <?php
 
-namespace Aditum\Payment\Cron;
+namespace AditumPayment\Magento2\Cron;
 
 class CancelPendingOrders
 {

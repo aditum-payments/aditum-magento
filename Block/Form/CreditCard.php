@@ -1,10 +1,10 @@
 <?php
-namespace Aditum\Payment\Block\Form;
+namespace AditumPayment\Magento2\Block\Form;
 
 class CreditCard extends \Magento\Payment\Block\Form\Cc
 {
     /**
      * @var string
      */
-    protected $_template = 'Aditum_Payment::form/cc.phtml';
+    protected $_template = 'AditumPayment_Magento2::form/cc.phtml';
 }

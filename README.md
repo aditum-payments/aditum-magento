@@ -17,7 +17,7 @@ Página oficial do desenvolvedor: https://gum.net.br/
 
 @copyright Copyright (c) 2021-2021 Aditum Pagamentos
 
-@package GumNet AME
+@package Aditum Payment Magento 2
 
 All rights reserved.
 

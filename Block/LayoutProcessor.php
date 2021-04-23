@@ -1,6 +1,6 @@
 <?php
 
-namespace Aditum\Payment\Block;
+namespace AditumPayment\Magento2\Block;
 
 class LayoutProcessor
 {

@@ -1,6 +1,6 @@
 <?php
 
-namespace Aditum\Payment\Observer\Sales;
+namespace AditumPayment\Magento2\Observer\Sales;
 
 use Magento\Sales\Model\Order;
 

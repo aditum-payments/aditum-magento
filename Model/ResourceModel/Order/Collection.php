@@ -1,5 +1,5 @@
 <?php
-namespace Aditum\Payment\Model\ResourceModel\Post;
+namespace AditumPayment\Magento2\Model\ResourceModel\Post;
 
 class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\AbstractCollection
 {
@@ -14,6 +14,6 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
      */
     protected function _construct()
     {
-        $this->_init('Aditum\Payment\Model\Order', 'Aditum\Payment\Model\ResourceModel\Order');
+        $this->_init('AditumPayment\Magento2\Model\Order', 'AditumPayment\Magento2\Model\ResourceModel\Order');
     }
 }

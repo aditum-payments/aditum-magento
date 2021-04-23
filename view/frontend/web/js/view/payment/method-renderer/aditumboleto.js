@@ -13,7 +13,7 @@ define(
 
         return Component.extend({
             defaults: {
-                template: 'Aditum_Payment/payment/boleto'
+                template: 'AditumPayment_Magento2/payment/boleto'
             },
 
              /** Returns send check to info */

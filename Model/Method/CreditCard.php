@@ -1,6 +1,6 @@
 <?php
 
-namespace Aditum\Payment\Model\Method;
+namespace AditumPayment\Magento2\Model\Method;
 
 use Magento\Directory\Helper\Data as DirectoryHelper;
 
@@ -37,7 +37,7 @@ class CreditCard extends \Magento\Payment\Model\Method\Cc
                                 \Magento\Framework\Stdlib\DateTime\TimezoneInterface $localeDate,
                                 \Magento\Framework\Model\ResourceModel\AbstractResource $resource = null,
                                 \Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null,
-                                \Aditum\Payment\Helper\Api $api,
+                                \AditumPayment\Magento2\Helper\Api $api,
                                 \Magento\Backend\Model\Auth\Session $adminSession,
                                 \Psr\Log\LoggerInterface $mlogger,
                                 array $data = [])
@@ -50,8 +50,8 @@ class CreditCard extends \Magento\Payment\Model\Method\Cc
             $scopeConfig, $logger, $moduleList, $localeDate, $resource, $resourceCollection, $data);
     }
 
-//    protected $_formBlockType = \Aditum\Payment\Block\Form\CreditCard::class;
-//    protected $_infoBlockType = \Aditum\Payment\Block\Payment\InfoCreditCard::class;
+//    protected $_formBlockType = \AditumPayment\Magento2\Block\Form\CreditCard::class;
+//    protected $_infoBlockType = \AditumPayment\Magento2\Block\Payment\InfoCreditCard::class;
 
 //    public function __construct(
 //        \Magento\Framework\Model\Context $context,
@@ -61,7 +61,7 @@ class CreditCard extends \Magento\Payment\Model\Method\Cc
 //        \Magento\Payment\Helper\Data $paymentData,
 //        \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
 //        \Magento\Payment\Model\Method\Logger $logger,
-//        \Aditum\Payment\Helper\Api $api,
+//        \AditumPayment\Magento2\Helper\Api $api,
 //        \Magento\Backend\Model\Auth\Session $adminSession,
 //        \Psr\Log\LoggerInterface $mlogger,
 //        \Magento\Framework\Model\ResourceModel\AbstractResource $resource = null,

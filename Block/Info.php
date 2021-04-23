@@ -1,5 +1,5 @@
 <?php
-namespace Aditum\Payment\Block;
+namespace AditumPayment\Magento2\Block;
 
 use Magento\Framework\DataObject;
 use Magento\Framework\View\Element\Template;
@@ -15,7 +15,7 @@ class Info extends \Magento\Payment\Block\Info
     public function __construct(
         \Magento\Framework\Pricing\Helper\Data $currency,
         \Magento\Backend\Block\Template\Context $context,
-        \Aditum\Payment\Helper\Api $api,
+        \AditumPayment\Magento2\Helper\Api $api,
         array $data = []
     ) {
         parent::__construct($context, $data);

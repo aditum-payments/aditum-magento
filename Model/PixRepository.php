@@ -1,7 +1,7 @@
 <?php
-namespace Aditum\Payment\Model;
+namespace AditumPayment\Magento2\Model;
 
-class PixRepository //implements \Aditum\Payment\Api\PixRepositoryInterface
+class PixRepository //implements \AditumPayment\Magento2\Api\PixRepositoryInterface
 {
     protected $assetRepo;
 

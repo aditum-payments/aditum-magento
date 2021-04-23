@@ -5,7 +5,7 @@
             <aditumcc>
                 <active>1</active>
                 <payment_action>order</payment_action>
-                <model>Aditum\Payment\Model\Method\CreditCard</model>
+                <model>AditumPayment\Magento2\Model\Method\CreditCard</model>
                 <title>Aditum CC</title>
                 <order_status>pending</order_status>
                 <send_neworder_email>1</send_neworder_email>
@@ -14,7 +14,7 @@
             <aditumboleto>
                 <active>1</active>
                 <payment_action>order</payment_action>
-                <model>Aditum\Payment\Model\Method\Boleto</model>
+                <model>AditumPayment\Magento2\Model\Method\Boleto</model>
                 <title>Aditum Boleto</title>
                 <order_status>pending</order_status>
                 <send_neworder_email>1</send_neworder_email>

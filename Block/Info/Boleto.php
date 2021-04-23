@@ -3,7 +3,7 @@
  * Copyright © 2013-2017 Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
-namespace Aditum\Payment\Block\Info;
+namespace AditumPayment\Magento2\Block\Info;
 
 /*use Moip\Moip;
 use Moip\Auth\BasicAuth;*/
@@ -12,7 +12,7 @@ class Boleto extends \Magento\Payment\Block\Info
 {
 
 
-    protected $_template = 'Aditum_Payment::info/boleto.phtml';
+    protected $_template = 'AditumPayment_Magento2::info/boleto.phtml';
 
 
     public function getLinkPay(){

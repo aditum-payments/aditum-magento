@@ -11,7 +11,7 @@ define(
         rendererList.push(
             {
                 type: 'aditumcc',
-                component: 'Aditum_Payment/js/view/payment/method-renderer/aditumcc'
+                component: 'AditumPayment_Magento2/js/view/payment/method-renderer/aditumcc'
             }
         );
         /** Add view logic here if needed */

@@ -1,5 +1,5 @@
 <?php
-namespace Aditum\Payment\Model;
+namespace AditumPayment\Magento2\Model;
 
 class Order extends \Magento\Framework\Model\AbstractModel implements \Magento\Framework\DataObject\IdentityInterface
 {
@@ -11,7 +11,7 @@ class Order extends \Magento\Framework\Model\AbstractModel implements \Magento\F
 
     protected function _construct()
     {
-        $this->_init('Aditum\Payment\Model\ResourceModel\Order');
+        $this->_init('AditumPayment\Magento2\Model\ResourceModel\Order');
     }
 
     public function getIdentities()

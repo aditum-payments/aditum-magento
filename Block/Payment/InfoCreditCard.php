@@ -1,6 +1,6 @@
 <?php
 
-namespace Aditum\Payment\Block\Payment;
+namespace AditumPayment\Magento2\Block\Payment;
 
 class InfoCreditCard extends \Magento\Payment\Block\Info
 {

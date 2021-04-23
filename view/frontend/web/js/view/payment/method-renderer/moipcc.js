@@ -15,8 +15,8 @@ define(
 	'Magento_Payment/js/model/credit-card-validation/credit-card-data',
 	'Magento_Payment/js/model/credit-card-validation/validator',
     'Magento_Checkout/js/model/payment/additional-validators',
-	'Aditum_Payment/js/model/credit-card-validation/credit-card-number-validator',
-	'Aditum_Payment/js/model/credit-card-validation/custom',
+	'AditumPayment_Magento2/js/model/credit-card-validation/credit-card-number-validator',
+	'AditumPayment_Magento2/js/model/credit-card-validation/custom',
     'mage/url',
 	'mage/calendar',
 	'mage/translate'
@@ -43,7 +43,7 @@ function (
 
         return Component.extend({
             defaults: {
-                template: 'Aditum_Payment/payment/cc',
+                template: 'AditumPayment_Magento2/payment/cc',
 			    creditCardType: '',
                 creditCardExpYear: '',
                 creditCardExpMonth: '',

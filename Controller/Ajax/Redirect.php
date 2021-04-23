@@ -1,5 +1,5 @@
 <?php
-namespace Aditum\Payment\Controller\Ajax;
+namespace AditumPayment\Magento2\Controller\Ajax;
 
 class Redirect extends \Magento\Framework\App\Action\Action
 {
@@ -11,7 +11,7 @@ class Redirect extends \Magento\Framework\App\Action\Action
         \Magento\Checkout\Model\Session $checkoutSession,
         \Magento\Framework\App\Action\Context $context,
         \Magento\Framework\Controller\ResultFactory $result,
-        \Aditum\Payment\Helper\Api $api
+        \AditumPayment\Magento2\Helper\Api $api
      ) {
         $this->checkoutSession = $checkoutSession;
         $this->result = $result;

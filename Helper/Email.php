@@ -1,5 +1,5 @@
 <?php
-namespace Aditum\Payment\Helper;
+namespace AditumPayment\Magento2\Helper;
 
 use Magento\Framework\App\Helper\Context;
 use Magento\Framework\Translate\Inline\StateInterface;

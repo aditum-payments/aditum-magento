@@ -11,7 +11,7 @@ define(
         rendererList.push(
             {
                 type: 'aditumboleto',
-                component: 'Aditum_Payment/js/view/payment/method-renderer/aditumboleto'
+                component: 'AditumPayment_Magento2/js/view/payment/method-renderer/aditumboleto'
             }
         );
         return Component.extend({});

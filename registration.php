@@ -1,8 +1,8 @@
 <?php
 /**
  * @author Gustavo Ulyssea - gustavo.ulyssea@gmail.com
- * @copyright Copyright (c) 2020-2021 GumNet (https://gum.net.br)
- * @package Aditum Payment
+ * @copyright Copyright (c) 2021-2021 Aditum Pagamentos
+ * @package Aditum Payment Magento 2
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,6 +29,6 @@
 
 \Magento\Framework\Component\ComponentRegistrar::register(
         \Magento\Framework\Component\ComponentRegistrar::MODULE,
-        'Aditum_Payment',
+        'AditumPayment_Magento2',
         __DIR__
     );

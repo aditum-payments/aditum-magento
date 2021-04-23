@@ -1,6 +1,6 @@
 <?php
 
-namespace Aditum\Payment\Model\Config;
+namespace AditumPayment\Magento2\Model\Config;
 
 class AddressLines implements \Magento\Framework\Option\ArrayInterface
 {

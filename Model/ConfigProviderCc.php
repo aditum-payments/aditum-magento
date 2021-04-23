@@ -1,5 +1,5 @@
 <?php
-namespace Aditum\Payment\Model;
+namespace AditumPayment\Magento2\Model;
 
 use Magento\Framework\Locale\Bundle\DataBundle;
 use Magento\Checkout\Model\ConfigProviderInterface;
@@ -159,7 +159,7 @@ class ConfigProviderCc implements ConfigProviderInterface
 
     public function getCvvImg(){
         $asset = $this->ccConfig
-                    ->createAsset('Aditum_Payment::images/cc/cvv.gif');
+                    ->createAsset('AditumPayment_Magento2::images/cc/cvv.gif');
         return $asset->getUrl();
     }
     /**
@@ -176,7 +176,7 @@ class ConfigProviderCc implements ConfigProviderInterface
 
             if (!array_key_exists($code, $this->icons)) {
                 $asset = $this->ccConfig
-                    ->createAsset('Aditum_Payment::images/cc/' . strtolower($code) . '.png');
+                    ->createAsset('AditumPayment_Magento2::images/cc/' . strtolower($code) . '.png');
                 $placeholder = $this->assetSource->findSource($asset);
                 if ($placeholder) {
                     list($width, $height) = getimagesize($asset->getSourceFile());

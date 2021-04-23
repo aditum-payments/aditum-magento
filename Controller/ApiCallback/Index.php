@@ -1,6 +1,6 @@
 <?php
 
-namespace Aditum\Payment\Controller\ApiCallback;
+namespace AditumPayment\Magento2\Controller\ApiCallback;
 
 use \Magento\Framework\App\CsrfAwareActionInterface;
 use \Magento\Framework\App\RequestInterface;
@@ -26,7 +26,7 @@ class Index extends \Magento\Framework\App\Action\Action
         \Psr\Log\LoggerInterface $logger,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
         \Magento\Framework\Controller\ResultFactory $result,
-        \Aditum\Payment\Helper\Email $email,
+        \AditumPayment\Magento2\Helper\Email $email,
         array $data = []
     )
     {

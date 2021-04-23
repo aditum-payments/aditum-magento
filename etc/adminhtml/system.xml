@@ -13,7 +13,7 @@
                 <field id="environment" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Ambiente</label>
                     <comment><![CDATA[Selecione entre homologação para testes de desenvolvimento e produção.]]></comment>
-                    <source_model>Aditum\Payment\Model\Config\Environment</source_model>
+                    <source_model>AditumPayment\Magento2\Model\Config\Environment</source_model>
                 </field>
                 <field id="client_id" translate="label comment" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Merchant credential</label>
@@ -27,19 +27,19 @@
                 </field>
                 <field id="street" translate="label" type="select" sortOrder="100" showInDefault="1">
                     <label>Definições do Endereço - Rua</label>
-                    <source_model>Aditum\Payment\Model\Config\AddressLines</source_model>
+                    <source_model>AditumPayment\Magento2\Model\Config\AddressLines</source_model>
                 </field>
                 <field id="number" translate="label" type="select" sortOrder="110" showInDefault="1">
                     <label>Definições do Endereço - Número</label>
-                    <source_model>Aditum\Payment\Model\Config\AddressLines</source_model>
+                    <source_model>AditumPayment\Magento2\Model\Config\AddressLines</source_model>
                 </field>
                 <field id="complement" translate="label" type="select" sortOrder="120" showInDefault="1">
                     <label>Definições do Endereço - Complemento</label>
-                    <source_model>Aditum\Payment\Model\Config\AddressLines</source_model>
+                    <source_model>AditumPayment\Magento2\Model\Config\AddressLines</source_model>
                 </field>
                 <field id="district" translate="label" type="select" sortOrder="130" showInDefault="1">
                     <label>Definições do Endereço - Bairro</label>
-                    <source_model>Aditum\Payment\Model\Config\AddressLines</source_model>
+                    <source_model>AditumPayment\Magento2\Model\Config\AddressLines</source_model>
                 </field>
             </group>
             <group id="aditum_cc" translate="label comment" sortOrder="340" showInDefault="1" showInWebsite="1" showInStore="1">

@@ -2,8 +2,8 @@
 <!--
 /**
  * @author Gustavo Ulyssea - gustavo.ulyssea@gmail.com
- * @copyright Copyright (c) 2020-2021 Aditum Pagamentos (https://gum.net.br)
- * @package Aditum Payment
+ * @copyright Copyright (c) 2021-2021 Aditum Pagamentos
+ * @package Aditum Payment Magento 2
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,7 +30,7 @@
  -->
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:noNamespaceSchemaLocation="urn:magento:framework:Module/etc/module.xsd">
-    <module name="Aditum_Payment" setup_version="1.0.23">
+    <module name="AditumPayment_Magento2" setup_version="0.0.1">
         <sequence>
             <module name="Magento_Sales"/>
             <module name="Magento_Payment"/>

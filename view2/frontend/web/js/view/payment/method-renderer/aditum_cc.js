@@ -15,7 +15,7 @@ define([
 
     return Component.extend({
         defaults: {
-            template: 'Aditum_Payment/payment/aditumcc',
+            template: 'AditumPayment_Magento2/payment/aditumcc',
             creditCardType: '',
             creditCardExpYear: '',
             creditCardExpMonth: '',

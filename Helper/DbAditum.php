@@ -1,6 +1,6 @@
 <?php
 
-namespace Aditum\Payment\Helper;
+namespace AditumPayment\Magento2\Helper;
 
 class DbAditum {
 

@@ -1,6 +1,6 @@
 <?php
 
-namespace Aditum\Payment\Helper;
+namespace AditumPayment\Magento2\Helper;
 
 class Api
 {
@@ -16,7 +16,7 @@ class Api
                                 \Magento\Framework\HTTP\Client\Curl $curl,
                                 \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
                                 \Psr\Log\LoggerInterface $logger,
-                                \Aditum\Payment\Helper\DbAditum $dbAditum,
+                                \AditumPayment\Magento2\Helper\DbAditum $dbAditum,
                                 \Magento\Store\Model\StoreManagerInterface $storeManager,
                                 \Magento\Checkout\Model\Session $checkoutSession
     )

@@ -1,8 +1,8 @@
 <?php
 /**
  * @author Gustavo Ulyssea - gustavo.ulyssea@gmail.com
- * @copyright Copyright (c) 2020 GumNet (https://gum.net.br)
- * @package GumNet AME
+ * @copyright Copyright (c) 2021-2021 Aditum Pagamentos
+ * @package Aditum Payment Magento 2
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,7 +27,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-namespace Aditum\Payment\Block;
+namespace AditumPayment\Magento2\Block;
 
 class SuccessPageRedirect extends \Magento\Checkout\Block\Onepage\Success
 {
@@ -40,7 +40,7 @@ class SuccessPageRedirect extends \Magento\Checkout\Block\Onepage\Success
         \Magento\Checkout\Model\Session $checkoutSession,
         \Magento\Sales\Model\Order\Config $orderConfig,
         \Magento\Framework\App\Http\Context $httpContext,
-        \Aditum\Payment\Helper\Api $api,
+        \AditumPayment\Magento2\Helper\Api $api,
         \Magento\Framework\App\Response\Http $response
     ) {
         parent::__construct($context, $checkoutSession,$orderConfig,$httpContext);
