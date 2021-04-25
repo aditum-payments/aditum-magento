@@ -3,6 +3,8 @@
 namespace AditumPayment\Magento2\Model\Method;
 
 use Magento\Directory\Helper\Data as DirectoryHelper;
+use Magento\Payment\Observer\AbstractDataAssignObserver;
+
 
 class CreditCard extends \Magento\Payment\Model\Method\Cc
 {
@@ -79,11 +81,12 @@ class CreditCard extends \Magento\Payment\Model\Method\Cc
 
     public function order(\Magento\Payment\Model\InfoInterface $payment, $amount)
     {
-//        $this->mlogger->info('Inside Order');
+        $this->mlogger->info('Inside Order');
         $info = $this->getInfoInstance();
+        $payment->getAdditionalInformation('fullname');
 
         $order = $payment->getOrder();
-        if (!$aditumreturn = $this->api->createOrderCc($order,$info)) {
+        if (!$aditumreturn = $this->api->createOrderCc($order,$info,$payment)) {
             throw new \Magento\Framework\Validator\Exception(__('Houve um erro processando seu pedido. Por favor entre em contato conosco.'));
         }
         if($aditumreturn['charge']['chargeStatus']!='Authorized'){
@@ -97,6 +100,31 @@ class CreditCard extends \Magento\Payment\Model\Method\Cc
         $payment->setAdditionalInformation('aditum_id',$aditumreturn['charge']['id']);
         return $this;
     }
+
+    public function assignData(\Magento\Framework\DataObject $data)
+    {
+        parent::assignData($data);
+
+        $this->_eventManager->dispatch(
+            'payment_method_assign_data_' . $this->getCode(),
+            [
+                AbstractDataAssignObserver::METHOD_CODE => $this,
+                AbstractDataAssignObserver::MODEL_CODE => $this->getInfoInstance(),
+                AbstractDataAssignObserver::DATA_CODE => $data
+            ]
+        );
+        $this->_eventManager->dispatch(
+            'payment_method_assign_data',
+            [
+                AbstractDataAssignObserver::METHOD_CODE => $this,
+                AbstractDataAssignObserver::MODEL_CODE => $this->getInfoInstance(),
+                AbstractDataAssignObserver::DATA_CODE => $data
+            ]
+        );
+        return $this;
+    }
+
+
 //    public function capture()
 //    {
 //
@@ -135,8 +163,8 @@ class CreditCard extends \Magento\Payment\Model\Method\Cc
             throw new \Magento\Framework\Validator\Exception(__('Payment refunding error.'));
         }
         $payment
-            ->setTransactionId($transactionId . '-' . \Magento\Sales\Model\Order\Payment\Transaction::TYPE_REFUND)
-            ->setParentTransactionId($transactionId)
+            ->setTransactionId( '-' . \Magento\Sales\Model\Order\Payment\Transaction::TYPE_REFUND)
+//            ->setParentTransactionId($transactionId)
             ->setIsTransactionClosed(1)
             ->setShouldCloseParentTransaction(1);
         return $this;

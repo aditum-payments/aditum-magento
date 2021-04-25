@@ -45,7 +45,7 @@ class Api
         $tTime = time()+86400*(int)$this->_scopeConfig->getValue("payment/aditumboleto/expiration");
         $json_array['charge']['deadline'] = date("Y-m-d",$tTime);
 
-        $json_array['charge']['customer']['name'] = $billingAddress->getFullName();
+        $json_array['charge']['customer']['name'] = $billingAddress->getName();
         $json_array['charge']['customer']['email'] = $quote->getCustomerEmail();
         $json_array['charge']['customer']['documentType'] = $this->getDocumentTypeId();
 
@@ -122,24 +122,19 @@ class Api
         $result_array = json_decode($result,true);
         return $result_array;
     }
-    public function createOrderCc(\Magento\Sales\Model\Order\Interceptor $order,$info)
+    public function createOrderCc(\Magento\Sales\Model\Order\Interceptor $order,$info,$payment)
     {
         $url = $this->url . "/charge/authorization";
         $quote = $this->checkoutSession->getQuote();
 
-        $json_array['charge']['customer']['name'] = $order->getBillingAddress()->getFullName();
+        $json_array['charge']['customer']['name'] = $order->getBillingAddress()->getName();
         $json_array['charge']['customer']['email'] = $quote->getCustomerEmail();
 
 
         $transactions['card']['cardNumber'] = preg_replace('/[\-\s]+/', '', $info->getCcNumber());
-        $transactions['card']['cvv'] = $info->getCcCid();
+        $transactions['card']['cvv'] = $payment->getAdditionalInformation('cc_cvv');
         $transactions['card']['brandName'] = "MasterCard";
-        if($info->getFullName()) {
-            $transactions['card']['cardholderName'] = $info->getFullname();
-        }
-        else{
-            $transactions['card']['cardholderName'] = $order->getBillingAddress()->getFullName();
-        }
+        $transactions['card']['cardholderName'] = $payment->getAdditionalInformation('fullname');
         $transactions['card']['expirationMonth'] = $info->getCcExpMonth();
         $transactions['card']['expirationYear'] = $info->getCcExpYear();
         $grandTotal = $order->getGrandTotal() * 100;

@@ -72,6 +72,10 @@ function (
                         'creditCardSsIssue',
                         'selectedCardType'
                     ]);
+                this._super()
+                    .observe([
+                        'fullname'
+                    ]);
 
                 return this;
             },
@@ -307,21 +311,29 @@ function (
 		          }
 		         return cc;
 			},
-
             getData: function () {
                 return {
                     'method': this.item.method,
                     'additional_data': {
                         'cc_number': this.creditCardNumber(),
                         'cc_type': this.creditCardType(),
-						'cc_exp_month': this.creditCardExpMonth(),
-						'cc_exp_year': this.creditCardExpYear(),
-						'fullname': jQuery('#'+this.getCode()+'_fullname').val(),
-						'document': jQuery('#'+this.getCode()+'_document').val(),
-						'installments': jQuery('#'+this.getCode()+'_installments').val(),
-						'hash': jQuery('#'+this.getCode()+'_hash').val()
+                        'cc_exp_month': this.creditCardExpMonth(),
+                        'cc_exp_year': this.creditCardExpYear(),
+                        'cc_cid': jQuery('#'+this.getCode()+'_cc_cid').val(),
+                        'fullname': jQuery('#'+this.getCode()+'_fullname').val(),
+                        'document': jQuery('#'+this.getCode()+'_document').val(),
+                        'installments': jQuery('#'+this.getCode()+'_installments').val(),
+                        'hash': jQuery('#'+this.getCode()+'_hash').val()
                     }
                 };
+            },
+            getFullname: function() {
+                return _.map(window.checkoutConfig.payment.aditumcc.fullname, function(value, key) {
+                    return {
+                        'value': key,
+                        'fullname': value
+                    }
+                });
             },
 
 			validate: function() {
