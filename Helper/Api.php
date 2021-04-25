@@ -126,17 +126,18 @@ class Api
     {
         $url = $this->url . "/charge/authorization";
         $quote = $this->checkoutSession->getQuote();
+//        $this->logger->info(json_encode($payment->getAdditionalInformation(),true));
 
         $json_array['charge']['customer']['name'] = $order->getBillingAddress()->getName();
         $json_array['charge']['customer']['email'] = $quote->getCustomerEmail();
 
 
         $transactions['card']['cardNumber'] = preg_replace('/[\-\s]+/', '', $info->getCcNumber());
-        $transactions['card']['cvv'] = $payment->getAdditionalInformation('cc_cvv');
+        $transactions['card']['cvv'] = $payment->getAdditionalInformation('cc_cid');
         $transactions['card']['brandName'] = "MasterCard";
         $transactions['card']['cardholderName'] = $payment->getAdditionalInformation('fullname');
-        $transactions['card']['expirationMonth'] = $info->getCcExpMonth();
-        $transactions['card']['expirationYear'] = $info->getCcExpYear();
+        $transactions['card']['expirationMonth'] = $payment->getAdditionalInformation('cc_exp_month');
+        $transactions['card']['expirationYear'] = $payment->getAdditionalInformation('cc_exp_year');
         $grandTotal = $order->getGrandTotal() * 100;
         $transactions['paymentType'] = 2;
         $transactions['amount'] = $grandTotal;

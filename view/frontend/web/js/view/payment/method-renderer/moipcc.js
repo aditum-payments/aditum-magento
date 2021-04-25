@@ -74,7 +74,11 @@ function (
                     ]);
                 this._super()
                     .observe([
-                        'fullname'
+                        'fullname',
+                        'cc_cvv',
+                        'cc_cid',
+                        'cc_exp_month',
+                        'cc_exp_year'
                     ]);
 
                 return this;
@@ -292,38 +296,18 @@ function (
 
 			return newArray;
 			},
-
-			getHash: function(){
-				var cc = new Moip.CreditCard({
-		            number  : this.creditCardNumber(),
-		            cvc     : this.creditCardVerificationNumber(),
-		            expMonth: this.creditCardExpMonth(),
-		            expYear : this.creditCardExpYear(),
-		            pubKey  : this.getPublickey()
-		          });
-		          /*console.log(cc);*/
-		          if( cc.isValid()){
-		          	jQuery('#'+this.getCode()+'_hash').val(cc.hash());
-		            /*console.log(cc.hash());*/
-		          }
-		          else{
-		           /* console.log('Invalid credit card. Verify parameters: number, cvc, expiration Month, expiration Year');*/
-		          }
-		         return cc;
-			},
             getData: function () {
                 return {
                     'method': this.item.method,
                     'additional_data': {
                         'cc_number': this.creditCardNumber(),
                         'cc_type': this.creditCardType(),
-                        'cc_exp_month': this.creditCardExpMonth(),
-                        'cc_exp_year': this.creditCardExpYear(),
+                        'cc_exp_month': jQuery('#'+this.getCode()+'_expiration').val(),
+                        'cc_exp_year': jQuery('#'+this.getCode()+'_expiration_yr').val(),
                         'cc_cid': jQuery('#'+this.getCode()+'_cc_cid').val(),
                         'fullname': jQuery('#'+this.getCode()+'_fullname').val(),
                         'document': jQuery('#'+this.getCode()+'_document').val(),
                         'installments': jQuery('#'+this.getCode()+'_installments').val(),
-                        'hash': jQuery('#'+this.getCode()+'_hash').val()
                     }
                 };
             },
@@ -338,7 +322,6 @@ function (
 
 			validate: function() {
 				var $form = $('#' + this.getCode() + '-form');
-				this.getHash();
                 return $form.validation() && $form.validation('isValid');
             }
         });
