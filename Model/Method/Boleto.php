@@ -54,6 +54,7 @@ class Boleto extends \Magento\Payment\Model\Method\AbstractMethod
     public function order(\Magento\Payment\Model\InfoInterface $payment, $amount)
     {
         $this->logger->info('Inside Order');
+        $this->logger->info(json_encode($payment->getAdditionalInformation(),true));
 
         $order = $payment->getOrder();
         if (!$pixreturn = $this->api->createOrder($order)) {
@@ -96,8 +97,8 @@ class Boleto extends \Magento\Payment\Model\Method\AbstractMethod
             throw new \Magento\Framework\Validator\Exception(__('Payment refunding error.'));
         }
         $payment
-            ->setTransactionId($transactionId . '-' . \Magento\Sales\Model\Order\Payment\Transaction::TYPE_REFUND)
-            ->setParentTransactionId($transactionId)
+//            ->setTransactionId($transactionId . '-' . \Magento\Sales\Model\Order\Payment\Transaction::TYPE_REFUND)
+//            ->setParentTransactionId($transactionId)
             ->setIsTransactionClosed(1)
             ->setShouldCloseParentTransaction(1);
         return $this;

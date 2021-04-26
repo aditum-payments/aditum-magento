@@ -23,17 +23,17 @@
         </div>
 
         <div class="field name required">
-            <label data-bind="attr: {for: getCode() + '_fullname'}" class="label">
+            <label data-bind="attr: {for: getCode() + '_boletofullname'}" class="label">
                 <span><!-- ko i18n: 'Full Name'--><!-- /ko --></span>
             </label>
             <div class="control">
-                <input type="text" name="fullname" class="input-text"  value=""
+                <input type="text" name="boletofullname" class="input-text"  value=""
                        data-bind="attr: {
 												value: getFullName(),
 												autocomplete: off,
-												id: getCode() + '_fullname',
+												id: getCode() + '_boletofullname',
 												title: $t('Card Holder Name'),
-												'data-container': getCode() + '-fullname',
+												'data-container': getCode() + '-boletofullname',
 												'data-validate': JSON.stringify({'required':true})}"/>
             </div>
         </div>
