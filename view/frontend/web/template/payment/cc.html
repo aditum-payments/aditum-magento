@@ -184,10 +184,20 @@
 						</div>
 					</div>
 				<!--/ko-->
-
-
-
-
+                <div class="field aditumcc_terms">
+                    <label data-bind="attr: {for: getCode() + '_terms'}" class="label">
+                    </label>
+                    <div >
+                        <input type="checkbox" name="aditumcc_terms" class="check-box" required value=""
+                               data-bind="attr: {
+													autocomplete: off,
+													id: getCode() + '_document',
+													required: true,
+													'data-container': getCode() + '-terms',
+													'data-validate': JSON.stringify({'required':true,'validate-cpf':'#' + getCode() + '_terms'})}"/>
+                        <span data-bind="html: getTermsHtml()"></span>
+                    </div>
+                </div>
 			</fieldset>
         </form>
 		<div class="checkout-agreements-block">

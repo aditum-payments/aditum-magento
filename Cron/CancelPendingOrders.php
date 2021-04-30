@@ -19,6 +19,7 @@ class CancelPendingOrders
     }
     public function execute()
     {
+
         $to = date('Y-m-d H:i:s',time()-3600);
 
         $orderCollection = $this->collectionFactory->create()->addFieldToSelect(array('*'));
@@ -37,7 +38,7 @@ class CancelPendingOrders
         foreach($orderCollection as $item) {
             $order = $this->orderFactory->create()->load($item->getId());
             $order->cancel()->save();
-            $this->logger->info("PIX: automatic cancel expired order ID: ".$order->getId());
+            $this->logger->info("Aditum: automatic cancel expired order ID: ".$order->getId());
         }
     }
 }

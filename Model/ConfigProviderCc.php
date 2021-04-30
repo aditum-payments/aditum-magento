@@ -143,10 +143,20 @@ class ConfigProviderCc implements ConfigProviderInterface
                 $config['payment'][$code]['publickey'] = $this->getPublicKey();
                 $config['payment'][$code]['image_cvv'] = $this->getCvvImg();
                 $config['payment'][$code]['get_document'] = $this->getUseDocument();
+                $config['payment'][$code]['terms_url'] = $this->getTermsUrl();
+                $config['payment'][$code]['terms_txt'] = $this->getTermsTxt();
 			}
         }
 
         return $config;
+    }
+    public function getTermsUrl()
+    {
+        return "https://www.aditum.com.br/";
+    }
+    public function getTermsTxt()
+    {
+        return "Aceito os termos e condições";
     }
 
     /**

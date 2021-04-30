@@ -128,14 +128,23 @@ function (
                 this.creditCardVerificationNumber.subscribe(function (value) {
                     creditCardData.cvvCode = value;
                 });
-
-
 			},
 			getCvvImageUrl: function () {
 	            return window.checkoutConfig.payment.aditumcc.image_cvv;
 	        },
+            getTermsHtml: function () {
+                return '<a target="_blank" href="' + this.getTermsUrl() +
+                    '">' + this.getTermsTxt() + '</a>';
+            },
 
-	        getCvvImageHtml: function () {
+            getTermsUrl: function () {
+                return window.checkoutConfig.payment.aditumcc.terms_url;
+            },
+
+            getTermsTxt: function () {
+                return window.checkoutConfig.payment.aditumcc.terms_txt;
+            },
+            getCvvImageHtml: function () {
 	            return '<img src="' + this.getCvvImageUrl() +
 	                '" alt="Referencia visual do CVV" title="Referencia visual do CVV" />';
 	        },

@@ -3,7 +3,7 @@
     <system>
         <section id="payment">
             <group id="aditum" translate="label comment" sortOrder="330" showInDefault="1" showInWebsite="1" showInStore="1">
-                <label>Aditum Payments</label>
+                <label>Aditum Pagamentos</label>
                 <comment>Método de pagamento Aditum</comment>
                 <field id="enable" translate="label comment" type="select" sortOrder="5" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Ativar</label>
@@ -16,10 +16,10 @@
                     <source_model>AditumPayment\Magento2\Model\Config\Environment</source_model>
                 </field>
                 <field id="client_id" translate="label comment" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Merchant credential</label>
+                    <label>CNPJ</label>
                 </field>
                 <field id="client_secret" translate="label comment" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Authorization</label>
+                    <label>Merchant ID</label>
                 </field>
                 <field id="order_expiration_days" translate="label comment" type="text" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Tempo de expiração do pedido</label>
