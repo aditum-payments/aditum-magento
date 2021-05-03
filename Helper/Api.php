@@ -30,8 +30,6 @@ class Api
         $this->_storeManager = $storeManager;
         $this->checkoutSession = $checkoutSession;
 
-//        $this->extAditumConfig = \AditumPayments\ApiSDK\Config\Configuration::getInstance();
-
         $env = $this->scopeConfig->getValue('payment/aditum/environment', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
 
         if ($env == 0) {
@@ -39,28 +37,6 @@ class Api
         }
         else if ($env == 1) {
             $this->url = "https://payment.aditum.com.br/v2";
-        }
-        if($this->enableExternalExtension) {
-//            if ($env == 0) {
-//                $this->extAditumConfig->setUrl($this->extAditumConfig::DEV_URL);
-//            } else if ($env == 1) {
-//                $this->extAditumConfig->setUrl($this->extAditumConfig::PROD_URL);
-//            }
-//            $this->extAditumConfig->setCnpj($this->getClientId());
-//            $this->extAditumConfig->setMerchantToken($this->getClientSecret());
-//            $token = $this->extAditumAuth->requestToken()['token'];
-//            $this->extAditumConfig->setToken($token);
-
-//            \AditumPayments\ApiSDK\Configuration::initialize();
-//            \AditumPayments\ApiSDK\Configuration::setUrl(\AditumPayments\ApiSDK\Configuration::DEV_URL);
-//            if ($env == 0) {
-//                \AditumPayments\ApiSDK\Configuration::setUrl(\AditumPayments\ApiSDK\Configuration::DEV_URL);
-//            } else if ($env == 1) {
-//                \AditumPayments\ApiSDK\Configuration::setUrl(\AditumPayments\ApiSDK\Configuration::PROD_URL);
-//            }
-//            \AditumPayments\ApiSDK\Configuration::setCnpj($this->getClientId());
-//            \AditumPayments\ApiSDK\Configuration::setMerchantToken($this->getClientSecret());
-//            \AditumPayments\ApiSDK\Configuration::login();
         }
     }
     public function createOrderBoleto(\Magento\Sales\Model\Order\Interceptor $order,$info)
@@ -111,7 +87,6 @@ class Api
         $json_array['bankIssuerDaysToCancel'] = $this->_scopeConfig->getValue("payment/aditumboleto/expiration");;
         $json_array['source'] = 1; // Sim	Define a fonte de cobrança.. Enum.
 
-
         $transactions['card']['cardNumber'] = preg_replace('/[\-\s]+/', '', $info->getCcNumber());
         $transactions['card']['cvv'] = $info->getCcCid();
         $transactions['card']['brandName'] = "MasterCard";
@@ -150,13 +125,11 @@ class Api
         $json_array['charge']['customer']['name'] = $order->getBillingAddress()->getName();
         $json_array['charge']['customer']['email'] = $quote->getCustomerEmail();
 
-
         $json['charge']['customer']['phone']['countryCode'] = "55";
         $phone_number = filter_var($billingAddress->getTelephone(), FILTER_SANITIZE_NUMBER_INT);
         $json['charge']['customer']['phone']['areaCode'] =  substr($phone_number,0,2);
         $json['charge']['customer']['phone']['number'] = substr($phone_number,2);
         $json['charge']['customer']['phone']['type'] = \AditumPayments\ApiSDK\Enum\PhoneType::MOBILE;
-
         $json['charge']['customer']['address']['street'] = $billingAddress
             ->getStreet()[$this->scopeConfig->getValue("payment/aditum/street")];
         $json['charge']['customer']['address']['number'] = $billingAddress
@@ -180,9 +153,6 @@ class Api
         $json['charge']['customer']['address']['country'] = "BR";
         $json['charge']['customer']['address']['zipCode'] = $billingAddress->getPostcode();
 
-
-
-
         $transactions['card']['cardNumber'] = preg_replace('/[\-\s]+/', '', $info->getCcNumber());
         $transactions['card']['cvv'] = $payment->getAdditionalInformation('cc_cid');
         $transactions['card']['brandName'] = "MasterCard";
@@ -196,7 +166,6 @@ class Api
         $transactions['merchantTransactionId'] = $order->getIncrementId();
 
         $json_array['charge']['transactions'] = [$transactions];
-
 
         $json_input = json_encode($json_array);
         $this->logger->info(json_encode($json_array,JSON_PRETTY_PRINT));
@@ -214,27 +183,16 @@ class Api
 
         $gateway = new \AditumPayments\ApiSDK\Gateway;
         $authorization = new \AditumPayments\ApiSDK\Domains\Authorization;
-//        if($preAuth){
-//            unset($authorization);
-//            $authorization = new \AditumPayments\ApiSDK\Domains\PreAuthorization;
-//        }
-
-
-//        $url = $this->url . "/charge/authorization";
+        if($preAuth){
+            unset($authorization);
+            $authorization = new \AditumPayments\ApiSDK\Domains\PreAuthorization;
+        }
         $quote = $this->checkoutSession->getQuote();
         $billingAddress = $quote->getBillingAddress();
-//        $this->logger->info(json_encode($payment->getAdditionalInformation(),true));
-
         $authorization->transactions->setPaymentType(\AditumPayments\ApiSDK\Enum\PaymentType::CREDIT);
-//        $charge->transactions->setInstallmentNumber(2);
         $authorization->transactions->setAcquirer(\AditumPayments\ApiSDK\Enum\AcquirerCode::SIMULADOR);
-
-
-//        $json_array['charge']['customer']['name'] = $order->getBillingAddress()->getName();
         $authorization->customer->setName($order->getBillingAddress()->getName());
-//        $json_array['charge']['customer']['email'] = $quote->getCustomerEmail();
         $authorization->customer->setEmail($quote->getCustomerEmail());
-
         $authorization->customer->phone->setCountryCode("55");
         $phone_number = filter_var($billingAddress->getTelephone(), FILTER_SANITIZE_NUMBER_INT);
         $authorization->customer->phone->setAreaCode(substr($phone_number,0,2));
@@ -252,47 +210,19 @@ class Api
         $authorization->customer->address->setState($this->codigoUF($billingAddress->getRegion()));
         $authorization->customer->address->setCountry("BR");
         $authorization->customer->address->setZipcode($billingAddress->getPostcode());
-
-//        $transactions['card']['cardNumber'] = preg_replace('/[\-\s]+/', '', $info->getCcNumber());
         $authorization->transactions->card->setCardNumber(preg_replace('/[\-\s]+/', '', $info->getCcNumber()));
-
-//        $transactions['card']['cvv'] = $payment->getAdditionalInformation('cc_cid');
         $authorization->transactions->card->setCVV($payment->getAdditionalInformation('cc_cid'));
-
-//        $transactions['card']['brandName'] = "MasterCard";
-
-//        $transactions['card']['cardholderName'] = $payment->getAdditionalInformation('fullname');
         $authorization->transactions->card->setCardholderName($payment->getAdditionalInformation('fullname'));
-
-//        $transactions['card']['expirationMonth'] = $payment->getAdditionalInformation('cc_exp_month');
         $authorization->transactions->card->setExpirationMonth($payment->getAdditionalInformation('cc_exp_month'));
-
-//        $transactions['card']['expirationYear'] = $payment->getAdditionalInformation('cc_exp_year');
         $authorization->transactions->card->setExpirationYear($payment->getAdditionalInformation('cc_exp_year'));
-
         $authorization->transactions->setInstallmentNumber($payment->getAdditionalInformation('installments'));
-
         $grandTotal = $order->getGrandTotal() * 100;
-
-//        $transactions['paymentType'] = 2;
-
-//        $transactions['amount'] = $grandTotal;
         $authorization->transactions->setAmount($grandTotal);
 
         $result = $gateway->charge($authorization);
 
         $this->logger->info("External Apitum API Return: ".json_encode($result));
-//        if($res["status"] != AditumPayments\ApiSDK\Enum\ChargeStatus::AUTHORIZED){
-//            return false;
-//        }
         return $result;
-
-
-//        $json_input = json_encode($json_array);
-//        $this->logger->info(json_encode($json_array,JSON_PRETTY_PRINT));
-//        $result = $this->apiRequest($url,"POST",$json_input);
-//        $result_array = json_decode($result,true);
-//        return $result_array;
     }
     public function apiRequest($url, $method = "GET", $json = "")
     {
@@ -338,7 +268,6 @@ class Api
 //        if($token = $this->dbAditum->getToken()){
 //            return $token;
 //        }
-
         $client_id = $this->getClientId();
         $client_secret = $this->getClientSecret();
         if (!$client_id || !$client_secret) {
@@ -360,7 +289,6 @@ class Api
         $url = $this->url . "/merchant/auth";
         $this->logger->info("Get Token URL: ".$url);
         $this->logger->info("Get Token input: ".json_encode($headers));
-
 
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $url);
