@@ -15,7 +15,7 @@
             <!-- ko template: getTemplate() --><!-- /ko -->
             <!--/ko-->
         </div>
-        <form class="form" id ="moipcc-form" method="post">
+        <form class="form" id ="aditumcc-form" method="post">
 
 			<fieldset data-bind="attr: {class: 'fieldset payment items ccard ' + getCode(), id: 'payment_form_' + getCode()}">
 
@@ -39,7 +39,7 @@
 						<!--/ko-->
 					</ul>
 					<input type="hidden"
-						   name="payment[moipcc]"
+						   name="payment[aditumcc]"
 						   class="input-text"
 						   value=""
 						   data-bind="attr: {id: getCode() + '_cc_type', 'data-container': getCode() + '-cc-type'},
@@ -184,17 +184,18 @@
 						</div>
 					</div>
 				<!--/ko-->
-                <div class="field aditumcc_terms">
+                <div class="field aditumcc_terms required">
                     <label data-bind="attr: {for: getCode() + '_terms'}" class="label">
                     </label>
                     <div >
-                        <input type="checkbox" name="aditumcc_terms" class="check-box" required value=""
+                        <input type="checkbox" name="aditumcc_terms" class="checkbox" required value=""
                                data-bind="attr: {
 													autocomplete: off,
-													id: getCode() + '_document',
-													required: true,
+													id: getCode() + '_terms',
+													'required': 'É necessário aceitar os termos',
 													'data-container': getCode() + '-terms',
-													'data-validate': JSON.stringify({'required':true,'validate-cpf':'#' + getCode() + '_terms'})}"/>
+													'data-validate': JSON.stringify({required:true})
+												}"/>
                         <span data-bind="html: getTermsHtml()"></span>
                     </div>
                 </div>
