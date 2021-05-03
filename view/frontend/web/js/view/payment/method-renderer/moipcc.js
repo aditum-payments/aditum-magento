@@ -203,7 +203,7 @@ function (
 			},
 
 			getInstallmentsActive: ko.computed(function () {
-			   return 0;
+			   return 1;
             }),
 
 			getInstall: function () {
@@ -237,6 +237,7 @@ function (
 
 				_.each( info_interest, function( key, value ) {
 					if(count <= max_div){
+                        info_interest[value] = 0;
 						value = info_interest[value];
 						if(value > 0){
 

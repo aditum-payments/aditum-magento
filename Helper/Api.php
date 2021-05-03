@@ -270,6 +270,8 @@ class Api
 //        $transactions['card']['expirationYear'] = $payment->getAdditionalInformation('cc_exp_year');
         $authorization->transactions->card->setExpirationYear($payment->getAdditionalInformation('cc_exp_year'));
 
+        $authorization->transactions->setInstallmentNumber($payment->getAdditionalInformation('installments'));
+
         $grandTotal = $order->getGrandTotal() * 100;
 
 //        $transactions['paymentType'] = 2;
