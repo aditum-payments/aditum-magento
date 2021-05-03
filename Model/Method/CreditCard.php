@@ -88,7 +88,8 @@ class CreditCard extends \Magento\Payment\Model\Method\Cc
 
         $order = $payment->getOrder();
         try {
-            if (!$aditumreturn = $this->api->createOrderCc($order, $info, $payment, $preAuth)) {
+            ob_start();
+            if (!$aditumreturn = json_decode(json_encode($this->api->createOrderCc($order, $info, $payment, $preAuth)),true)) {
                 throw new \Magento\Framework\Validator\Exception(__('Houve um erro processando seu pedido. Por favor entre em contato conosco.'));
             }
             if (!$preAuth) {
@@ -100,6 +101,7 @@ class CreditCard extends \Magento\Payment\Model\Method\Cc
                     throw new \Magento\Framework\Validator\Exception(__('Houve um erro cobrando o cartão. Por favor verifique os dados.'));
                 }
             }
+            ob_end_clean();
         } catch (Exception $e) {
             throw new \Magento\Framework\Validator\Exception(__('Houve um erro processando seu pedido. Por favor entre em contato conosco.'));
         }
