@@ -5,33 +5,15 @@ use Magento\Checkout\Model\ConfigProviderInterface;
 use Magento\Framework\Escaper;
 use Magento\Payment\Helper\Data as PaymentHelper;
 
-
-class ConfigProviderBoleto implements ConfigProviderInterface
+class ConfigProviderBoleto extends \AditumPayment\Magento2\Model\ConfigProvider implements ConfigProviderInterface
 {
-
-   /**
-     * @var string[]
-     */
     protected $methodCode = "aditumboleto";
 
-    /**
-     * @var Checkmo
-     */
     protected $method;
-
-    /**
-     * @var Escaper
-     */
     protected $escaper;
-
     protected $scopeConfig;
-
     protected $customer;
 
-    /**
-     * @param PaymentHelper $paymentHelper
-     * @param Escaper $escaper
-     */
     public function __construct(
         PaymentHelper $paymentHelper,
         Escaper $escaper,
@@ -45,9 +27,6 @@ class ConfigProviderBoleto implements ConfigProviderInterface
         $this->customer = $customer;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function getConfig()
     {
         return $this->method->isAvailable() ? [
@@ -62,22 +41,11 @@ class ConfigProviderBoleto implements ConfigProviderInterface
         ] : [];
     }
 
-    /**
-     * Get instruction from config
-     *
-     * @return string
-     */
     protected function getInstruction()
     {
         return nl2br($this->escaper->escapeHtml($this->scopeConfig->getValue("payment/aditum_boleto/instruction")));
     }
 
-
-    /**
-     * Get due from config
-     *
-     * @return string
-     */
     protected function getDue()
     {
         $day = (int)$this->scopeConfig->getValue("payment/aditum_boleto/expiration_days");

@@ -10,7 +10,7 @@ use Magento\Payment\Helper\Data as PaymentHelper;
 use Magento\Customer\Model\Session;
 
 
-class ConfigProviderCc implements ConfigProviderInterface
+class ConfigProviderCc extends \AditumPayment\Magento2\Model\ConfigProvider implements ConfigProviderInterface
 {
 	/**
      * Years range
@@ -150,15 +150,6 @@ class ConfigProviderCc implements ConfigProviderInterface
 
         return $config;
     }
-    public function getTermsUrl()
-    {
-        return "https://www.aditum.com.br/";
-    }
-    public function getTermsTxt()
-    {
-        return "Aceito os termos e condições";
-    }
-
     /**
      * @return array
      */
@@ -233,7 +224,7 @@ class ConfigProviderCc implements ConfigProviderInterface
     }
 
     public function getUseDocument(){
-      return $this->scopeConfig->getValue("payment/moipcc/document/getdocument");
+        return $this->scopeConfig->getValue("payment/moipcc/document/getdocument");
     }
 
 	public function getInfoParcelamentoJuros() {

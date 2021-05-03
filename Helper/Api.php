@@ -14,21 +14,13 @@ class Api
     protected $_storeManager;
     protected $checkoutSession;
 
-    protected $extAditumAuth;
-    protected $extAditumConfig;
-    protected $extCcCharge;
-    protected $extPay;
-
     public function __construct(\Magento\Framework\App\Helper\Context $context,
                                 \Magento\Framework\HTTP\Client\Curl $curl,
                                 \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
                                 \Psr\Log\LoggerInterface $logger,
                                 \AditumPayment\Magento2\Helper\DbAditum $dbAditum,
                                 \Magento\Store\Model\StoreManagerInterface $storeManager,
-                                \Magento\Checkout\Model\Session $checkoutSession,
-                                \AditumPayments\ApiSDK\Authentication $extAditumAuth,
-                                \AditumPayments\ApiSDK\Domains\Authorization $extCcCharge,
-                                \AditumPayments\ApiSDK\Payment $extPay
+                                \Magento\Checkout\Model\Session $checkoutSession
     )
     {
         $this->curl = $curl;
@@ -37,11 +29,8 @@ class Api
         $this->dbAditum = $dbAditum;
         $this->_storeManager = $storeManager;
         $this->checkoutSession = $checkoutSession;
-        $this->extAditumAuth = $extAditumAuth;
-        $this->extCcCharge = $extCcCharge;
-        $this->extPay = $extPay;
 
-        $this->extAditumConfig = \AditumPayments\ApiSDK\Config\Configuration::getInstance();
+//        $this->extAditumConfig = \AditumPayments\ApiSDK\Config\Configuration::getInstance();
 
         $env = $this->scopeConfig->getValue('payment/aditum/environment', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
 
@@ -51,14 +40,28 @@ class Api
         else if ($env == 1) {
             $this->url = "https://payment.aditum.com.br/v2";
         }
-        if($env==0){
-            $this->extAditumConfig->setUrl($this->extAditumConfig::DEV_URL);
+        if($this->enableExternalExtension) {
+//            if ($env == 0) {
+//                $this->extAditumConfig->setUrl($this->extAditumConfig::DEV_URL);
+//            } else if ($env == 1) {
+//                $this->extAditumConfig->setUrl($this->extAditumConfig::PROD_URL);
+//            }
+//            $this->extAditumConfig->setCnpj($this->getClientId());
+//            $this->extAditumConfig->setMerchantToken($this->getClientSecret());
+//            $token = $this->extAditumAuth->requestToken()['token'];
+//            $this->extAditumConfig->setToken($token);
+
+//            \AditumPayments\ApiSDK\Configuration::initialize();
+//            \AditumPayments\ApiSDK\Configuration::setUrl(\AditumPayments\ApiSDK\Configuration::DEV_URL);
+//            if ($env == 0) {
+//                \AditumPayments\ApiSDK\Configuration::setUrl(\AditumPayments\ApiSDK\Configuration::DEV_URL);
+//            } else if ($env == 1) {
+//                \AditumPayments\ApiSDK\Configuration::setUrl(\AditumPayments\ApiSDK\Configuration::PROD_URL);
+//            }
+//            \AditumPayments\ApiSDK\Configuration::setCnpj($this->getClientId());
+//            \AditumPayments\ApiSDK\Configuration::setMerchantToken($this->getClientSecret());
+//            \AditumPayments\ApiSDK\Configuration::login();
         }
-        else if ($env == 1) {
-            $this->extAditumConfig->setUrl($this->extAditumConfig::PROD_URL);
-        }
-        $this->extAditumConfig->setCnpj($this->getClientId());
-        $this->extAditumConfig->setMerchantToken($this->getClientSecret());
     }
     public function createOrderBoleto(\Magento\Sales\Model\Order\Interceptor $order,$info)
     {
@@ -134,10 +137,10 @@ class Api
         $result_array = json_decode($result,true);
         return $result_array;
     }
-    public function createOrderCc(\Magento\Sales\Model\Order\Interceptor $order,$info,$payment)
+    public function createOrderCc(\Magento\Sales\Model\Order\Interceptor $order, $info, $payment, $preAuth = 0)
     {
         if($this->enableExternalExtension){
-            return $this->extCreateOrderCc($order,$info,$payment);
+            return $this->extCreateOrderCc($order,$info,$payment,$preAuth);
         }
         $url = $this->url . "/charge/authorization";
         $quote = $this->checkoutSession->getQuote();
@@ -201,77 +204,86 @@ class Api
         $result_array = json_decode($result,true);
         return $result_array;
     }
-    public function extCreateOrderCc(\Magento\Sales\Model\Order\Interceptor $order,$info,$payment)
+    public function extCreateOrderCc(\Magento\Sales\Model\Order\Interceptor $order,$info,$payment, $preAuth=0)
     {
-        $this->getToken();
+        \AditumPayments\ApiSDK\Configuration::initialize();
+        \AditumPayments\ApiSDK\Configuration::setUrl(\AditumPayments\ApiSDK\Configuration::DEV_URL);
+        \AditumPayments\ApiSDK\Configuration::setCnpj($this->getClientId());
+        \AditumPayments\ApiSDK\Configuration::setMerchantToken($this->getClientSecret());
+        \AditumPayments\ApiSDK\Configuration::login();
+
+        $gateway = new \AditumPayments\ApiSDK\Gateway;
+        $authorization = new \AditumPayments\ApiSDK\Domains\Authorization;
+//        if($preAuth){
+//            unset($authorization);
+//            $authorization = new \AditumPayments\ApiSDK\Domains\PreAuthorization;
+//        }
+
+
 //        $url = $this->url . "/charge/authorization";
         $quote = $this->checkoutSession->getQuote();
         $billingAddress = $quote->getBillingAddress();
 //        $this->logger->info(json_encode($payment->getAdditionalInformation(),true));
 
-        $this->extCcCharge->transactions->setPaymentType(\AditumPayments\ApiSDK\Enum\PaymentType::CREDIT);
+        $authorization->transactions->setPaymentType(\AditumPayments\ApiSDK\Enum\PaymentType::CREDIT);
 //        $charge->transactions->setInstallmentNumber(2);
-        $this->extCcCharge->transactions->setAcquirer(\AditumPayments\ApiSDK\Enum\AcquirerCode::SIMULADOR);
+        $authorization->transactions->setAcquirer(\AditumPayments\ApiSDK\Enum\AcquirerCode::SIMULADOR);
 
 
 //        $json_array['charge']['customer']['name'] = $order->getBillingAddress()->getName();
-        $this->extCcCharge->customer->setName($order->getBillingAddress()->getName());
+        $authorization->customer->setName($order->getBillingAddress()->getName());
 //        $json_array['charge']['customer']['email'] = $quote->getCustomerEmail();
-        $this->extCcCharge->customer->setEmail($quote->getCustomerEmail());
+        $authorization->customer->setEmail($quote->getCustomerEmail());
 
-        $this->extCcCharge->customer->phone->setCountryCode("55");
+        $authorization->customer->phone->setCountryCode("55");
         $phone_number = filter_var($billingAddress->getTelephone(), FILTER_SANITIZE_NUMBER_INT);
-        $this->extCcCharge->customer->phone->setAreaCode(substr($phone_number,0,2));
-        $this->extCcCharge->customer->phone->setNumber(substr($phone_number,2));
-        $this->extCcCharge->customer->phone->setType(\AditumPayments\ApiSDK\Enum\PhoneType::MOBILE);
-        $this->extCcCharge->customer->address->setStreet($billingAddress
+        $authorization->customer->phone->setAreaCode(substr($phone_number,0,2));
+        $authorization->customer->phone->setNumber(substr($phone_number,2));
+        $authorization->customer->phone->setType(\AditumPayments\ApiSDK\Enum\PhoneType::MOBILE);
+        $authorization->customer->address->setStreet($billingAddress
             ->getStreet()[$this->scopeConfig->getValue("payment/aditum/street")]);
-        $this->extCcCharge->customer->address->setNumber($billingAddress
+        $authorization->customer->address->setNumber($billingAddress
             ->getStreet()[$this->scopeConfig->getValue("payment/aditum/number")]);
-        $this->extCcCharge->customer->address->setComplement($billingAddress
+        $authorization->customer->address->setComplement($billingAddress
             ->getStreet()[$this->scopeConfig->getValue("payment/aditum/complement")]);
-        $this->extCcCharge->customer->address->setNeighborhood($billingAddress
+        $authorization->customer->address->setNeighborhood($billingAddress
             ->getStreet()[$this->scopeConfig->getValue("payment/aditum/district")]);
-        $this->extCcCharge->customer->address->setCity($billingAddress->getCity());
-        $this->extCcCharge->customer->address->setState($this->codigoUF($billingAddress->getRegion()));
-        $this->extCcCharge->customer->address->setCountry("BR");
-        $this->extCcCharge->customer->address->setZipcode($billingAddress->getPostcode());
+        $authorization->customer->address->setCity($billingAddress->getCity());
+        $authorization->customer->address->setState($this->codigoUF($billingAddress->getRegion()));
+        $authorization->customer->address->setCountry("BR");
+        $authorization->customer->address->setZipcode($billingAddress->getPostcode());
 
 //        $transactions['card']['cardNumber'] = preg_replace('/[\-\s]+/', '', $info->getCcNumber());
-        $this->extCcCharge->transactions->card->setCardNumber(preg_replace('/[\-\s]+/', '', $info->getCcNumber()));
+        $authorization->transactions->card->setCardNumber(preg_replace('/[\-\s]+/', '', $info->getCcNumber()));
 
 //        $transactions['card']['cvv'] = $payment->getAdditionalInformation('cc_cid');
-        $this->extCcCharge->transactions->card->setCVV($payment->getAdditionalInformation('cc_cid'));
+        $authorization->transactions->card->setCVV($payment->getAdditionalInformation('cc_cid'));
 
 //        $transactions['card']['brandName'] = "MasterCard";
 
 //        $transactions['card']['cardholderName'] = $payment->getAdditionalInformation('fullname');
-        $this->extCcCharge->transactions->card->setCardholderName($payment->getAdditionalInformation('fullname'));
+        $authorization->transactions->card->setCardholderName($payment->getAdditionalInformation('fullname'));
 
 //        $transactions['card']['expirationMonth'] = $payment->getAdditionalInformation('cc_exp_month');
-        $this->extCcCharge->transactions->card->setExpirationMonth($payment->getAdditionalInformation('cc_exp_month'));
+        $authorization->transactions->card->setExpirationMonth($payment->getAdditionalInformation('cc_exp_month'));
 
 //        $transactions['card']['expirationYear'] = $payment->getAdditionalInformation('cc_exp_year');
-        $this->extCcCharge->transactions->card->setExpirationYear($payment->getAdditionalInformation('cc_exp_year'));
+        $authorization->transactions->card->setExpirationYear($payment->getAdditionalInformation('cc_exp_year'));
 
         $grandTotal = $order->getGrandTotal() * 100;
 
 //        $transactions['paymentType'] = 2;
 
 //        $transactions['amount'] = $grandTotal;
-        $this->extCcCharge->transactions->setAmount($grandTotal);
+        $authorization->transactions->setAmount($grandTotal);
 
-//        $transactions['softDescriptor'] = $this->_storeManager->getStore()->getName() ." - ".$order->getIncrementId();
-//        $transactions['merchantTransactionId'] = $order->getIncrementId();
+        $result = $gateway->charge($authorization);
 
-//        $json_array['charge']['transactions'] = [$transactions];
-
-        $res = $this->extPay->charge($this->extCcCharge);
-        $this->logger->info("External Apitum API Return: ".json_encode($res));
+        $this->logger->info("External Apitum API Return: ".json_encode($result));
 //        if($res["status"] != AditumPayments\ApiSDK\Enum\ChargeStatus::AUTHORIZED){
-            return false;
+//            return false;
 //        }
-        return $res;
+        return $result;
 
 
 //        $json_input = json_encode($json_array);
@@ -316,7 +328,7 @@ class Api
     {
         $this->logger->info("ameRequest getToken starting...");
         if($this->enableExternalExtension){
-            return $this->extGetToken();
+//            return $this->extGetToken();
         }
         // Package independent below
         //////////////////////////////
@@ -365,25 +377,25 @@ class Api
         $this->dbAditum->updateToken($expires_in,$result_array['accessToken']);
         return $result_array['accessToken'];
     }
-    public function extGetToken()
-    {
-        $config = \AditumPayments\ApiSDK\Config\Configuration::getInstance();
-        if($this->url=="https://payment-dev.aditum.com.br/v2"){
-            $config->setUrl($this->extAditumConfig::DEV_URL);
-        }
-        else{
-            $config->setUrl($this->extAditumConfig::PROD_URL);
-        }
-        $config->setCnpj($this->getClientId());
-        $config->setMerchantToken($this->getClientId());
-        $auth = new \AditumPayments\ApiSDK\Authentication;
-        $result = $auth->requestToken();
-        $this->logger->info("External Aditum GetToken result: ".json_encode($result));
-        if(!isset($result['token'])){
-            return false;
-        }
-        return $result['token'];
-    }
+//    public function extGetToken()
+//    {
+//        $config = \AditumPayments\ApiSDK\Config\Configuration::getInstance();
+//        if($this->url=="https://payment-dev.aditum.com.br/v2"){
+//            $config->setUrl($this->extAditumConfig::DEV_URL);
+//        }
+//        else{
+//            $config->setUrl($this->extAditumConfig::PROD_URL);
+//        }
+//        $config->setCnpj($this->getClientId());
+//        $config->setMerchantToken($this->getClientId());
+//        $auth = new \AditumPayments\ApiSDK\Authentication;
+//        $result = $auth->requestToken();
+//        $this->logger->info("External Aditum GetToken result: ".json_encode($result));
+//        if(!isset($result['token'])){
+//            return false;
+//        }
+//        return $result['token'];
+//    }
     public function logError($action,$url,$output,$input="")
     {
         $this->logger->error("ameRequest error: ".$action." - ".$url." - ".$input." - ".$output);

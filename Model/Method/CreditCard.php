@@ -84,13 +84,24 @@ class CreditCard extends \Magento\Payment\Model\Method\Cc
         $this->mlogger->info('Inside Order');
         $info = $this->getInfoInstance();
         $payment->getAdditionalInformation('fullname');
+        $preAuth = $this->_scopeConfig->getValue('payment/aditum_cc/pre_auth', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
 
         $order = $payment->getOrder();
-        if (!$aditumreturn = $this->api->createOrderCc($order,$info,$payment)) {
+        try {
+            if (!$aditumreturn = $this->api->createOrderCc($order, $info, $payment, $preAuth)) {
+                throw new \Magento\Framework\Validator\Exception(__('Houve um erro processando seu pedido. Por favor entre em contato conosco.'));
+            }
+            if (!$preAuth) {
+                if ($aditumreturn['charge']['chargeStatus'] != 'Authorized') {
+                    throw new \Magento\Framework\Validator\Exception(__('Houve um erro cobrando o cartão. Por favor verifique os dados.'));
+                }
+            } else {
+                if ($aditumreturn['status'] != 'PreAuthorized') {
+                    throw new \Magento\Framework\Validator\Exception(__('Houve um erro cobrando o cartão. Por favor verifique os dados.'));
+                }
+            }
+        } catch (Exception $e) {
             throw new \Magento\Framework\Validator\Exception(__('Houve um erro processando seu pedido. Por favor entre em contato conosco.'));
-        }
-        if($aditumreturn['charge']['chargeStatus']!='Authorized'){
-            throw new \Magento\Framework\Validator\Exception(__('Houve um erro cobrando o cartão. Por favor verifique os dados.'));
         }
         $this->updateOrderRaw($order->getIncrementId(),$aditumreturn);
         $order->setExtOrderId($aditumreturn['charge']['id']);
@@ -98,6 +109,7 @@ class CreditCard extends \Magento\Payment\Model\Method\Cc
             'ID Aditum: '.$aditumreturn['charge']['id']."<br>\n"
             .'Cartão: '.$aditumreturn['charge']['transactions'][0]['card']['cardNumber']."<br>\n");
         $payment->setAdditionalInformation('aditum_id',$aditumreturn['charge']['id']);
+        $payment->setAdditionalInformation('aditum_nsu',$aditumreturn['charge']['nsu']);
         return $this;
     }
 

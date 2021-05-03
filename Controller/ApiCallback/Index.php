@@ -6,8 +6,7 @@ use \Magento\Framework\App\CsrfAwareActionInterface;
 use \Magento\Framework\App\RequestInterface;
 use \Magento\Framework\App\Request\InvalidRequestException;
 
-class Index extends \Magento\Framework\App\Action\Action
-//implements CsrfAwareActionInterface
+class Index extends \Magento\Framework\App\Action\Action implements CsrfAwareActionInterface
 {
     protected $_request;
     protected $_orderRepository;
@@ -19,15 +18,15 @@ class Index extends \Magento\Framework\App\Action\Action
     protected $email;
 
     public function __construct(\Magento\Framework\App\Action\Context $context,
-        \Magento\Framework\App\Request\Http $request,
-        \Magento\Sales\Model\OrderRepository $orderRepository,
-        \Magento\Sales\Model\Service\InvoiceService $invoiceService,
-        \Magento\Framework\DB\TransactionFactory $transactionFactory,
-        \Psr\Log\LoggerInterface $logger,
-        \Magento\Store\Model\StoreManagerInterface $storeManager,
-        \Magento\Framework\Controller\ResultFactory $result,
-        \AditumPayment\Magento2\Helper\Email $email,
-        array $data = []
+                                \Magento\Framework\App\Request\Http $request,
+                                \Magento\Sales\Model\OrderRepository $orderRepository,
+                                \Magento\Sales\Model\Service\InvoiceService $invoiceService,
+                                \Magento\Framework\DB\TransactionFactory $transactionFactory,
+                                \Psr\Log\LoggerInterface $logger,
+                                \Magento\Store\Model\StoreManagerInterface $storeManager,
+                                \Magento\Framework\Controller\ResultFactory $result,
+                                \AditumPayment\Magento2\Helper\Email $email,
+                                array $data = []
     )
     {
         $this->_request = $request;
@@ -40,15 +39,15 @@ class Index extends \Magento\Framework\App\Action\Action
         $this->email = $email;
         parent::__construct($context);
     }
+
     public function execute()
     {
-        $this->logger->log("INFO","PIX Callback starting...");
+        $this->logger->log("INFO", "PIX Callback starting...");
         $json = file_get_contents('php://input');
 
-        if(!$this->isJson($json)){
+        if (!$this->isJson($json)) {
             $this->logger->info("ERROR: PIX Callback is not json");
-        }
-        else {
+        } else {
             $input = json_decode($json, true);
             // verify if id exists
             if (!array_key_exists('externalOrderId', $input)) {
@@ -77,10 +76,14 @@ class Index extends \Magento\Framework\App\Action\Action
         return $resultEmpty;
 
     }
-    public function cancelOrder($order){
+
+    public function cancelOrder($order)
+    {
         $order->cancel()->save();
     }
-    public function invoiceOrder($order){
+
+    public function invoiceOrder($order)
+    {
         $invoice = $this->_invoiceService->prepareInvoice($order);
         $invoice->setRequestedCaptureCase(\Magento\Sales\Model\Order\Invoice::CAPTURE_ONLINE);
         $invoice->register();
@@ -91,8 +94,30 @@ class Index extends \Magento\Framework\App\Action\Action
         $order->setState('processing')->setStatus('processing');
         $order->save();
     }
-    public function isJson($string) {
+
+    public function isJson($string)
+    {
         json_decode($string);
         return (json_last_error() == JSON_ERROR_NONE);
+    }
+
+    /**
+     * @param RequestInterface $request
+     *
+     * @return bool|null
+     */
+    public function validateForCsrf(RequestInterface $request): ?bool
+    {
+        return true;
+    }
+
+    /**
+     * @param RequestInterface $request
+     *
+     * @return InvalidRequestException|null
+     */
+    public function createCsrfValidationException(RequestInterface $request): ?InvalidRequestException
+    {
+        return null;
     }
 }
