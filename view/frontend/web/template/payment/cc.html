@@ -21,22 +21,14 @@
 
 			   <div class="field type">
 				<div class="control">
-					<ul class="credit-card-types">
-						<!-- ko foreach: {data: getCcAvailableTypesValues(), as: 'item'} -->
-						<li class="item" data-bind="css: {
-                                                 _active: $parent.selectedCardType() == item.value,
-                                                 _inactive: $parent.selectedCardType() != null && $parent.selectedCardType() != item.value
-                                                 } ">
-							<!--ko if: $parent.getIcons(item.value) -->
-							<img data-bind="attr: {
-								'src': $parent.getIcons(item.value).url,
-								'alt': item.type,
-								'width': $parent.getIcons(item.value).width,
-								'height': $parent.getIcons(item.value).height
-								}">
-							<!--/ko-->
-						</li>
-						<!--/ko-->
+
+                    <img data-bind="attr: {
+                            'src': getSingleIcon().url,
+                            'alt': getSingleIcon().url,
+                            'width': getSingleIcon().width,
+                            'height': getSingleIcon().height
+                            }">
+
 					</ul>
 					<input type="hidden"
 						   name="payment[aditumcc]"

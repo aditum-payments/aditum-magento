@@ -157,12 +157,13 @@ function (
                 checkoutData.setSelectedPaymentMethod(this.item.method);
                 return true;
             },
-
             getPublickey: function() {
 
                 return window.checkoutConfig.payment.aditumcc.publickey;
             },
-
+            getSingleIcon: function () {
+                return window.checkoutConfig.payment.aditumcc.singleicon;
+            },
 			getIcons: function (type) {
                 return window.checkoutConfig.payment.aditumcc.icons.hasOwnProperty(type) ?
                     window.checkoutConfig.payment.aditumcc.icons[type]

@@ -145,6 +145,7 @@ class ConfigProviderCc extends \AditumPayment\Magento2\Model\ConfigProvider impl
                 $config['payment'][$code]['get_document'] = $this->getUseDocument();
                 $config['payment'][$code]['terms_url'] = $this->getTermsUrl();
                 $config['payment'][$code]['terms_txt'] = $this->getTermsTxt();
+                $config['payment'][$code]['singleicon'] = $this->getSingleIcon();
 			}
         }
 
@@ -162,6 +163,17 @@ class ConfigProviderCc extends \AditumPayment\Magento2\Model\ConfigProvider impl
         $asset = $this->ccConfig
                     ->createAsset('AditumPayment_Magento2::images/cc/cvv.gif');
         return $asset->getUrl();
+    }
+    public function getSingleIcon()
+    {
+        $asset = $this->ccConfig
+            ->createAsset('AditumPayment_Magento2::images/cc/bandeiras-checkout3.png');
+        list($width, $height) = getimagesize($asset->getSourceFile());
+        return [
+            'url' => $asset->getUrl(),
+            'width' => $width,
+            'height' => $height
+        ];
     }
     /**
      * @return array
