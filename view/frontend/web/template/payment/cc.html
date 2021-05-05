@@ -39,6 +39,26 @@
 						   ">
 				</div>
 			</div>
+                <div class="field">
+                <label data-bind="attr: {for: 'cc_dc_choice'}" class="label required">
+                    <span>Tipo de cartão</span>
+                </label>
+                <div class="field choice">
+                    <input type="radio"
+                           name="cc_dc_choice"
+                           class="radio"
+                           data-bind="attr: {'id': getCode() + '_dc_choice'}, value: 'dc', click: selectCcDc, visible: true"/>
+                    <label data-bind="attr: {'for': getCode() + '_dc_choice'}" class="label"><span >Cartão de débito</span></label>
+                </div>
+                <div class="field choice">
+                    <input type="radio"
+                           name="cc_dc_choice"
+                           class="radio"
+                           data-bind="attr: {'id': getCode() + '_cc_choice'}, value: 'cc', checked: true, click: selectCcDc, visible: true"/>
+                    <label data-bind="attr: {'for': getCode() + '_cc_choice'}" class="label"><span >Cartão de crédito</span></label>
+                </div>
+                </div>
+
 
 				<div class="field number required">
 

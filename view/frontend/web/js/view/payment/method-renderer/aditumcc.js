@@ -52,7 +52,8 @@ function (
                 creditCardSsStartYear: '',
                 creditCardSsIssue: '',
                 creditCardVerificationNumber: '',
-                selectedCardType: null
+                selectedCardType: null,
+                selectCcDc: null
             },
 
 			getCode: function() {
@@ -319,6 +320,7 @@ function (
                         'fullname': jQuery('#'+this.getCode()+'_fullname').val(),
                         'document': jQuery('#'+this.getCode()+'_document').val(),
                         'installments': jQuery('#'+this.getCode()+'_installments').val(),
+                        'cc_dc_choice': self.selectCcDc
                     }
                 };
             },
@@ -329,6 +331,10 @@ function (
                         'fullname': value
                     }
                 });
+            },
+            selectCcDc: function() {
+                this.prop("checked",true);
+                self.selectCcDc = $("input[name='cc_dc_choice']:checked").val();
             },
 
 			validate: function() {

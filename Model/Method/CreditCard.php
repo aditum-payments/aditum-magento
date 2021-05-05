@@ -83,7 +83,6 @@ class CreditCard extends \Magento\Payment\Model\Method\Cc
     {
         $this->mlogger->info('Inside Order');
         $info = $this->getInfoInstance();
-        $payment->getAdditionalInformation('fullname');
         $preAuth = $this->_scopeConfig->getValue('payment/aditum_cc/pre_auth', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
 
         $order = $payment->getOrder();
