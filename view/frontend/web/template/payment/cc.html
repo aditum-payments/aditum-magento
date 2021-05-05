@@ -5,7 +5,8 @@
         <input type="radio"
                name="payment[method]"
                class="radio"
-               data-bind="attr: {'id': getCode()}, value: getCode(), checked: isChecked, click: selectPaymentMethod, visible: isRadioButtonVisible()"/>
+               data-bind="attr: {'id': getCode()}, value: getCode(), checked: isChecked, click: selectPaymentMethod,
+               visible: isRadioButtonVisible()"/>
         <label data-bind="attr: {'for': getCode()}" class="label"><span data-bind="text: getTitle()"></span></label>
     </div>
 
@@ -39,7 +40,7 @@
 						   ">
 				</div>
 			</div>
-                <div class="field">
+                <div class="field" id="div_cc_dc_choice" data-bind="attr: {'click': selectCcDc}">
                 <label data-bind="attr: {for: 'cc_dc_choice'}" class="label required">
                     <span>Tipo de cartão</span>
                 </label>
@@ -47,15 +48,19 @@
                     <input type="radio"
                            name="cc_dc_choice"
                            class="radio"
-                           data-bind="attr: {'id': getCode() + '_dc_choice'}, value: 'dc', click: selectCcDc, visible: true"/>
-                    <label data-bind="attr: {'for': getCode() + '_dc_choice'}" class="label"><span >Cartão de débito</span></label>
+                           id="aditumcc_dc_choice"
+                           data-bind="'click': click, attr:{'click': click, 'data-validate': JSON.stringify({required:true})}"
+                           value="dc">
+                    <label for="aditumcc_dc_choice" class="label"><span >Cartão de débito</span></label>
                 </div>
                 <div class="field choice">
                     <input type="radio"
                            name="cc_dc_choice"
                            class="radio"
-                           data-bind="attr: {'id': getCode() + '_cc_choice'}, value: 'cc', checked: true, click: selectCcDc, visible: true"/>
-                    <label data-bind="attr: {'for': getCode() + '_cc_choice'}" class="label"><span >Cartão de crédito</span></label>
+                           id="aditumcc_cc_choice"
+                           data-bind=" 'click': click, attr: {'click': click, 'data-validate': JSON.stringify({required:true})}"
+                           value="cc" />
+                    <label for="aditumcc_cc_choice" class="label"><span >Cartão de crédito</span></label>
                 </div>
                 </div>
 
@@ -145,7 +150,7 @@
 				</div>
 
 				<!-- ko if: (getInstallmentsActive() == 1) -->
-					<div class="field installments required" data-bind="visible: getInstallmentsActive()" style="display: none;">
+					<div class="field installments required" id='div-installments' data-bind="visible: getInstallmentsActive()" style="display: none;">
 
 							<label data-bind="attr: {for: getCode() + '_installments'}" class="label">
 								<span><!-- ko i18n: 'Installments'--><!-- /ko --></span>

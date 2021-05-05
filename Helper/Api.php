@@ -189,7 +189,13 @@ class Api
         }
         $quote = $this->checkoutSession->getQuote();
         $billingAddress = $quote->getBillingAddress();
-        $authorization->transactions->setPaymentType(\AditumPayments\ApiSDK\Enum\PaymentType::CREDIT);
+        $this->logger->info("Card CCDC Type: ".$payment->getAdditionalInformation('cc_dc_choice'));
+        if($payment->getAdditionalInformation('cc_dc_choice')=="dc"){
+            $authorization->transactions->setPaymentType(\AditumPayments\ApiSDK\Enum\PaymentType::DEBIT);
+        }
+        else {
+            $authorization->transactions->setPaymentType(\AditumPayments\ApiSDK\Enum\PaymentType::CREDIT);
+        }
         $authorization->transactions->setAcquirer(\AditumPayments\ApiSDK\Enum\AcquirerCode::SIMULADOR);
         $authorization->customer->setName($order->getBillingAddress()->getName());
         $authorization->customer->setEmail($quote->getCustomerEmail());
@@ -210,12 +216,15 @@ class Api
         $authorization->customer->address->setState($this->codigoUF($billingAddress->getRegion()));
         $authorization->customer->address->setCountry("BR");
         $authorization->customer->address->setZipcode($billingAddress->getPostcode());
-        $authorization->transactions->card->setCardNumber(preg_replace('/[\-\s]+/', '', $info->getCcNumber()));
+        $authorization->transactions->card
+            ->setCardNumber(preg_replace('/[\-\s]+/', '', $info->getCcNumber()));
         $authorization->transactions->card->setCVV($payment->getAdditionalInformation('cc_cid'));
         $authorization->transactions->card->setCardholderName($payment->getAdditionalInformation('fullname'));
         $authorization->transactions->card->setExpirationMonth($payment->getAdditionalInformation('cc_exp_month'));
         $authorization->transactions->card->setExpirationYear($payment->getAdditionalInformation('cc_exp_year'));
-        $authorization->transactions->setInstallmentNumber($payment->getAdditionalInformation('installments'));
+        if($payment->getAdditionalInformation('cc_dc_choice')!="dc") {
+            $authorization->transactions->setInstallmentNumber($payment->getAdditionalInformation('installments'));
+        }
         $grandTotal = $order->getGrandTotal() * 100;
         $authorization->transactions->setAmount($grandTotal);
 

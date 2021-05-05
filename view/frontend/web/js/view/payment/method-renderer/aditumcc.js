@@ -129,7 +129,7 @@ function (
                 this.creditCardVerificationNumber.subscribe(function (value) {
                     creditCardData.cvvCode = value;
                 });
-			},
+             },
 			getCvvImageUrl: function () {
 	            return window.checkoutConfig.payment.aditumcc.image_cvv;
 	        },
@@ -320,7 +320,7 @@ function (
                         'fullname': jQuery('#'+this.getCode()+'_fullname').val(),
                         'document': jQuery('#'+this.getCode()+'_document').val(),
                         'installments': jQuery('#'+this.getCode()+'_installments').val(),
-                        'cc_dc_choice': self.selectCcDc
+                        'cc_dc_choice': window.checkoutConfig.payment.aditumcc.cc_dc_choice
                     }
                 };
             },
@@ -332,11 +332,20 @@ function (
                     }
                 });
             },
-            selectCcDc: function() {
-                this.prop("checked",true);
-                self.selectCcDc = $("input[name='cc_dc_choice']:checked").val();
+            click: function(data, event) {
+                this.change(event.target.value);
+                return true;
             },
-
+            change: function(value) {
+                if(value === 'dc') {
+                    window.checkoutConfig.payment.aditumcc.cc_dc_choice = "dc";
+                    $('#div-installments').hide();
+                }
+                else if(value === 'cc') {
+                    window.checkoutConfig.payment.aditumcc.cc_dc_choice = "cc";
+                    $('#div-installments').show();
+                }
+            },
 			validate: function() {
 				var $form = $('#' + this.getCode() + '-form');
                 return $form.validation() && $form.validation('isValid');

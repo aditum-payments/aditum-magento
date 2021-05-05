@@ -146,6 +146,7 @@ class ConfigProviderCc extends \AditumPayment\Magento2\Model\ConfigProvider impl
                 $config['payment'][$code]['terms_url'] = $this->getTermsUrl();
                 $config['payment'][$code]['terms_txt'] = $this->getTermsTxt();
                 $config['payment'][$code]['singleicon'] = $this->getSingleIcon();
+                $config['payment'][$code]['cc_dc_choice'] = "";
 			}
         }
 
