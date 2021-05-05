@@ -54,10 +54,6 @@
                     <label>Status do pedido criado</label>
                     <source_model>Magento\Sales\Model\Config\Source\Order\Status</source_model>
                 </field>
-                <field id="pre_auth" translate="label" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Captura direta ou pré-autorização</label>
-                    <source_model>AditumPayment\Magento2\Model\Config\PreAuth</source_model>
-                </field>
             </group>
             <group id="aditum_dc" translate="label comment" sortOrder="350" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Aditum Cartão de Débito</label>
@@ -70,10 +66,6 @@
                 <field id="new_order_status" translate="label" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Status do pedido criado</label>
                     <source_model>Magento\Sales\Model\Config\Source\Order\Status</source_model>
-                </field>
-                <field id="pre_auth" translate="label" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Captura direta ou pré-autorização</label>
-                    <source_model>AditumPayment\Magento2\Model\Config\PreAuth</source_model>
                 </field>
             </group>
             <group id="aditum_boleto" translate="label comment" sortOrder="360" showInDefault="1" showInWebsite="1" showInStore="1">

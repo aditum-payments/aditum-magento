@@ -83,22 +83,15 @@ class CreditCard extends \Magento\Payment\Model\Method\Cc
     {
         $this->mlogger->info('Inside Order');
         $info = $this->getInfoInstance();
-        $preAuth = $this->_scopeConfig->getValue('payment/aditum_cc/pre_auth', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
 
         $order = $payment->getOrder();
         try {
             ob_start();
-            if (!$aditumreturn = json_decode(json_encode($this->api->createOrderCc($order, $info, $payment, $preAuth)),true)) {
+            if (!$aditumreturn = json_decode(json_encode($this->api->createOrderCc($order, $info, $payment)),true)) {
                 throw new \Magento\Framework\Validator\Exception(__('Houve um erro processando seu pedido. Por favor entre em contato conosco.'));
             }
-            if (!$preAuth) {
-                if ($aditumreturn['charge']['chargeStatus'] != 'Authorized') {
-                    throw new \Magento\Framework\Validator\Exception(__('Houve um erro cobrando o cartão. Por favor verifique os dados.'));
-                }
-            } else {
-                if ($aditumreturn['status'] != 'PreAuthorized') {
-                    throw new \Magento\Framework\Validator\Exception(__('Houve um erro cobrando o cartão. Por favor verifique os dados.'));
-                }
+            if ($aditumreturn['status'] != 'PreAuthorized') {
+                throw new \Magento\Framework\Validator\Exception(__('Houve um erro cobrando o cartão. Por favor verifique os dados.'));
             }
             ob_end_clean();
         } catch (Exception $e) {

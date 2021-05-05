@@ -112,10 +112,10 @@ class Api
         $result_array = json_decode($result,true);
         return $result_array;
     }
-    public function createOrderCc(\Magento\Sales\Model\Order\Interceptor $order, $info, $payment, $preAuth = 0)
+    public function createOrderCc(\Magento\Sales\Model\Order\Interceptor $order, $info, $payment)
     {
         if($this->enableExternalExtension){
-            return $this->extCreateOrderCc($order,$info,$payment,$preAuth);
+            return $this->extCreateOrderCc($order,$info,$payment);
         }
         $url = $this->url . "/charge/authorization";
         $quote = $this->checkoutSession->getQuote();
@@ -173,20 +173,16 @@ class Api
         $result_array = json_decode($result,true);
         return $result_array;
     }
-    public function extCreateOrderCc(\Magento\Sales\Model\Order\Interceptor $order,$info,$payment, $preAuth=0)
+    public function extCreateOrderCc(\Magento\Sales\Model\Order\Interceptor $order,$info,$payment)
     {
         \AditumPayments\ApiSDK\Configuration::initialize();
-        \AditumPayments\ApiSDK\Configuration::setUrl(\AditumPayments\ApiSDK\Configuration::DEV_URL);
+        \AditumPayments\ApiSDK\Configuration::setUrl($this->scopeConfig->getValue('payment/aditum/environment'));
         \AditumPayments\ApiSDK\Configuration::setCnpj($this->getClientId());
         \AditumPayments\ApiSDK\Configuration::setMerchantToken($this->getClientSecret());
         \AditumPayments\ApiSDK\Configuration::login();
 
         $gateway = new \AditumPayments\ApiSDK\Gateway;
-        $authorization = new \AditumPayments\ApiSDK\Domains\Authorization;
-        if($preAuth){
-            unset($authorization);
-            $authorization = new \AditumPayments\ApiSDK\Domains\PreAuthorization;
-        }
+        $authorization = new \AditumPayments\ApiSDK\Domains\PreAuthorization;
         $quote = $this->checkoutSession->getQuote();
         $billingAddress = $quote->getBillingAddress();
         $this->logger->info("Card CCDC Type: ".$payment->getAdditionalInformation('cc_dc_choice'));
@@ -271,12 +267,6 @@ class Api
         if($this->enableExternalExtension){
 //            return $this->extGetToken();
         }
-        // Package independent below
-        //////////////////////////////
-        // check if existing token will be expired within 10 minutes
-//        if($token = $this->dbAditum->getToken()){
-//            return $token;
-//        }
         $client_id = $this->getClientId();
         $client_secret = $this->getClientSecret();
         if (!$client_id || !$client_secret) {
@@ -284,11 +274,6 @@ class Api
             return false;
         }
         $client_secret = password_hash($client_id.$client_secret,PASSWORD_BCRYPT,['cost' => 12]);
-//        $payload = [
-//            'grant_type' => 'client_credentials',
-//            'client_id' => $client_id,
-//            'client_secret'   => $client_secret
-//        ];
         $headers = array(
             "merchantCredential: ".$client_id,
             "Authorization: ".$client_secret,
@@ -316,25 +301,6 @@ class Api
         $this->dbAditum->updateToken($expires_in,$result_array['accessToken']);
         return $result_array['accessToken'];
     }
-//    public function extGetToken()
-//    {
-//        $config = \AditumPayments\ApiSDK\Config\Configuration::getInstance();
-//        if($this->url=="https://payment-dev.aditum.com.br/v2"){
-//            $config->setUrl($this->extAditumConfig::DEV_URL);
-//        }
-//        else{
-//            $config->setUrl($this->extAditumConfig::PROD_URL);
-//        }
-//        $config->setCnpj($this->getClientId());
-//        $config->setMerchantToken($this->getClientId());
-//        $auth = new \AditumPayments\ApiSDK\Authentication;
-//        $result = $auth->requestToken();
-//        $this->logger->info("External Aditum GetToken result: ".json_encode($result));
-//        if(!isset($result['token'])){
-//            return false;
-//        }
-//        return $result['token'];
-//    }
     public function logError($action,$url,$output,$input="")
     {
         $this->logger->error("ameRequest error: ".$action." - ".$url." - ".$input." - ".$output);
