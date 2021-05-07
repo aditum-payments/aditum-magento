@@ -60,10 +60,10 @@ class CreditCard extends \Magento\Payment\Model\Method\Cc
         try {
             ob_start();
             $txtError = 'Houve um erro processando seu pedido. Por favor entre em contato conosco.';
-            if (!$aditumreturn = json_decode(json_encode($this->api->createOrderCc($order, $info, $payment)),true)) {
+            if (!$aditumreturn = json_decode(json_encode($this->api->createOrderCc($order, $info, $payment,1)),true)) {
                 throw new \Magento\Framework\Validator\Exception(__($txtError));
             }
-            if ($aditumreturn['status'] != 'PreAuthorized') {
+            if ($aditumreturn['status'] != 'PreAuthorized'&&$aditumreturn['status'] != 'Authorized') {
                 throw new \Magento\Framework\Validator\Exception(__($this->api->getError($aditumreturn)));
             }
             ob_end_clean();
