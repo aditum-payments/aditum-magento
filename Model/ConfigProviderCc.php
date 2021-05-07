@@ -238,7 +238,7 @@ class ConfigProviderCc extends \AditumPayment\Magento2\Model\ConfigProvider impl
     }
 
     public function getUseDocument(){
-        return $this->scopeConfig->getValue("payment/aditumcc/document/getdocument");
+        return $this->scopeConfig->getValue("payment/aditum_cc/document/getdocument");
     }
 
 	public function getInfoParcelamentoJuros() {
@@ -246,37 +246,37 @@ class ConfigProviderCc extends \AditumPayment\Magento2\Model\ConfigProvider impl
         $juros['0'] = 0;
 		$juros['1'] = 0;
 
-        $juros['2'] = 0;// $this->scopeConfig->getValue("payment/aditumcc/installment/installment_2");
+        $juros['2'] = 0;// $this->scopeConfig->getValue("payment/aditum_cc/installment/installment_2");
 
 
-        $juros['3'] = 0;// $this->scopeConfig->getValue("payment/aditumcc/installment/installment_3");
+        $juros['3'] = 0;// $this->scopeConfig->getValue("payment/aditum_cc/installment/installment_3");
 
 
-        $juros['4'] = 0;// $this->scopeConfig->getValue("payment/aditumcc/installment/installment_4");
+        $juros['4'] = 0;// $this->scopeConfig->getValue("payment/aditum_cc/installment/installment_4");
 
 
-        $juros['5'] = 0;// $this->scopeConfig->getValue("payment/aditumcc/installment/installment_5");
+        $juros['5'] = 0;// $this->scopeConfig->getValue("payment/aditum_cc/installment/installment_5");
 
 
-        $juros['6'] = 0;// $this->scopeConfig->getValue("payment/aditumcc/installment/installment_6");
+        $juros['6'] = 0;// $this->scopeConfig->getValue("payment/aditum_cc/installment/installment_6");
 
 
-        $juros['7'] = 0;// $this->scopeConfig->getValue("payment/aditumcc/installment/installment_7");
+        $juros['7'] = 0;// $this->scopeConfig->getValue("payment/aditum_cc/installment/installment_7");
 
 
-        $juros['8'] = 0;// $this->scopeConfig->getValue("payment/aditumcc/installment/installment_8");
+        $juros['8'] = 0;// $this->scopeConfig->getValue("payment/aditum_cc/installment/installment_8");
 
 
-        $juros['9'] = 0;// $this->scopeConfig->getValue("payment/aditumcc/installment/installment_9");
+        $juros['9'] = 0;// $this->scopeConfig->getValue("payment/aditum_cc/installment/installment_9");
 
 
-        $juros['10'] = 0;// $this->scopeConfig->getValue("payment/aditumcc/installment/installment_10");
+        $juros['10'] = 0;// $this->scopeConfig->getValue("payment/aditum_cc/installment/installment_10");
 
 
-        $juros['11'] = 0;// $this->scopeConfig->getValue("payment/aditumcc/installment/installment_11");
+        $juros['11'] = 0;// $this->scopeConfig->getValue("payment/aditum_cc/installment/installment_11");
 
 
-        $juros['12'] = 0;// $this->scopeConfig->getValue("payment/aditumcc/installment/installment_12");
+        $juros['12'] = 0;// $this->scopeConfig->getValue("payment/aditum_cc/installment/installment_12");
 
         return $juros;
     }
@@ -290,20 +290,19 @@ class ConfigProviderCc extends \AditumPayment\Magento2\Model\ConfigProvider impl
 
     public function TypeInstallment()
     {
-        $type = "percent";//$this->scopeConfig->getValue('payment/aditumcc/installment/type_interest');
+        $type = "percent";//$this->scopeConfig->getValue('payment/aditum_cc/installment/type_interest');
         return $type;
     }
 
 	public function MinInstallment()
     {
-        $parcelasMinimo = "1";//$this->scopeConfig->getValue('payment/aditumcc/installment/min_installment');
+        $parcelasMinimo = "1";//$this->scopeConfig->getValue('payment/aditum_cc/installment/min_installment');
         return $parcelasMinimo;
     }
 
 	public function MaxInstallment()
     {
-        $parcelasMaximo = $this->scopeConfig->getValue('payment/aditumcc/installments');
-        return $parcelasMaximo;
+        return $this->scopeConfig->getValue('payment/aditum_cc/installments');
     }
 
     public function getEnvironmentMode()
