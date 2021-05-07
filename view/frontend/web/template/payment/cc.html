@@ -171,14 +171,14 @@
 				<!-- /ko -->
 				<div class="field name required">
 					<label data-bind="attr: {for: getCode() + '_fullname'}" class="label">
-						<span><!-- ko i18n: 'Full Name'--><!-- /ko --></span>
+						<span><!-- ko i18n: 'Nome do titular do cartão'--><!-- /ko --></span>
 					</label>
 					<div class="control">
 						<input type="text" name="fullname" class="input-text"  value=""
 							   data-bind="attr: {
 												autocomplete: off,
 												id: getCode() + '_fullname',
-												title: $t('Card Holder Name'),
+												title: $t('Nome do titular do cartão'),
 												'data-container': getCode() + '-fullname',
 												input: getFullname(),
 												'data-validate': JSON.stringify({'required':true})}"/>
@@ -200,17 +200,16 @@
 						</div>
 					</div>
 				<!--/ko-->
-                <div class="field aditumcc_terms required">
+                <div class="field aditumcc_terms">
                     <label data-bind="attr: {for: getCode() + '_terms'}" class="label">
                     </label>
-                    <div >
-                        <input type="checkbox" name="aditumcc_terms" class="checkbox" required value=""
+                    <div class="control">
+                        <input type="checkbox" name="aditumcc_terms" class="checkbox" value=""
                                data-bind="attr: {
 													autocomplete: off,
 													id: getCode() + '_terms',
-													'required': 'É necessário aceitar os termos',
 													'data-container': getCode() + '-terms',
-													'data-validate': JSON.stringify({required:true})
+													'data-validate': JSON.stringify({'validate-terms':'#' + getCode() + '_terms'})
 												}"/>
                         <span data-bind="html: getTermsHtml()"></span>
                     </div>

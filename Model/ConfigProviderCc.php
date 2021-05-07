@@ -160,7 +160,8 @@ class ConfigProviderCc extends \AditumPayment\Magento2\Model\ConfigProvider impl
         return $this->_ccoptions;
     }
 
-    public function getCvvImg(){
+    public function getCvvImg()
+    {
         $asset = $this->ccConfig
                     ->createAsset('AditumPayment_Magento2::images/cc/cvv.gif');
         return $asset->getUrl();
@@ -301,15 +302,13 @@ class ConfigProviderCc extends \AditumPayment\Magento2\Model\ConfigProvider impl
 
 	public function MaxInstallment()
     {
-        $parcelasMaximo = "12";//$this->scopeConfig->getValue('payment/aditumcc/installment/max_installment');
+        $parcelasMaximo = $this->scopeConfig->getValue('payment/aditumcc/installments');
         return $parcelasMaximo;
     }
 
     public function getEnvironmentMode()
     {
-        $environment = $this->scopeConfig->getValue('payment/moipbase/environment_mode');
-
-        return $environment;
+        return "";
     }
 
     public function getPublicKey()

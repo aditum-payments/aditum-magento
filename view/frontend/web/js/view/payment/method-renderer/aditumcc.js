@@ -210,7 +210,6 @@ function (
 
 			getInstall: function () {
 				var valor = quote.totals().base_grand_total;
-				//console.log(valor);
 				var type_interest 	= window.checkoutConfig.payment.aditumcc.type_interest
 				var info_interest 	= window.checkoutConfig.payment.aditumcc.info_interest;
 				var min_installment = window.checkoutConfig.payment.aditumcc.min_installment;
@@ -283,7 +282,6 @@ function (
 				});
 				return json_parcelas;
             },
-
 			getInstallments: function () {
 			var temp = _.map(this.getInstall(), function (value, key) {
 				if(value['juros'] == 0){

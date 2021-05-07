@@ -25,6 +25,10 @@
                     <label>Tempo de expiração do pedido</label>
                     <comment><![CDATA[Depois de quanto tempo o pedido pendente de pagamento deve ser cancelado. Defina em dias.]]></comment>
                 </field>
+                <field id="new_order_status" translate="label" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Status do pedido criado</label>
+                    <source_model>Magento\Sales\Model\Config\Source\Order\Status</source_model>
+                </field>
                 <field id="street" translate="label" type="select" sortOrder="100" showInDefault="1">
                     <label>Definições do Endereço - Rua</label>
                     <source_model>AditumPayment\Magento2\Model\Config\AddressLines</source_model>
@@ -50,9 +54,10 @@
                     <comment>Ativar pagamentos com cartão de crédito através da Aditum</comment>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
-                <field id="new_order_status" translate="label" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Status do pedido criado</label>
-                    <source_model>Magento\Sales\Model\Config\Source\Order\Status</source_model>
+                <field id="installments" translate="label comment" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Máximo de parcelas</label>
+                    <comment><![CDATA[Selecione o número limite permitido nos cartões de crédito.]]></comment>
+                    <source_model>AditumPayment\Magento2\Model\Config\Installments</source_model>
                 </field>
             </group>
             <group id="aditum_dc" translate="label comment" sortOrder="350" showInDefault="1" showInWebsite="1" showInStore="1">
@@ -62,10 +67,6 @@
                     <label>Ativar cartão de débito</label>
                     <comment>Ativar pagamentos com cartão de débito através da Aditum</comment>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                </field>
-                <field id="new_order_status" translate="label" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Status do pedido criado</label>
-                    <source_model>Magento\Sales\Model\Config\Source\Order\Status</source_model>
                 </field>
             </group>
             <group id="aditum_boleto" translate="label comment" sortOrder="360" showInDefault="1" showInWebsite="1" showInStore="1">
@@ -79,10 +80,6 @@
                 <field id="expiration_days" translate="label comment" type="text" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Dias para vencimento do boleto</label>
                     <comment><![CDATA[Tempo em dias para o vencimento do boleto a partir da data de geração.]]></comment>
-                </field>
-                <field id="new_order_status" translate="label" type="select" sortOrder="80" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Status do pedido criado</label>
-                    <source_model>Magento\Sales\Model\Config\Source\Order\Status</source_model>
                 </field>
                 <field id="instruction" translate="label comment" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Instruções</label>

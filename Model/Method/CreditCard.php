@@ -51,34 +51,6 @@ class CreditCard extends \Magento\Payment\Model\Method\Cc
         parent::__construct($context, $registry, $extensionFactory, $customAttributeFactory, $paymentData,
             $scopeConfig, $logger, $moduleList, $localeDate, $resource, $resourceCollection, $data);
     }
-
-//    protected $_formBlockType = \AditumPayment\Magento2\Block\Form\CreditCard::class;
-//    protected $_infoBlockType = \AditumPayment\Magento2\Block\Payment\InfoCreditCard::class;
-
-//    public function __construct(
-//        \Magento\Framework\Model\Context $context,
-//        \Magento\Framework\Registry $registry,
-//        \Magento\Framework\Api\ExtensionAttributesFactory $extensionFactory,
-//        \Magento\Framework\Api\AttributeValueFactory $customAttributeFactory,
-//        \Magento\Payment\Helper\Data $paymentData,
-//        \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
-//        \Magento\Payment\Model\Method\Logger $logger,
-//        \AditumPayment\Magento2\Helper\Api $api,
-//        \Magento\Backend\Model\Auth\Session $adminSession,
-//        \Psr\Log\LoggerInterface $mlogger,
-//        \Magento\Framework\Model\ResourceModel\AbstractResource $resource = null,
-//        \Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null,
-//        array $data = [],
-//        DirectoryHelper $directory = null
-//    ) {
-//        parent::__construct($context, $registry, $extensionFactory, $customAttributeFactory, $paymentData, $scopeConfig,
-//            $logger, $resource, $resourceCollection, $data, $directory);
-//        $this->api = $api;
-//        $this->adminSession = $adminSession;
-//        $this->logger = $mlogger;
-//        $this->_scopeConfig = $scopeConfig;
-//    }
-
     public function order(\Magento\Payment\Model\InfoInterface $payment, $amount)
     {
         $this->mlogger->info('Inside Order');
@@ -87,15 +59,16 @@ class CreditCard extends \Magento\Payment\Model\Method\Cc
         $order = $payment->getOrder();
         try {
             ob_start();
+            $txtError = 'Houve um erro processando seu pedido. Por favor entre em contato conosco.';
             if (!$aditumreturn = json_decode(json_encode($this->api->createOrderCc($order, $info, $payment)),true)) {
-                throw new \Magento\Framework\Validator\Exception(__('Houve um erro processando seu pedido. Por favor entre em contato conosco.'));
+                throw new \Magento\Framework\Validator\Exception(__($txtError));
             }
             if ($aditumreturn['status'] != 'PreAuthorized') {
-                throw new \Magento\Framework\Validator\Exception(__('Houve um erro cobrando o cartão. Por favor verifique os dados.'));
+                throw new \Magento\Framework\Validator\Exception(__($this->api->getError($aditumreturn)));
             }
             ob_end_clean();
         } catch (Exception $e) {
-            throw new \Magento\Framework\Validator\Exception(__('Houve um erro processando seu pedido. Por favor entre em contato conosco.'));
+            throw new \Magento\Framework\Validator\Exception(__($txtError));
         }
         $this->updateOrderRaw($order->getIncrementId(),$aditumreturn);
         $order->setExtOrderId($aditumreturn['charge']['id']);
@@ -130,11 +103,6 @@ class CreditCard extends \Magento\Payment\Model\Method\Cc
         return $this;
     }
 
-
-//    public function capture()
-//    {
-//
-//    }
     public function authorize(\Magento\Payment\Model\InfoInterface $payment, $amount)
     {
 

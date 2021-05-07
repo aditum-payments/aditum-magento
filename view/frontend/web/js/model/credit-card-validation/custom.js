@@ -109,6 +109,12 @@
 				return false;
             },
             $.mage.__('The supplied CPF is invalid')
+        ],
+        'validate-terms': [
+            function (terms) {
+                return $('#aditumcc_terms').is(':checked');
+            },
+            $.mage.__('Você precisa aceitar os termos e condições para continuar.')
         ]
     }, function (i, rule) {
         rule.unshift(i);

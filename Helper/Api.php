@@ -351,6 +351,11 @@ class Api
         }
         return $uf;
     }
+    public function getError($arrayError)
+    {
+        $arrayhttpMsg = json_decode($arrayError['httpMsg'],true);
+        return $arrayhttpMsg['message'];
+    }
     public function getDocumentTypeId($type="cpf"){
         if($type=="cpf"){
             return 1;
