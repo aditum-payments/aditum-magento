@@ -21,10 +21,11 @@
             <!-- ko template: getTemplate() --><!-- /ko -->
             <!--/ko-->
         </div>
+        <input type="hidden" name="aditumboleto_documenttype" id="aditumboleto_documenttype" value="">
 
         <div class="field name required">
             <label data-bind="attr: {for: getCode() + '_boletofullname'}" class="label">
-                <span><!-- ko i18n: 'Full Name'--><!-- /ko --></span>
+                <span>Nome</span>
             </label>
             <div class="control">
                 <input type="text" name="boletofullname" class="input-text"  value=""
@@ -32,7 +33,7 @@
 												value: getFullName(),
 												autocomplete: off,
 												id: getCode() + '_boletofullname',
-												title: $t('Card Holder Name'),
+												title: $t('Nome'),
 												'data-container': getCode() + '-boletofullname',
 												'data-validate': JSON.stringify({'required':true})}"/>
             </div>
@@ -40,38 +41,34 @@
 
         <div class="field document required">
             <label data-bind="attr: {for: getCode() + '_document'}" class="label">
-                <span><!-- ko i18n: 'CPF'--><!-- /ko --></span>
+                <span><!-- ko i18n: 'CPF/CNPJ'--><!-- /ko --></span>
             </label>
             <div class="control">
-                <input type="text" name="document" class="input-text"  value=""
+                <input type="text" name="document" class="input-text"  value="" required
                        data-bind="attr: {
 													value: getTaxVat(),
 													autocomplete: off,
+													required: true,
 													id: getCode() + '_document',
-													title: $t('CPF'),
+													title: $t('CPF/CNPJ'),
 													'data-container': getCode() + '-document',
-													'data-validate': JSON.stringify({'required':true,'validate-cpf':'#' + getCode() + '_document'})}"/>
+													'data-validate': JSON.stringify({'required':true})}"/>
             </div>
         </div>
-
-        <!-- ko if: getInstruction() || getDue() -->
-        <dl class="items check payable">
-            <!-- ko if: getDue() -->
-            <dt class="title"><!-- ko i18n: 'Due' --><!-- /ko --></dt>
-            <dd class="content">
-                <address class="aditumboleto due address" data-bind="html: getDue()"></address>
-            </dd>
-
-
-            <!-- /ko -->
-            <!-- ko if: getInstruction() -->
-            <dt class="title"><!-- ko i18n: 'Instruction' --><!-- /ko --></dt>
-            <dd class="content">
-                <address class="aditumboleto instruction address" data-bind="html: getInstruction()"></address>
-            </dd>
-            <!-- /ko -->
-        </dl>
-        <!-- /ko -->
+        <div class="field aditumboleto_terms">
+            <label data-bind="attr: {for: getCode() + '_terms'}" class="label">
+            </label>
+            <div class="control">
+                <input type="checkbox" name="aditumcc_terms" class="checkbox" value=""
+                       data-bind="attr: {
+													autocomplete: off,
+													id: getCode() + '_terms',
+													'data-container': getCode() + '-terms',
+													'data-validate': JSON.stringify({'validate-terms':'#' + getCode() + '_terms'})
+												}"/>
+                <span data-bind="html: getTermsHtml()"></span>
+            </div>
+        </div>
         <div class="checkout-agreements-block">
             <!-- ko foreach: $parent.getRegion('before-place-order') -->
                 <!-- ko template: getTemplate() --><!-- /ko -->
