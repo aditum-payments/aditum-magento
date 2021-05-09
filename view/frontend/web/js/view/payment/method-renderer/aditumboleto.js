@@ -15,13 +15,27 @@ define(
             defaults: {
                 template: 'AditumPayment_Magento2/payment/boleto'
             },
+            initObservable: function () {
+                this._super()
+                    .observe([
+                        'boletofullname',
+                        'boletodocument'
+                    ]);
 
-             /** Returns send check to info */
+                return this;
+            },
+            getData: function () {
+                return {
+                    'method': this.item.method,
+                    'additional_data': {
+                        'boletofullname': jQuery('#'+this.getCode() + '_boletofullname').val(),
+                        'boletodocument': jQuery('#'+this.getCode() + '_boletodocument').val(),
+                    }
+                };
+            },
             getInstruction: function() {
                 return window.checkoutConfig.payment.aditumboleto.instruction;
             },
-
-            /** Returns payable to info */
             getDue: function() {
                 return window.checkoutConfig.payment.aditumboleto.due;
             },
@@ -30,7 +44,17 @@ define(
             },
             getTaxVat: function() {
                 return window.checkoutConfig.payment.aditumboleto.taxvat;
-            }
+            },
+            getTermsHtml: function () {
+                return '<a target="_blank" href="' + this.getTermsUrl() +
+                    '">' + this.getTermsTxt() + '</a>';
+            },
+            getTermsUrl: function () {
+                return window.checkoutConfig.payment.aditumcc.terms_url;
+            },
+            getTermsTxt: function () {
+                return window.checkoutConfig.payment.aditumcc.terms_txt;
+            },
         });
     }
 );

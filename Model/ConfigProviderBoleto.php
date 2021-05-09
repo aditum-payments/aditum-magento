@@ -35,8 +35,10 @@ class ConfigProviderBoleto extends \AditumPayment\Magento2\Model\ConfigProvider 
                     'instruction' =>  $this->getInstruction(),
                     'due' => $this->getDue(),
                     'fullname' => $this->getFullName(),
-                    'taxvat' => $this->getTaxVat()
-                ],
+                    'taxvat' => $this->getTaxVat(),
+                    'terms_url' => $this->getTermsUrl(),
+                    'terms_txt' => $this->getTermsTxt()
+        ],
             ],
         ] : [];
     }

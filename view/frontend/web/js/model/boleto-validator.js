@@ -4,14 +4,23 @@ define(
         'use strict';
         return {
             validate: function () {
+                if($('input[name="payment[method]"]:checked').val()!=='aditumboleto') return true;
                 var isValid = false;
-                var cpfCnpj = $('#aditumboleto_document').val();
+                var cpfCnpj = $('#aditumboleto_boletodocument').val();
                 var verifica = verifica_cpf_cnpj(cpfCnpj);
                 if(verifica!==false){
                     isValid = true;
                 }
                 if (!isValid) {
                     messageList.addErrorMessage({ message: $t('CPF ou CNPJ inválido') });
+                    return isValid;
+                }
+                if(!$('#aditumboleto_terms').is(':checked')){
+                    messageList.addErrorMessage({ message: $t('Você precisa aceitar os termos e condições') });
+                    isValid = false;
+                }
+                else{
+                    isValid = true;
                 }
                 return isValid;
                 function verifica_cpf_cnpj ( valor ) {

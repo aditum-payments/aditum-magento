@@ -39,8 +39,10 @@ class Api
             $this->url = "https://payment.aditum.com.br/v2";
         }
     }
-    public function createOrderBoleto(\Magento\Sales\Model\Order\Interceptor $order,$info)
+    public function createOrderBoleto(\Magento\Sales\Model\Order\Interceptor $order,$payment)
     {
+        return $this->extCreateOrderBoleto($order,$payment);
+
         $url = $this->url . "/charge/authorization";
         $quote = $this->checkoutSession->getQuote();
         $billingAddress = $quote->getBillingAddress();
@@ -112,6 +114,80 @@ class Api
         $result_array = json_decode($result,true);
         return $result_array;
     }
+    public function extCreateOrderBoleto(\Magento\Sales\Model\Order\Interceptor $order,$payment)
+    {
+        \AditumPayments\ApiSDK\Configuration::initialize();
+        \AditumPayments\ApiSDK\Configuration::setUrl(\AditumPayments\ApiSDK\Configuration::DEV_URL);
+        \AditumPayments\ApiSDK\Configuration::setCnpj($this->getClientId());
+        \AditumPayments\ApiSDK\Configuration::setMerchantToken($this->getClientSecret());
+        \AditumPayments\ApiSDK\Configuration::setlog(false);
+        \AditumPayments\ApiSDK\Configuration::login();
+
+        $gateway = new \AditumPayments\ApiSDK\Gateway;
+        $boleto = new \AditumPayments\ApiSDK\Domains\Boleto;
+
+        $quote = $this->checkoutSession->getQuote();
+        $billingAddress = $quote->getBillingAddress();
+        $boleto->setDeadline("2"); // >>>>>>>>>>>>>>>>>>
+
+// Customer
+        $boleto->customer->setId($order->getIncrementId());
+        $this->logger->info("FULLNAME: ".$payment->getAdditionalInformation('boletofullname'));
+        $boleto->customer->setName($payment->getAdditionalInformation('boletofullname'));
+        $boleto->customer->setEmail($quote->getCustomerEmail());
+        $cpfCnpj = $payment->getAdditionalInformation('boletodocument');
+        $cpfCnpj = filter_var($cpfCnpj, FILTER_SANITIZE_NUMBER_INT);
+
+        if(strlen($cpfCnpj)==14) {
+            $boleto->customer->setDocumentType(\AditumPayments\ApiSDK\Enum\DocumentType::CNPJ);
+        }
+        else{
+            $boleto->customer->setDocumentType(\AditumPayments\ApiSDK\Enum\DocumentType::CPF);
+        }
+        $boleto->customer->setDocument($cpfCnpj);
+
+// Customer->address
+        $boleto->customer->address->setStreet($billingAddress
+            ->getStreet()[$this->scopeConfig->getValue("payment/aditum/street")]);
+        $boleto->customer->address->setNumber($billingAddress
+            ->getStreet()[$this->scopeConfig->getValue("payment/aditum/number")]);
+        $boleto->customer->address->setComplement($billingAddress
+            ->getStreet()[$this->scopeConfig->getValue("payment/aditum/complement")]);
+        $boleto->customer->address->setNeighborhood($billingAddress
+            ->getStreet()[$this->scopeConfig->getValue("payment/aditum/district")]);
+
+        $boleto->customer->address->setCity($billingAddress->getCity());
+        $boleto->customer->address->setState($this->codigoUF($billingAddress->getRegion()));
+        $boleto->customer->address->setCountry("BR");
+        $boleto->customer->address->setZipcode($billingAddress->getPostcode());
+
+// Customer->phone
+        $phone_number = filter_var($billingAddress->getTelephone(), FILTER_SANITIZE_NUMBER_INT);
+        $boleto->customer->phone->setCountryCode("55");
+        $boleto->customer->phone->setAreaCode(substr($phone_number,0,2));
+        $boleto->customer->phone->setNumber(substr($phone_number,2));
+        $boleto->customer->phone->setType(\AditumPayments\ApiSDK\Enum\PhoneType::MOBILE);
+
+// Transactions
+        $grandTotal = $order->getGrandTotal() * 100;
+        $boleto->transactions->setAmount($grandTotal);
+        $boleto->transactions->setInstructions($this->scopeConfig->getValue("payment/aditum_boleto/instruction"));
+
+// Transactions->fine (opcional)
+//        $boleto->transactions->fine->setStartDate("2");
+//        $boleto->transactions->fine->setAmount(300);
+//        $boleto->transactions->fine->setInterest(10);
+
+// Transactions->discount (opcional)
+//        $boleto->transactions->discount->setType(AditumPayments\ApiSDK\Enum\DiscountType::FIXED);
+//        $boleto->transactions->discount->setAmount(200);
+//        $boleto->transactions->discount->setDeadline("1");
+
+        $result = $gateway->charge($boleto);
+
+        $this->logger->info("External Apitum API Return: ".json_encode($result));
+        return $result;
+    }
     public function createOrderCc(\Magento\Sales\Model\Order\Interceptor $order, $info, $payment, $preAuth = 0)
     {
         if($this->enableExternalExtension){
@@ -180,6 +256,7 @@ class Api
         \AditumPayments\ApiSDK\Configuration::setCnpj($this->getClientId());
         \AditumPayments\ApiSDK\Configuration::setMerchantToken($this->getClientSecret());
         \AditumPayments\ApiSDK\Configuration::login();
+        \AditumPayments\ApiSDK\Configuration::setlog(false);
 
         $gateway = new \AditumPayments\ApiSDK\Gateway;
         $authorization = new \AditumPayments\ApiSDK\Domains\Authorization;
@@ -220,6 +297,9 @@ class Api
             ->setCardNumber(preg_replace('/[\-\s]+/', '', $info->getCcNumber()));
         $authorization->transactions->card->setCVV($payment->getAdditionalInformation('cc_cid'));
         $authorization->transactions->card->setCardholderName($payment->getAdditionalInformation('fullname'));
+//
+//        $authorization->transactions->card->setCardholderName("");
+
         $authorization->transactions->card->setExpirationMonth($payment->getAdditionalInformation('cc_exp_month'));
         $authorization->transactions->card->setExpirationYear($payment->getAdditionalInformation('cc_exp_year'));
         if($payment->getAdditionalInformation('cc_dc_choice')!="dc") {
@@ -398,11 +478,27 @@ class Api
     {
 
     }
-    public function getError($arrayError)
+    public function getError($arrayReturn)
     {
-        print_r($arrayError);
-        $arrayhttpMsg = json_decode($arrayError['httpMsg'],true);
-        return $arrayhttpMsg['message'];
+        $httpMsg = json_decode($arrayReturn['httpMsg'],true);
+        foreach($httpMsg['errors'] as $error){
+            $saida[] = $error['message'];
+        }
+        $this->logger->info("Erro: ".$saida[0]);
+        return $saida[0];
+    }
+    public function getBoletoUrl($result)
+    {
+        $env = $this->scopeConfig->getValue('payment/aditum/environment',
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
+        if($env){
+            $url = \AditumPayments\ApiSDK\Configuration::PROD_URL;
+        }
+        else{
+            $url = \AditumPayments\ApiSDK\Configuration::DEV_URL;
+        }
+        $bankSlipUrl = str_replace("\\","",$result['charge']['transactions'][0]['bankSlipUrl']);
+        return $url . $bankSlipUrl;
     }
 
 }

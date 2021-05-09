@@ -21,8 +21,6 @@
             <!-- ko template: getTemplate() --><!-- /ko -->
             <!--/ko-->
         </div>
-        <input type="hidden" name="aditumboleto_documenttype" id="aditumboleto_documenttype" value="">
-
         <div class="field name required">
             <label data-bind="attr: {for: getCode() + '_boletofullname'}" class="label">
                 <span>Nome</span>
@@ -40,26 +38,26 @@
         </div>
 
         <div class="field document required">
-            <label data-bind="attr: {for: getCode() + '_document'}" class="label">
+            <label data-bind="attr: {for: getCode() + '_boletodocument'}" class="label">
                 <span><!-- ko i18n: 'CPF/CNPJ'--><!-- /ko --></span>
             </label>
             <div class="control">
-                <input type="text" name="document" class="input-text"  value="" required
+                <input type="text" name="boletodocument" class="input-text"  value="" required
                        data-bind="attr: {
 													value: getTaxVat(),
 													autocomplete: off,
 													required: true,
-													id: getCode() + '_document',
+													id: getCode() + '_boletodocument',
 													title: $t('CPF/CNPJ'),
-													'data-container': getCode() + '-document',
+													'data-container': getCode() + '-boletodocument',
 													'data-validate': JSON.stringify({'required':true})}"/>
             </div>
         </div>
-        <div class="field aditumboleto_terms">
+        <div class="field aditumboleto_terms" style="margin-top: 5px;">
             <label data-bind="attr: {for: getCode() + '_terms'}" class="label">
             </label>
             <div class="control">
-                <input type="checkbox" name="aditumcc_terms" class="checkbox" value=""
+                <input type="checkbox" name="aditumboleto_terms" class="checkbox" value=""
                        data-bind="attr: {
 													autocomplete: off,
 													id: getCode() + '_terms',

@@ -19,18 +19,19 @@ class CancelPendingOrders
     }
     public function execute()
     {
-
+//        return;
         $to = date('Y-m-d H:i:s',time()-3600);
 
         $orderCollection = $this->collectionFactory->create()->addFieldToSelect(array('*'));
         $orderCollection->addFieldToFilter('created_at', array('lteq' => $to));
+        $orderCollection->addFieldToFilter('state', array('eq' => 'new'));
         $orderCollection->getSelect()
             ->join(
                 ["sop" => "sales_order_payment"],
                 'main_table.entity_id = sop.parent_id',
                 array('method')
             )
-            ->where('sop.method = ?','pix' );
+            ->where('sop.method = ?',['aditumcc'] );
 //        $orderCollection->setOrder(
 //            'created_at',
 //            'desc'

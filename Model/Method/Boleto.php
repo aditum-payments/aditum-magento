@@ -11,6 +11,7 @@ class Boleto extends \Magento\Payment\Model\Method\AbstractMethod
     protected $_code = self::CODE;
     protected $_isGateway = true;
     protected $_canCapture = true;
+    protected $_canAuthorize = true;
     protected $_canCapturePartial = true;
     protected $_canRefund = true;
     protected $_canRefundInvoicePartial = true;
@@ -20,7 +21,6 @@ class Boleto extends \Magento\Payment\Model\Method\AbstractMethod
     protected $_supportedCurrencyCodes = ['BRL'];
     protected $_infoBlockType = \AditumPayment\Magento2\Block\Info::class;
     protected $_debugReplacePrivateDataKeys = ['number', 'exp_month', 'exp_year', 'cvc'];
-
     protected $adminSession;
     protected $messageManager;
     protected $api;
@@ -50,24 +50,33 @@ class Boleto extends \Magento\Payment\Model\Method\AbstractMethod
         $this->logger = $mlogger;
         $this->_scopeConfig = $scopeConfig;
     }
-
     public function order(\Magento\Payment\Model\InfoInterface $payment, $amount)
     {
         $this->logger->info('Inside Order');
         $this->logger->info(json_encode($payment->getAdditionalInformation(),true));
-
         $order = $payment->getOrder();
-        if (!$pixreturn = $this->api->createOrder($order)) {
+        if (!$result = $this->api->createOrderBoleto($order,$payment)) {
             throw new \Magento\Framework\Validator\Exception(__('Houve um erro processando seu pedido. Por favor entre em contato conosco.'));
         }
+        $result = json_decode(json_encode($result),true);
+        if ($result['status'] === "PreAuthorized") {
+            throw new \Magento\Framework\Validator\Exception(__($this->api->getError($result)));
+        }
+//        throw new \Magento\Framework\Validator\Exception(__('Erro temporario'));
         $this->updateOrderRaw($order->getIncrementId());
-        $order->setExtOrderId($pixreturn);
-        $order->addStatusHistoryComment('ID PIX: '.$pixreturn);
-        $payment->setAdditionalInformation('pix_id',$pixreturn);
-        $payment->setAdditionalInformation('pix_redirect_url',$this->api->getOrderRedirectUrl($pixreturn));
+//        $order->setExtOrderId($result);
+        $order->addStatusHistoryComment('ID PIX: '.json_encode($result));
+        $payment->setAdditionalInformation('uuid',$result['charge']['id']);
+        $payment->setAdditionalInformation('aditumNumber',$result['charge']['transactions'][0]['aditumNumber']);
+        $payment->setAdditionalInformation('transactionId',$result['charge']['transactions'][0]['transactionId']);
+        $payment->setAdditionalInformation('digitalLine',$result['charge']['transactions'][0]['digitalLine']);
+        $payment->setAdditionalInformation('barcode',$result['charge']['transactions'][0]['barcode']);
+        $payment->setAdditionalInformation('bankSlipId',$result['charge']['transactions'][0]['bankSlipId']);
+        $payment->setAdditionalInformation('bankIssuerId',$result['charge']['transactions'][0]['bankIssuerId']);
+
+        $payment->setAdditionalInformation('boleto_url',$this->api->getBoletoUrl($result));
         return $this;
     }
-
     public function isAvailable(\Magento\Quote\Api\Data\CartInterface $quote = null)
     {
         if(!$this->_scopeConfig->getValue('payment/aditum/enable',\Magento\Store\Model\ScopeInterface::SCOPE_STORE)){
@@ -86,19 +95,10 @@ class Boleto extends \Magento\Payment\Model\Method\AbstractMethod
             throw new \Magento\Framework\Exception\LocalizedException(__('The refund action is not available.'));
         }
         try {
-            // call API - refund
-            // executa aqui refund da API
-//            if ($returnXml === null) {
-//                $errorMsg = 'Impossível gerar reembolso. Algo deu errado.';
-//                throw new \Magento\Framework\Validator\Exception($errorMsg);
-//            }
         } catch (\Exception $e) {
-//            $this->debugData(['transaction_id' => $transactionId, 'exception' => $e->getMessage()]);
             throw new \Magento\Framework\Validator\Exception(__('Payment refunding error.'));
         }
         $payment
-//            ->setTransactionId($transactionId . '-' . \Magento\Sales\Model\Order\Payment\Transaction::TYPE_REFUND)
-//            ->setParentTransactionId($transactionId)
             ->setIsTransactionClosed(1)
             ->setShouldCloseParentTransaction(1);
         return $this;
