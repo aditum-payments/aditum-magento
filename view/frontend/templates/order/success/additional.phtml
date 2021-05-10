@@ -1,12 +1,17 @@
-<?php if($block->getMethodCode() === "aditumboleto"): ?>
+<?php
+/**
+ * @var \AditumPayment\Magento2\Block\BoletoSuccess $block
+ */
+
+if($block->getPaymentMethod() === "aditumboleto"): ?>
 	<p>
 		<?php echo __('The barcode of your ticket bank is:') ?>
-		<input type="text" id="copyTarget" value="<?php echo $block->getInfo('line_code_boleto'); ?>" class="input-text"> <button id="copyButton"  class="action primary continue">
+		<input type="text" id="copyTarget" value="<?php echo $block->getBarCode(); ?>" class="input-text"> <button id="copyButton"  class="action primary continue">
 			<?php echo __('Copy') ?>
 		</button>
 	</p>
 	<p>
-		<a href="<?php echo $block->getInfo('href_boleto_print'); ?>" target="_blank" class="action primary continue">
+		<a href="<?php echo $block->getBoletoUrl(); ?>" target="_blank" class="action primary continue">
 			<?php echo __('Print your ticket bank') ?>
 		</a>
 	</p>

@@ -59,7 +59,7 @@ class Boleto extends \Magento\Payment\Model\Method\AbstractMethod
             throw new \Magento\Framework\Validator\Exception(__('Houve um erro processando seu pedido. Por favor entre em contato conosco.'));
         }
         $result = json_decode(json_encode($result),true);
-        if ($result['status'] === "PreAuthorized") {
+        if ($result['status'] !== "PreAuthorized") {
             throw new \Magento\Framework\Validator\Exception(__($this->api->getError($result)));
         }
 //        throw new \Magento\Framework\Validator\Exception(__('Erro temporario'));

@@ -1,13 +1,11 @@
 <?xml version="1.0"?>
-<!--
 <body>
     <referenceContainer name="order.success.additional.info">
-        <block class="Moip\Magento2\Block\Success"
-               name="moip.order.success"
+        <block class="AditumPayment\Magento2\Block\BoletoSuccess"
+               name="aditum.order.success"
                template="AditumPayment_Magento2::order/success/additional.phtml"
                after="-">
         </block>
     </referenceContainer>
 
 </body>
-    -->

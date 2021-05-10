@@ -480,6 +480,7 @@ class Api
     }
     public function getError($arrayReturn)
     {
+        if(!isset($arrayReturn['httpMsg'])) return "";
         $httpMsg = json_decode($arrayReturn['httpMsg'],true);
         foreach($httpMsg['errors'] as $error){
             $saida[] = $error['message'];
@@ -497,6 +498,7 @@ class Api
         else{
             $url = \AditumPayments\ApiSDK\Configuration::DEV_URL;
         }
+        $url = str_replace("/v2/","",$url);
         $bankSlipUrl = str_replace("\\","",$result['charge']['transactions'][0]['bankSlipUrl']);
         return $url . $bankSlipUrl;
     }
