@@ -42,7 +42,7 @@ class Api
 
         $quote = $this->checkoutSession->getQuote();
         $billingAddress = $quote->getBillingAddress();
-        $boleto->setDeadline($this->scopeConfig->getValue('payment/aditum/boleto_expiration_days',
+        $boleto->setDeadline($this->scopeConfig->getValue('payment/aditum_boleto/expiration_days',
             \Magento\Store\Model\ScopeInterface::SCOPE_STORE)); // >>>>>>>>>>>>>>>>>>
 
 // Customer
@@ -83,14 +83,24 @@ class Api
         $boleto->customer->phone->setType(\AditumPayments\ApiSDK\Enum\PhoneType::MOBILE);
 
 // Transactions
-        $grandTotal = $order->getGrandTotal() * 100;
+        $grandTotal = (int)$order->getGrandTotal() * 100;
         $boleto->transactions->setAmount($grandTotal);
-        $boleto->transactions->setInstructions($this->scopeConfig->getValue("payment/aditum_boleto/instruction"));
+        $boleto->transactions->setInstructions("Senhor caixa não receber após o vencimento.");
 
 // Transactions->fine (opcional)
-//        $boleto->transactions->fine->setStartDate("2");
-//        $boleto->transactions->fine->setAmount(300);
-//        $boleto->transactions->fine->setInterest(10);
+        if($this->scopeConfig->getValue("payment/aditum_boleto/fine_days")) {
+            $boleto->transactions->fine
+                ->setStartDate($this->scopeConfig->getValue("payment/aditum_boleto/fine_days"));
+        }
+        if($this->scopeConfig->getValue("payment/aditum_boleto/fine_days")
+            &&$this->scopeConfig->getValue("payment/aditum_boleto/fine_amount")){
+            $boleto->transactions->fine
+                ->setAmount($this->scopeConfig->getValue("payment/aditum_boleto/fine_amount"));
+        }
+        if($this->scopeConfig->getValue("payment/aditum_boleto/fine_days")
+            &&$this->scopeConfig->getValue("payment/aditum_boleto/fine_percent")) {
+            $boleto->transactions->fine->setInterest(10);
+        }
 
 // Transactions->discount (opcional)
 //        $boleto->transactions->discount->setType(AditumPayments\ApiSDK\Enum\DiscountType::FIXED);
@@ -159,7 +169,7 @@ class Api
         if($payment->getAdditionalInformation('cc_dc_choice')!="dc") {
             $authorization->transactions->setInstallmentNumber($payment->getAdditionalInformation('installments'));
         }
-        $grandTotal = $order->getGrandTotal() * 100;
+        $grandTotal = (int)$order->getGrandTotal() * 100;
         $authorization->transactions->setAmount($grandTotal);
 
         $result = $gateway->charge($authorization);
