@@ -1,37 +1,28 @@
 <?php
-/**
- * Copyright © 2013-2017 Magento, Inc. All rights reserved.
- * See COPYING.txt for license details.
- */
-namespace AditumPayment\Magento2\Block\Info;
 
-/*use Moip\Moip;
-use Moip\Auth\BasicAuth;*/
+namespace AditumPayment\Magento2\Block\Info;
 
 class Boleto extends \Magento\Payment\Block\Info
 {
-
-
     protected $_template = 'AditumPayment_Magento2::info/boleto.phtml';
-
 
     public function getLinkPay(){
         $_info = $this->getInfo();
-        $transactionId = $_info->getAdditionalInformation('href_boleto');
+        $transactionId = $_info->getAdditionalInformation('boleto_url');
 
         return $transactionId;
     }
 
     public function getLinkPrintPay(){
         $_info = $this->getInfo();
-        $transactionId = $_info->getAdditionalInformation('href_boleto_print');
+        $transactionId = $_info->getAdditionalInformation('boleto_url');
 
         return $transactionId;
     }
 
     public function getLineCodeBoleto(){
         $_info = $this->getInfo();
-        $transactionId = $_info->getAdditionalInformation('line_code_boleto');
+        $transactionId = $_info->getAdditionalInformation('barcode');
 
         return $transactionId;
     }
