@@ -43,15 +43,9 @@ class Index extends \Magento\Framework\App\Action\Action implements CsrfAwareAct
     public function execute()
     {
         $this->logger->log("INFO", "Aditum Callback starting...");
-        $auth = false;
-        if(isset($_SERVER['Authorization'])){
-            $merchantToken = $this->scopeConfig->getValue('payment/aditum/client_secret',
-                \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
-            if($_SERVER['Authorization']==base64_encode($merchantToken)){
-                $auth = true;
-            }
-        }
-        if(!$auth){
+        $merchantToken = $this->scopeConfig->getValue('payment/aditum/client_secret',
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
+        if($this->_request->getHeader('Authorization')!=base64_encode($merchantToken)){
             return $this->resultUnauthorized();
         }
         try {
@@ -62,24 +56,22 @@ class Index extends \Magento\Framework\App\Action\Action implements CsrfAwareAct
             }
             $input = json_decode($json, true);
             $this->logger->info("Aditum callback: ".$json);
-            $transaction = $input['Transactions'][0];
-            if($transaction['ChargeStatus']==\AditumPayments\ApiSDK\Enum\ChargeStatus::AUTHORIZED){
+            if($input['ChargeStatus']===1){
                 $orderCollection = $this->orderCollectionFactory->create();
-                $orderCollection->addAttributeToFilter('ext_order_id',$input['ChargeId']);
+                $orderCollection->addAttributeToFilter('ext_order_id',array('eq' => $input['ChargeId']));
                 $orderCollection->addAttributeToSelect('*');
-                $orderCollection->addAttributeToFilter('state','new');
+                $orderCollection->addAttributeToFilter('state',array('eq' => 'new'));
                 if(!$orderCollection->getTotalCount()) {
-                    $this->logger->info("Aditum Callback order not found: ");
-                    $this->logger->log("INFO", "Aditum Callback ended.");
+                    $this->logger->info("Aditum Callback order not found: ".$input['ChargeId']);
                     return $this->orderNotFound();
                 }
-                foreach($orderCollection->fetchItem() as $item){
+                foreach($orderCollection as $item){
                     $order = $this->_orderRepository->get($item->getId());
                     $this->logger->info("Aditum Callback invoicing Magento order " . $order->getIncrementId());
                     $this->invoiceOrder($order);
                 }
-            } else if($transaction['ChargeStatus']==\AditumPayments\ApiSDK\Enum\ChargeStatus::PRE_AUTHORIZED){
-                $this->logger->log("INFO", "Aditum Callback ended.");
+            } else if($input['ChargeStatus']===2){
+                $this->logger->log("INFO", "Aditum Callback status PreAuthorized.");
                 return $this->resultRaw("");
             }
             else {
