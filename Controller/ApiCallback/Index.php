@@ -13,7 +13,6 @@ class Index extends \Magento\Framework\App\Action\Action implements CsrfAwareAct
     protected $_invoiceService;
     protected $_transactionFactory;
     protected $logger;
-    protected $_storeManager;
     protected $result;
     protected $orderCollectionFactory;
     protected $scopeConfig;
@@ -24,7 +23,6 @@ class Index extends \Magento\Framework\App\Action\Action implements CsrfAwareAct
                                 \Magento\Sales\Model\Service\InvoiceService $invoiceService,
                                 \Magento\Framework\DB\TransactionFactory $transactionFactory,
                                 \Psr\Log\LoggerInterface $logger,
-                                \Magento\Store\Model\StoreManagerInterface $storeManager,
                                 \Magento\Framework\Controller\ResultFactory $result,
                                 \Magento\Sales\Model\ResourceModel\Order\CollectionFactory $orderCollectionFactory,
                                 \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
@@ -36,9 +34,7 @@ class Index extends \Magento\Framework\App\Action\Action implements CsrfAwareAct
         $this->_invoiceService = $invoiceService;
         $this->_transactionFactory = $transactionFactory;
         $this->logger = $logger;
-        $this->_storeManager = $storeManager;
         $this->result = $result;
-        $this->email = $email;
         $this->orderCollectionFactory = $orderCollectionFactory;
         $this->scopeConfig = $scopeConfig;
 
@@ -67,11 +63,7 @@ class Index extends \Magento\Framework\App\Action\Action implements CsrfAwareAct
             $input = json_decode($json, true);
             $this->logger->info("Aditum callback: ".$json);
             $transaction = $input['Transactions'][0];
-            if($transaction['IsApproved']==true
-                &&$transaction['IsCapture']==true
-                &&$transaction['TransactionStatus']==8
-                &&$transaction['IsCanceled']==false){
-
+            if($transaction['ChargeStatus']==\AditumPayments\ApiSDK\Enum\ChargeStatus::AUTHORIZED){
                 $orderCollection = $this->orderCollectionFactory->create();
                 $orderCollection->addAttributeToFilter('ext_order_id',$input['ChargeId']);
                 $orderCollection->addAttributeToSelect('*');
@@ -86,7 +78,7 @@ class Index extends \Magento\Framework\App\Action\Action implements CsrfAwareAct
                 }
             }
             else {
-                $this->resultRaw("");
+                return $this->resultRaw("");
             }
         } catch (Exception $e)
         {

@@ -62,10 +62,9 @@ class Boleto extends \Magento\Payment\Model\Method\AbstractMethod
         if ($result['status'] !== "PreAuthorized") {
             throw new \Magento\Framework\Validator\Exception(__($this->api->getError($result)));
         }
-//        throw new \Magento\Framework\Validator\Exception(__('Erro temporario'));
         $this->updateOrderRaw($order->getIncrementId());
-//        $order->setExtOrderId($result);
-        $order->addStatusHistoryComment('ID PIX: '.json_encode($result));
+        $order->setExtOrderId($result['charge']['id']);
+        $order->addStatusHistoryComment('ID Aditum: '.$result['charge']['id']);
         $payment->setAdditionalInformation('uuid',$result['charge']['id']);
         $payment->setAdditionalInformation('aditumNumber',$result['charge']['transactions'][0]['aditumNumber']);
         $payment->setAdditionalInformation('transactionId',$result['charge']['transactions'][0]['transactionId']);
