@@ -123,75 +123,12 @@ class CreditCard extends \Magento\Payment\Model\Method\Cc
         if (!$this->canRefund()) {
             throw new \Magento\Framework\Exception\LocalizedException(__('The refund action is not available.'));
         }
-        try {
-            // call API - refund
-            // executa aqui refund da API
-//            if ($returnXml === null) {
-//                $errorMsg = 'Impossível gerar reembolso. Algo deu errado.';
-//                throw new \Magento\Framework\Validator\Exception($errorMsg);
-//            }
-        } catch (\Exception $e) {
-//            $this->debugData(['transaction_id' => $transactionId, 'exception' => $e->getMessage()]);
-            throw new \Magento\Framework\Validator\Exception(__('Payment refunding error.'));
-        }
         $payment
-            ->setTransactionId( '-' . \Magento\Sales\Model\Order\Payment\Transaction::TYPE_REFUND)
-//            ->setParentTransactionId($transactionId)
+//            ->setTransactionId( '-' . \Magento\Sales\Model\Order\Payment\Transaction::TYPE_REFUND)
             ->setIsTransactionClosed(1)
             ->setShouldCloseParentTransaction(1);
         return $this;
     }
-    // Gambi master force update order
-
-//    public function getCcAvailableTypes()
-//    {
-//        return ['SO','SM','VI','MC','AE','DI','DN','UN','JCB','MI','MD','ELO','AU'];
-//    }
-//    public function getCcAvailableTypesValues()
-//    {
-//        return [
-//            //Solo, Switch or Maestro. International safe
-//            'SO' => '/(^(6334)[5-9](\d{11}$|\d{13,14}$))|(^(6767)(\d{12}$|\d{14,15}$))/',
-//            'SM' => '/(^(5[0678])\d{11,18}$)|(^(6[^05])\d{11,18}$)|(^(601)[^1]\d{9,16}$)|(^(6011)\d{9,11}$)' .
-//                '|(^(6011)\d{13,16}$)|(^(65)\d{11,13}$)|(^(65)\d{15,18}$)' .
-//                '|(^(49030)[2-9](\d{10}$|\d{12,13}$))|(^(49033)[5-9](\d{10}$|\d{12,13}$))' .
-//                '|(^(49110)[1-2](\d{10}$|\d{12,13}$))|(^(49117)[4-9](\d{10}$|\d{12,13}$))' .
-//                '|(^(49118)[0-2](\d{10}$|\d{12,13}$))|(^(4936)(\d{12}$|\d{14,15}$))/',
-//            // Visa
-//            'VI' => '/^4[0-9]{12}([0-9]{3})?$/',
-//            // Master Card
-//            'MC' => '/^(?:5[1-5][0-9]{2}|222[1-9]|22[3-9][0-9]|2[3-6][0-9]{2}|27[01][0-9]|2720)[0-9]{12}$/',
-//            // American Express
-//            'AE' => '/^3[47][0-9]{13}$/',
-//            // Discover
-//            'DI' => '/^(6011((0|9|[2-4])[0-9]{11,14}|(74|7[7-9]|8[6-9])[0-9]{10,13})|6(4[4-9][0-9]{13,16}|' .
-//                '5[0-9]{14,17}))/',
-//            'DN' => '/^3(0[0-5][0-9]{13,16}|095[0-9]{12,15}|(6|[8-9])[0-9]{14,17})/',
-//            // UnionPay
-//            'UN' => '/^622(1(2[6-9][0-9]{10,13}|[3-9][0-9]{11,14})|[3-8][0-9]{12,15}|9([[0-1][0-9]{11,14}|' .
-//                '2[0-5][0-9]{10,13}))|62[4-6][0-9]{13,16}|628[2-8][0-9]{12,15}/',
-//            // JCB
-//            'JCB' => '/^35(2[8-9][0-9]{12,15}|[3-8][0-9]{13,16})/',
-//            'MI' => '/^(5(0|[6-9])|63|67(?!59|6770|6774))\d*$/',
-//            'MD' => '/^(6759(?!24|38|40|6[3-9]|70|76)|676770|676774)\d*$/',
-//
-//            //Hipercard
-//            'HC' => '/^((606282)|(637095)|(637568)|(637599)|(637609)|(637612))\d*$/',
-//            //Elo
-//            'ELO' => '/^((509091)|(636368)|(636297)|(504175)|(438935)|(40117[8-9])|(45763[1-2])|' .
-//                '(457393)|(431274)|(50990[0-2])|(5099[7-9][0-9])|(50996[4-9])|(509[1-8][0-9][0-9])|' .
-//                '(5090(0[0-2]|0[4-9]|1[2-9]|[24589][0-9]|3[1-9]|6[0-46-9]|7[0-24-9]))|' .
-//                '(5067(0[0-24-8]|1[0-24-9]|2[014-9]|3[0-379]|4[0-9]|5[0-3]|6[0-5]|7[0-8]))|' .
-//                '(6504(0[5-9]|1[0-9]|2[0-9]|3[0-9]))|' .
-//                '(6504(8[5-9]|9[0-9])|6505(0[0-9]|1[0-9]|2[0-9]|3[0-8]))|' .
-//                '(6505(4[1-9]|5[0-9]|6[0-9]|7[0-9]|8[0-9]|9[0-8]))|' .
-//                '(6507(0[0-9]|1[0-8]))|(65072[0-7])|(6509(0[1-9]|1[0-9]|20))|' .
-//                '(6516(5[2-9]|6[0-9]|7[0-9]))|(6550(0[0-9]|1[0-9]))|' .
-//                '(6550(2[1-9]|3[0-9]|4[0-9]|5[0-8])))\d*$/',
-//            //Aura
-//            'AU' => '/^5078\d*$/'
-//        ];
-//    }
     public function updateOrderRaw($incrementId){
         $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
         $resource = $objectManager->get('Magento\Framework\App\ResourceConnection');
