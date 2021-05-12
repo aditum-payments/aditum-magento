@@ -67,8 +67,10 @@ class Index extends \Magento\Framework\App\Action\Action implements CsrfAwareAct
                 $orderCollection = $this->orderCollectionFactory->create();
                 $orderCollection->addAttributeToFilter('ext_order_id',$input['ChargeId']);
                 $orderCollection->addAttributeToSelect('*');
+                $orderCollection->addAttributeToFilter('state','new');
                 if(!$orderCollection->getTotalCount()) {
                     $this->logger->info("Aditum Callback order not found: ");
+                    $this->logger->log("INFO", "Aditum Callback ended.");
                     return $this->orderNotFound();
                 }
                 foreach($orderCollection->fetchItem() as $item){
@@ -76,6 +78,9 @@ class Index extends \Magento\Framework\App\Action\Action implements CsrfAwareAct
                     $this->logger->info("Aditum Callback invoicing Magento order " . $order->getIncrementId());
                     $this->invoiceOrder($order);
                 }
+            } else if($transaction['ChargeStatus']==\AditumPayments\ApiSDK\Enum\ChargeStatus::PRE_AUTHORIZED){
+                $this->logger->log("INFO", "Aditum Callback ended.");
+                return $this->resultRaw("");
             }
             else {
                 return $this->resultRaw("");
