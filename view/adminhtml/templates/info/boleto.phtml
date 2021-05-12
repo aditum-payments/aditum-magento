@@ -1,8 +1,11 @@
 <?php
+/**
+  * @var \AditumPayment\Magento2\Block\Info\Boleto $block
+  */
 $_init                      = $block->getLinkPay();
 $_getLinkPrintPay           = $block->getLinkPrintPay();
 $_getLineCodeBoleto         = $block->getLineCodeBoleto();
-$_getExpirationDateBoleto   = $block->getExpirationDateBoleto(); 
+$_getExpirationDateBoleto   = $block->getExpirationDateBoleto();
 $title = $block->escapeHtml($block->getMethod()->getTitle());
 ?>
 <dl class="payment-method">

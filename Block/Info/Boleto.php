@@ -33,7 +33,4 @@ class Boleto extends \Magento\Payment\Block\Info
 
         return $transactionId;
     }
-
-
-
 }
