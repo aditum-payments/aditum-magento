@@ -2,9 +2,7 @@
 
 namespace AditumPayment\Magento2\Model\Method;
 
-use Magento\Directory\Helper\Data as DirectoryHelper;
 use Magento\Payment\Observer\AbstractDataAssignObserver;
-
 
 class CreditCard extends \Magento\Payment\Model\Method\Cc
 {
