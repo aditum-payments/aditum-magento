@@ -15,7 +15,8 @@ class Index extends \Magento\Framework\App\Action\Action implements CsrfAwareAct
     protected $logger;
     protected $_storeManager;
     protected $result;
-    protected $email;
+    protected $orderCollectionFactory;
+    protected $scopeConfig;
 
     public function __construct(\Magento\Framework\App\Action\Context $context,
                                 \Magento\Framework\App\Request\Http $request,
@@ -25,7 +26,8 @@ class Index extends \Magento\Framework\App\Action\Action implements CsrfAwareAct
                                 \Psr\Log\LoggerInterface $logger,
                                 \Magento\Store\Model\StoreManagerInterface $storeManager,
                                 \Magento\Framework\Controller\ResultFactory $result,
-                                \AditumPayment\Magento2\Helper\Email $email,
+                                \Magento\Sales\Model\ResourceModel\Order\CollectionFactory $orderCollectionFactory,
+                                \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
                                 array $data = []
     )
     {
@@ -37,44 +39,80 @@ class Index extends \Magento\Framework\App\Action\Action implements CsrfAwareAct
         $this->_storeManager = $storeManager;
         $this->result = $result;
         $this->email = $email;
+        $this->orderCollectionFactory = $orderCollectionFactory;
+        $this->scopeConfig = $scopeConfig;
+
         parent::__construct($context);
     }
-
     public function execute()
     {
-        $this->logger->log("INFO", "PIX Callback starting...");
-        $json = file_get_contents('php://input');
-
-        if (!$this->isJson($json)) {
-            $this->logger->info("ERROR: PIX Callback is not json");
-        } else {
-            $input = json_decode($json, true);
-            // verify if id exists
-            if (!array_key_exists('externalOrderId', $input)) {
-                $this->logger->log("ERROR", "PIX Callback PIX ID not found in JSON");
-            } else {
-                $incrId = $input['externalOrderId'];
-                if ($input['status'] == "APPROVED") {
-                    $this->logger->info("PIX Callback getting Magento Order for " . $incrId);
-                    $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
-                    $orderInterface = $objectManager->create('Magento\Sales\Api\Data\OrderInterface');
-                    $order = $orderInterface->loadByIncrementId($incrId);
-                    $orderId = $order->getId();
-                    $this->logger->info("PIX callback Order ID: " . $orderId);
-                    $order = $this->_orderRepository->get($orderId);
-                    $this->email->sendEmail($order);
-                    $this->logger->log("INFO", "PIX Callback invoicing Magento order " . $incrId);
-                    $this->invoiceOrder($order);
-                } else {
-                    $this->logger->log("ERROR", "Wrong Order status: " . $input['status']);
-                }
+        $this->logger->log("INFO", "Aditum Callback starting...");
+        $auth = false;
+        if(isset($_SERVER['Authorization'])){
+            $merchantToken = $this->scopeConfig->getValue('payment/aditum/client_secret',
+                \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
+            if($_SERVER['Authorization']==base64_encode($merchantToken)){
+                $auth = true;
             }
         }
-        $this->logger->log("INFO", "PIX Callback ended.");
+        if(!$auth){
+            return $this->resultUnauthorized();
+        }
+        try {
+            $json = file_get_contents('php://input');
+            if (!$this->isJson($json)) {
+                $this->logger->info("ERROR: Aditum Callback is not json");
+                return $this->resultRaw("");
+            }
+            $input = json_decode($json, true);
+            $this->logger->info("Aditum callback: ".$json);
+            $transaction = $input['Transactions'][0];
+            if($transaction['IsApproved']==true
+                &&$transaction['IsCapture']==true
+                &&$transaction['TransactionStatus']==8
+                &&$transaction['IsCanceled']==false){
+
+                $orderCollection = $this->orderCollectionFactory->create();
+                $orderCollection->addAttributeToFilter('ext_order_id',$input['ChargeId']);
+                $orderCollection->addAttributeToSelect('*');
+                if(!$orderCollection->getTotalCount()) {
+                    $this->logger->info("Aditum Callback order not found: ");
+                    return $this->orderNotFound();
+                }
+                foreach($orderCollection->fetchItem() as $item){
+                    $order = $this->_orderRepository->get($item->getId());
+                    $this->logger->info("Aditum Callback invoicing Magento order " . $order->getIncrementId());
+                    $this->invoiceOrder($order);
+                }
+            }
+            else {
+                $this->resultRaw("");
+            }
+        } catch (Exception $e)
+        {
+            $this->logger->error($e->getMessage());
+            $this->logger->error($e->getTrace());
+            $result = $this->resultRaw();
+            $result->setHttpResponseCode(400);
+        }
+        $this->logger->log("INFO", "Aditum Callback ended.");
+        return $this->resultRaw();
+    }
+    public function orderNotFound()
+    {
+        return $this->resultRaw();
+    }
+    public function resultUnauthorized()
+    {
+        $result = $this->resultRaw();
+        $result->setHttpResponseCode(401);
+        return $result;
+    }
+    public function resultRaw($txt="")
+    {
         $resultEmpty = $this->result->create(\Magento\Framework\Controller\ResultFactory::TYPE_RAW);
         $resultEmpty->setContents("");
         return $resultEmpty;
-
     }
 
     public function cancelOrder($order)
@@ -94,7 +132,6 @@ class Index extends \Magento\Framework\App\Action\Action implements CsrfAwareAct
         $order->setState('processing')->setStatus('processing');
         $order->save();
     }
-
     public function isJson($string)
     {
         json_decode($string);
