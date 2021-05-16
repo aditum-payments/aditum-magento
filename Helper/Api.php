@@ -127,10 +127,10 @@ class Api
 
         $gateway = new \AditumPayments\ApiSDK\Gateway;
         $authorization = new \AditumPayments\ApiSDK\Domains\Authorization;
-        if($preAuth){
-            unset($authorization);
-            $authorization = new \AditumPayments\ApiSDK\Domains\PreAuthorization;
-        }
+//        if($preAuth){
+//            unset($authorization);
+//            $authorization = new \AditumPayments\ApiSDK\Domains\PreAuthorization;
+//        }
         $quote = $this->checkoutSession->getQuote();
         $billingAddress = $quote->getBillingAddress();
         $this->logger->info("Card CCDC Type: ".$payment->getAdditionalInformation('cc_dc_choice'));
@@ -143,6 +143,18 @@ class Api
         $authorization->transactions->setAcquirer(\AditumPayments\ApiSDK\Enum\AcquirerCode::SIMULADOR);
         $authorization->customer->setName($order->getBillingAddress()->getName());
         $authorization->customer->setEmail($quote->getCustomerEmail());
+
+        $cpfCnpj = $payment->getAdditionalInformation('document');
+        $cpfCnpj = filter_var($cpfCnpj, FILTER_SANITIZE_NUMBER_INT);
+
+        if(strlen($cpfCnpj)==14) {
+            $authorization->customer->setDocumentType(\AditumPayments\ApiSDK\Enum\DocumentType::CNPJ);
+        }
+        else{
+            $authorization->customer->setDocumentType(\AditumPayments\ApiSDK\Enum\DocumentType::CPF);
+        }
+        $authorization->customer->setDocument($cpfCnpj);
+
         $authorization->customer->phone->setCountryCode("55");
         $phone_number = filter_var($billingAddress->getTelephone(), FILTER_SANITIZE_NUMBER_INT);
         $authorization->customer->phone->setAreaCode(substr($phone_number,0,2));
@@ -166,6 +178,20 @@ class Api
         $authorization->transactions->card->setCardholderName($payment->getAdditionalInformation('fullname'));
         $authorization->transactions->card->setExpirationMonth($payment->getAdditionalInformation('cc_exp_month'));
         $authorization->transactions->card->setExpirationYear($payment->getAdditionalInformation('cc_exp_year'));
+
+        $authorization->transactions->card->billingAddress->setStreet($billingAddress
+            ->getStreet()[$this->scopeConfig->getValue("payment/aditum/street")]);
+        $authorization->transactions->card->billingAddress->setNumber($billingAddress
+            ->getStreet()[$this->scopeConfig->getValue("payment/aditum/number")]);
+        $authorization->transactions->card->billingAddress->setComplement($billingAddress
+            ->getStreet()[$this->scopeConfig->getValue("payment/aditum/complement")]);
+        $authorization->transactions->card->billingAddress->setNeighborhood($billingAddress
+            ->getStreet()[$this->scopeConfig->getValue("payment/aditum/district")]);
+        $authorization->transactions->card->billingAddress->setCity($billingAddress->getCity());
+        $authorization->transactions->card->billingAddress->setState($this->codigoUF($billingAddress->getRegion()));
+        $authorization->transactions->card->billingAddress->setCountry("BR");
+        $authorization->transactions->card->billingAddress->setZipcode($billingAddress->getPostcode());
+
         if($payment->getAdditionalInformation('cc_dc_choice')!="dc") {
             $authorization->transactions->setInstallmentNumber($payment->getAdditionalInformation('installments'));
         }

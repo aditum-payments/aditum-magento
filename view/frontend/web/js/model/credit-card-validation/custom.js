@@ -26,7 +26,7 @@
     };
     $.each({
         'validate-cc-type2': [
-            function (value, element, params) {
+            function (value, element, params) {return true;
 
 				if (value && params) {
                     var ccType = $(params).val();
@@ -43,7 +43,7 @@
 			$.mage.__('Credit card number does not match credit card type.')
         ],
 		'validate-card-type2': [
-            function (number, item, allowedTypes) {
+            function (number, item, allowedTypes) {return true;
                 var cardInfo,
                     i,
                     l;
@@ -70,7 +70,7 @@
              * @param number - credit card number
              * @return {boolean}
              */
-                function (number) {
+                function (number) {return true;
                 return creditCardNumberValidator(number).isValid;
             },
 			$.mage.__('Please enter a valid credit card number.')

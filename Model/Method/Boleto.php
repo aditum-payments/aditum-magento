@@ -26,6 +26,8 @@ class Boleto extends \Magento\Payment\Model\Method\AbstractMethod
     protected $api;
     protected $logger;
     protected $_scopeConfig;
+    protected $_invoiceService;
+    protected $_transactionFactory;
 
     public function __construct(
         \Magento\Framework\Model\Context $context,
@@ -38,6 +40,8 @@ class Boleto extends \Magento\Payment\Model\Method\AbstractMethod
         \AditumPayment\Magento2\Helper\Api $api,
         \Magento\Backend\Model\Auth\Session $adminSession,
         \Psr\Log\LoggerInterface $mlogger,
+        \Magento\Sales\Model\Service\InvoiceService $invoiceService,
+        \Magento\Framework\DB\TransactionFactory $transactionFactory,
         \Magento\Framework\Model\ResourceModel\AbstractResource $resource = null,
         \Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null,
         array $data = [],
@@ -49,6 +53,8 @@ class Boleto extends \Magento\Payment\Model\Method\AbstractMethod
         $this->adminSession = $adminSession;
         $this->logger = $mlogger;
         $this->_scopeConfig = $scopeConfig;
+        $this->_invoiceService = $invoiceService;
+        $this->_transactionFactory = $transactionFactory;
     }
     public function order(\Magento\Payment\Model\InfoInterface $payment, $amount)
     {
@@ -59,7 +65,9 @@ class Boleto extends \Magento\Payment\Model\Method\AbstractMethod
             throw new \Magento\Framework\Validator\Exception(__('Houve um erro processando seu pedido. Por favor entre em contato conosco.'));
         }
         $result = json_decode(json_encode($result),true);
-        if ($result['status'] !== "PreAuthorized") {
+
+        if ($result['status'] !== "PreAuthorized"
+            &&$result['status'] !== "Authorized") {
             throw new \Magento\Framework\Validator\Exception(__($this->api->getError($result)));
         }
         $this->updateOrderRaw($order->getIncrementId());
@@ -72,8 +80,12 @@ class Boleto extends \Magento\Payment\Model\Method\AbstractMethod
         $payment->setAdditionalInformation('barcode',$result['charge']['transactions'][0]['barcode']);
         $payment->setAdditionalInformation('bankSlipId',$result['charge']['transactions'][0]['bankSlipId']);
         $payment->setAdditionalInformation('bankIssuerId',$result['charge']['transactions'][0]['bankIssuerId']);
+        $payment->setAdditionalInformation('status',$result['status']);
 
         $payment->setAdditionalInformation('boleto_url',$this->api->getBoletoUrl($result));
+        if ($result['status'] == "Authorized"){
+            $this->invoiceOrder($order);
+        }
         return $this;
     }
     public function isAvailable(\Magento\Quote\Api\Data\CartInterface $quote = null)
@@ -110,5 +122,17 @@ class Boleto extends \Magento\Payment\Model\Method\AbstractMethod
         $tableName = $resource->getTableName('sales_order');
         $sql = "UPDATE " . $tableName . " SET status = 'pending', state = 'new' WHERE entity_id = " . $incrementId;
         $connection->query($sql);
+    }
+    public function invoiceOrder($order)
+    {
+        $invoice = $this->_invoiceService->prepareInvoice($order);
+        $invoice->setRequestedCaptureCase(\Magento\Sales\Model\Order\Invoice::CAPTURE_ONLINE);
+        $invoice->register();
+        $transaction = $this->_transactionFactory->create()
+            ->addObject($invoice)
+            ->addObject($invoice->getOrder());
+        $transaction->save();
+        $order->setState('processing')->setStatus('processing');
+        $order->save();
     }
 }

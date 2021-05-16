@@ -196,11 +196,12 @@ function (
                 });
             },
             getUseDocument: function(){
-                return false;
-            	console.log(window.checkoutConfig.payment.aditumcc.get_document);
-            	return window.checkoutConfig.payment.aditumcc.get_document;
+                return true;
             },
-			isActive :function(){
+            getDocument: function(){
+                return window.checkoutConfig.payment.aditumcc.document;
+            },
+            isActive :function(){
 				return true;
 			},
 
@@ -210,7 +211,7 @@ function (
 
 			getInstall: function () {
 				var valor = quote.totals().base_grand_total;
-				var type_interest 	= window.checkoutConfig.payment.aditumcc.type_interest
+				var type_interest 	= window.checkoutConfig.payment.aditumcc.type_interest;
 				var info_interest 	= window.checkoutConfig.payment.aditumcc.info_interest;
 				var min_installment = window.checkoutConfig.payment.aditumcc.min_installment;
 				var max_installment = window.checkoutConfig.payment.aditumcc.max_installment;

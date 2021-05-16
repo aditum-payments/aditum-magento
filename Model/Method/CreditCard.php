@@ -25,6 +25,8 @@ class CreditCard extends \Magento\Payment\Model\Method\Cc
     protected $api;
     protected $logger;
     protected $_scopeConfig;
+    protected $_invoiceService;
+    protected $_transactionFactory;
 
     public function __construct(\Magento\Framework\Model\Context $context,
                                 \Magento\Framework\Registry $registry,
@@ -40,6 +42,8 @@ class CreditCard extends \Magento\Payment\Model\Method\Cc
                                 \AditumPayment\Magento2\Helper\Api $api,
                                 \Magento\Backend\Model\Auth\Session $adminSession,
                                 \Psr\Log\LoggerInterface $mlogger,
+                                \Magento\Sales\Model\Service\InvoiceService $invoiceService,
+                                \Magento\Framework\DB\TransactionFactory $transactionFactory,
                                 array $data = [])
     {
         $this->api = $api;
@@ -68,6 +72,7 @@ class CreditCard extends \Magento\Payment\Model\Method\Cc
         } catch (Exception $e) {
             throw new \Magento\Framework\Validator\Exception(__($txtError));
         }
+        $payment->setAdditionalInformation('status',$aditumreturn['status']);
         $this->updateOrderRaw($order->getIncrementId(),$aditumreturn);
         $order->setExtOrderId($aditumreturn['charge']['id']);
         $order->addStatusHistoryComment(

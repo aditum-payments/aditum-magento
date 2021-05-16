@@ -43,10 +43,8 @@ class Index extends \Magento\Framework\App\Action\Action implements CsrfAwareAct
     public function execute()
     {
         $this->logger->log("INFO", "Aditum Callback starting...");
-        $merchantToken = $this->scopeConfig->getValue('payment/aditum/client_secret',
-            \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
-        if($this->_request->getHeader('Authorization')!=base64_encode($merchantToken)){
-            return $this->resultUnauthorized();
+        if($auth = $this->authError()){
+            return $auth;
         }
         try {
             $json = file_get_contents('php://input');
@@ -56,25 +54,27 @@ class Index extends \Magento\Framework\App\Action\Action implements CsrfAwareAct
             }
             $input = json_decode($json, true);
             $this->logger->info("Aditum callback: ".$json);
+            $order = $this->getOrderByChargeId($input['ChargeId']);
+            if(!$order){
+                $this->logger->info("Aditum Callback order not found: ".$input['ChargeId']);
+                return $this->orderNotFound();
+            }
             if($input['ChargeStatus']===1){
-                $orderCollection = $this->orderCollectionFactory->create();
-                $orderCollection->addAttributeToFilter('ext_order_id',array('eq' => $input['ChargeId']));
-                $orderCollection->addAttributeToSelect('*');
-                $orderCollection->addAttributeToFilter('state',array('eq' => 'new'));
-                if(!$orderCollection->getTotalCount()) {
-                    $this->logger->info("Aditum Callback order not found: ".$input['ChargeId']);
-                    return $this->orderNotFound();
-                }
-                foreach($orderCollection as $item){
-                    $order = $this->_orderRepository->get($item->getId());
-                    $this->logger->info("Aditum Callback invoicing Magento order " . $order->getIncrementId());
+                $this->logger->info("Aditum Callback invoicing Magento order " . $order->getIncrementId());
+                $order->getPayment()->setAdditionalInformation('status','Authorized');
+                $order->getPayment()->setAdditionalInformation('callbackStatus','Authorized');
+                if(!$order->hasInvoices()) {
                     $this->invoiceOrder($order);
                 }
             } else if($input['ChargeStatus']===2){
+                $order->getPayment()->setAdditionalInformation('callbackStatus','PreAuthorized');
                 $this->logger->log("INFO", "Aditum Callback status PreAuthorized.");
                 return $this->resultRaw("");
             }
             else {
+                $order->getPayment()->setAdditionalInformation('callbackStatus','NotAuthorized');
+                $this->logger->log("INFO", "Aditum Callback status other - cancelling. ".$order->getIncrementId());
+                $this->cancelOrder($order);
                 return $this->resultRaw("");
             }
         } catch (Exception $e)
@@ -83,9 +83,35 @@ class Index extends \Magento\Framework\App\Action\Action implements CsrfAwareAct
             $this->logger->error($e->getTrace());
             $result = $this->resultRaw();
             $result->setHttpResponseCode(400);
+            return $result;
         }
         $this->logger->log("INFO", "Aditum Callback ended.");
         return $this->resultRaw();
+    }
+    public function authError()
+    {
+        $merchantToken = $this->scopeConfig->getValue('payment/aditum/client_secret',
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
+        if($this->_request->getHeader('Authorization')!=base64_encode($merchantToken)){
+            return $this->resultUnauthorized();
+        }
+        return false;
+    }
+    public function getOrderByChargeId($chargeId)
+    {
+        $orderCollection = $this->orderCollectionFactory->create();
+        $orderCollection->addAttributeToFilter('ext_order_id',array('eq' => $chargeId));
+        $orderCollection->addAttributeToSelect('*');
+        $orderCollection->addAttributeToFilter('state',array('eq' => 'new'));
+        if(!$orderCollection->getTotalCount()) {
+            $this->logger->info("Aditum Callback order not found: ".$chargeId);
+            return $this->orderNotFound();
+        }
+        foreach($orderCollection as $item){
+            $order = $this->_orderRepository->get($item->getId());
+            return $order;
+        }
+        return false;
     }
     public function orderNotFound()
     {

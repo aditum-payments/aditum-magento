@@ -80,20 +80,8 @@ class ConfigProviderCc extends \AditumPayment\Magento2\Model\ConfigProvider impl
      */
     protected $assetSource;
     protected $_priceFiler;
+    protected $_customerSession;
 
-    /**
-     * ConfigProvider constructor.
-     * @param PaymentHelper $paymentHelper
-     * @param Escaper $escaper
-     * @param CcConfig $ccConfig
-     * @param Source $assetSource
-     * @param \Magento\Framework\Locale\ResolverInterface $localeResolver
-     * @param \Magento\Framework\Stdlib\DateTime\DateTime $date
-     * @param \Magento\Framework\Pricing\PriceCurrencyInterface $priceCurrency
-     * @param Session $customerSession
-     * @param \Magento\Checkout\Model\Session $_checkoutSession
-     * @param \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
-     */
     public function __construct(
         PaymentHelper $paymentHelper,
         Escaper $escaper,
@@ -147,6 +135,7 @@ class ConfigProviderCc extends \AditumPayment\Magento2\Model\ConfigProvider impl
                 $config['payment'][$code]['terms_txt'] = $this->getTermsTxt();
                 $config['payment'][$code]['singleicon'] = $this->getSingleIcon();
                 $config['payment'][$code]['cc_dc_choice'] = "";
+                $config['payment'][$code]['document'] = $this->getTaxVat();
 			}
         }
 
@@ -279,6 +268,15 @@ class ConfigProviderCc extends \AditumPayment\Magento2\Model\ConfigProvider impl
         $juros['12'] = 0;// $this->scopeConfig->getValue("payment/aditum_cc/installment/installment_12");
 
         return $juros;
+    }
+    public function getTaxVat()
+    {
+        if($this->_customerSession->isLoggedIn()) {
+            return $this->_customerSession->getCustomer()->getTaxvat();
+        }
+        else{
+            return "";
+        }
     }
 
 	public function getCurrencyData()
