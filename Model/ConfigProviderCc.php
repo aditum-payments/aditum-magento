@@ -108,6 +108,7 @@ class ConfigProviderCc extends \AditumPayment\Magento2\Model\ConfigProvider impl
         foreach ($this->methodCodes as $code) {
             $this->methods[$code] = $paymentHelper->getMethodInstance($code);
         }
+        parent::__construct($scopeConfig);
     }
 
     /**
@@ -136,6 +137,8 @@ class ConfigProviderCc extends \AditumPayment\Magento2\Model\ConfigProvider impl
                 $config['payment'][$code]['singleicon'] = $this->getSingleIcon();
                 $config['payment'][$code]['cc_dc_choice'] = "";
                 $config['payment'][$code]['document'] = $this->getTaxVat();
+                $config['payment'][$code]['antifraud_type'] = $this->getAntiFraudType();
+                $config['payment'][$code]['antifraud_id'] = $this->getAntiFraudId();
 			}
         }
 

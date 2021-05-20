@@ -25,6 +25,7 @@ class ConfigProviderBoleto extends \AditumPayment\Magento2\Model\ConfigProvider 
         $this->method = $paymentHelper->getMethodInstance($this->methodCode);
         $this->scopeConfig = $scopeConfig;
         $this->customer = $customer;
+        parent::__construct($scopeConfig);
     }
 
     public function getConfig()
@@ -37,7 +38,9 @@ class ConfigProviderBoleto extends \AditumPayment\Magento2\Model\ConfigProvider 
                     'fullname' => $this->getFullName(),
                     'taxvat' => $this->getTaxVat(),
                     'terms_url' => $this->getTermsUrl(),
-                    'terms_txt' => $this->getTermsTxt()
+                    'terms_txt' => $this->getTermsTxt(),
+                    'antifraud_type' => $this->getAntiFraudType(),
+                    'antifraud_id' => $this->getAntiFraudId()
         ],
             ],
         ] : [];

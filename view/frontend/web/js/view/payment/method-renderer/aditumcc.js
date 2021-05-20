@@ -130,6 +130,12 @@ function (
                     creditCardData.cvvCode = value;
                 });
              },
+            getAntiFraudType: function() {
+                return window.checkoutConfig.payment.aditumcc.antifraud_type;
+            },
+            getAntiFraudId: function() {
+                return window.checkoutConfig.payment.aditumcc.antifraud_id;
+            },
 			getCvvImageUrl: function () {
 	            return window.checkoutConfig.payment.aditumcc.image_cvv;
 	        },
@@ -319,7 +325,8 @@ function (
                         'fullname': jQuery('#'+this.getCode()+'_fullname').val(),
                         'document': jQuery('#'+this.getCode()+'_document').val(),
                         'installments': jQuery('#'+this.getCode()+'_installments').val(),
-                        'cc_dc_choice': window.checkoutConfig.payment.aditumcc.cc_dc_choice
+                        'cc_dc_choice': window.checkoutConfig.payment.aditumcc.cc_dc_choice,
+                        'antifraud_token': jQuery('#antifraud_token').text()
                     }
                 };
             },

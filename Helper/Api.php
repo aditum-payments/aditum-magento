@@ -31,7 +31,7 @@ class Api
     public function extCreateOrderBoleto(\Magento\Sales\Model\Order\Interceptor $order,$payment)
     {
         \AditumPayments\ApiSDK\Configuration::initialize();
-        \AditumPayments\ApiSDK\Configuration::setUrl(\AditumPayments\ApiSDK\Configuration::DEV_URL);
+        \AditumPayments\ApiSDK\Configuration::setUrl($this->getApiUrl());
         \AditumPayments\ApiSDK\Configuration::setCnpj($this->getClientId());
         \AditumPayments\ApiSDK\Configuration::setMerchantToken($this->getClientSecret());
         \AditumPayments\ApiSDK\Configuration::setlog(false);
@@ -42,6 +42,12 @@ class Api
 
         $quote = $this->checkoutSession->getQuote();
         $billingAddress = $quote->getBillingAddress();
+        $boleto->setMerchantChargeId($order->getIncrementId());
+
+
+        $boleto->setSessionId($payment->getAdditionalInformation('antifraud_token'));
+
+
         $boleto->setDeadline($this->scopeConfig->getValue('payment/aditum_boleto/expiration_days',
             \Magento\Store\Model\ScopeInterface::SCOPE_STORE)); // >>>>>>>>>>>>>>>>>>
 
@@ -133,6 +139,8 @@ class Api
 //        }
         $quote = $this->checkoutSession->getQuote();
         $billingAddress = $quote->getBillingAddress();
+
+
         $this->logger->info("Card CCDC Type: ".$payment->getAdditionalInformation('cc_dc_choice'));
         if($payment->getAdditionalInformation('cc_dc_choice')=="dc"){
             $authorization->transactions->setPaymentType(\AditumPayments\ApiSDK\Enum\PaymentType::DEBIT);
@@ -140,7 +148,10 @@ class Api
         else {
             $authorization->transactions->setPaymentType(\AditumPayments\ApiSDK\Enum\PaymentType::CREDIT);
         }
-        $authorization->transactions->setAcquirer(\AditumPayments\ApiSDK\Enum\AcquirerCode::SIMULADOR);
+        $authorization->setMerchantChargeId($order->getIncrementId());
+
+        $authorization->setSessionId($payment->getAdditionalInformation('antifraud_token'));
+
         $authorization->customer->setName($order->getBillingAddress()->getName());
         $authorization->customer->setEmail($quote->getCustomerEmail());
 
@@ -274,13 +285,8 @@ class Api
     }
     public function getError($arrayReturn)
     {
-        if(!isset($arrayReturn['httpMsg'])) return "";
-        $httpMsg = json_decode($arrayReturn['httpMsg'],true);
-        foreach($httpMsg['errors'] as $error){
-            $saida[] = $error['message'];
-        }
-        $this->logger->info("Erro: ".$saida[0]);
-        return $saida[0];
+        if(!isset($arrayReturn['charge']['transactions'][0]['errorMessage'])) return "";
+        return $arrayReturn['charge']['transactions'][0]['errorMessage'];
     }
     public function getBoletoUrl($result)
     {

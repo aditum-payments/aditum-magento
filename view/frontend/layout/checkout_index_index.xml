@@ -1,5 +1,8 @@
 <?xml version="1.0"?>
 <page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" layout="1column" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <head>
+        <script src="AditumPayment_Magento2::js/antifraud.js"/>
+    </head>
     <body>
         <referenceBlock name="checkout.root">
             <arguments>
@@ -56,5 +59,8 @@
                 </argument>
             </arguments>
         </referenceBlock>
+        <referenceContainer name="before.body.end">
+            <block class="AditumPayment\Magento2\Block\AntiFraud" name="aditum_antifraud_js" template="AditumPayment_Magento2::antifraud.phtml"/>
+        </referenceContainer>
     </body>
 </page>

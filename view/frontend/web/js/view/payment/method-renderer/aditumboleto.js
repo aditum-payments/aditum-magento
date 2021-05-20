@@ -30,8 +30,15 @@ define(
                     'additional_data': {
                         'boletofullname': jQuery('#'+this.getCode() + '_boletofullname').val(),
                         'boletodocument': jQuery('#'+this.getCode() + '_boletodocument').val(),
+                        'antifraud_token': jQuery('#antifraud_token').text()
                     }
                 };
+            },
+            getAntiFraudType: function() {
+                return window.checkoutConfig.payment.aditumboleto.antifraud_type;
+            },
+            getAntiFraudId: function() {
+                return window.checkoutConfig.payment.aditumboleto.antifraud_id;
             },
             getInstruction: function() {
                 return window.checkoutConfig.payment.aditumboleto.instruction;

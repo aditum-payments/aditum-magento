@@ -15,17 +15,24 @@
                     <comment><![CDATA[Selecione entre homologação para testes de desenvolvimento e produção.]]></comment>
                     <source_model>AditumPayment\Magento2\Model\Config\Environment</source_model>
                 </field>
-                <field id="client_id" translate="label comment" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="antifraudtype" translate="label comment" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Tipo de anti-fraude</label>
+                    <source_model>AditumPayment\Magento2\Model\Config\AntifraudType</source_model>
+                </field>
+                <field id="antifraud_id" translate="label comment" type="text" sortOrder="25" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>ID do anti-fraude</label>
+                </field>
+                <field id="client_id" translate="label comment" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>CNPJ</label>
                 </field>
                 <field id="client_secret" translate="label comment" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Merchant ID</label>
+                    <label>Merchant Token</label>
                 </field>
-                <field id="order_expiration_days" translate="label comment" type="text" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="order_expiration_days" translate="label comment" type="text" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Tempo de expiração do pedido</label>
                     <comment><![CDATA[Depois de quanto tempo o pedido pendente de pagamento deve ser cancelado. Defina em dias.]]></comment>
                 </field>
-                <field id="new_order_status" translate="label" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="new_order_status" translate="label" type="select" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Status do pedido criado</label>
                     <source_model>Magento\Sales\Model\Config\Source\Order\Status</source_model>
                 </field>

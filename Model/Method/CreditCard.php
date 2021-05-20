@@ -65,8 +65,8 @@ class CreditCard extends \Magento\Payment\Model\Method\Cc
                 throw new \Magento\Framework\Validator\Exception(__($txtError));
             }
             if (!isset($aditumreturn['status'])||isset($aditumreturn['status'])
-                &&$aditumreturn['status'] != 'PreAuthorized'
-                &&$aditumreturn['status'] != 'Authorized') {
+                &&$aditumreturn['status'] != \AditumPayments\ApiSDK\Enum\ChargeStatus::PRE_AUTHORIZED
+                &&$aditumreturn['status'] != \AditumPayments\ApiSDK\Enum\ChargeStatus::AUTHORIZED) {
                 throw new \Magento\Framework\Validator\Exception(__($this->api->getError($aditumreturn)));
             }
         } catch (Exception $e) {
@@ -79,7 +79,6 @@ class CreditCard extends \Magento\Payment\Model\Method\Cc
             'ID Aditum: '.$aditumreturn['charge']['id']."<br>\n"
             .'Cartão: '.$aditumreturn['charge']['transactions'][0]['card']['cardNumber']."<br>\n");
         $payment->setAdditionalInformation('aditum_id',$aditumreturn['charge']['id']);
-        $payment->setAdditionalInformation('aditum_nsu',$aditumreturn['charge']['nsu']);
         return $this;
     }
 
