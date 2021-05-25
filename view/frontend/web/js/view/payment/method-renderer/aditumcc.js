@@ -326,7 +326,7 @@ function (
                         'document': jQuery('#'+this.getCode()+'_document').val(),
                         'installments': jQuery('#'+this.getCode()+'_installments').val(),
                         'cc_dc_choice': window.checkoutConfig.payment.aditumcc.cc_dc_choice,
-                        'antifraud_token': jQuery('#antifraud_token').text()
+                        'antifraud_token': jQuery('#antifraud_token').val()
                     }
                 };
             },
@@ -353,6 +353,7 @@ function (
                 }
             },
 			validate: function() {
+                return true;
 				var $form = $('#' + this.getCode() + '-form');
                 return $form.validation() && $form.validation('isValid');
             }

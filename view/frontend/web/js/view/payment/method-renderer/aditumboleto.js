@@ -30,7 +30,7 @@ define(
                     'additional_data': {
                         'boletofullname': jQuery('#'+this.getCode() + '_boletofullname').val(),
                         'boletodocument': jQuery('#'+this.getCode() + '_boletodocument').val(),
-                        'antifraud_token': jQuery('#antifraud_token').text()
+                        'antifraud_token': jQuery('#antifraud_token').val()
                     }
                 };
             },

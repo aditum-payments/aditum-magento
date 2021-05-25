@@ -1,4 +1,4 @@
-require(['jquery','ko'], function () {
+require(['jquery','ko','domReady!'], function () {
     // Konduto
     function getAntiFraudType() {
         if (typeof window.checkoutConfig.payment.aditumboleto.antifraud_type !== 'undefined') {
@@ -35,7 +35,7 @@ require(['jquery','ko'], function () {
                         //this.kondutoVisitorID = visitorID;
                         console.log("loadKonduto");
                         console.log(visitorID);
-                        document.getElementById('antifraud_token').innerHTML = visitorID;
+                        document.getElementById('antifraud_token').setAttribute('value',visitorID);
                         clear = true;
                     }
                     if (clear) {
@@ -66,14 +66,14 @@ require(['jquery','ko'], function () {
                         typeof publicKey !== "undefined"
                     ) {
                         (window).csdp("app", publicKey);
-                        (window).csdp("outputsessionid", "clearsaleSessionId");
+                        (window).csdp("outputsessionid", "antifraud_token");
                         (window).csdm('app', publicKey);
                         (window).csdm('mode', 'manual');
                         (window).csdm("send", "checkout");
-                        console.log( (window).csdp);
-                        console.log( (window).csdm);
-                        console.log("Clear Sale");
-                        console.log(publicKey);
+                        // console.log('clearsaleSessionId');
+                        // var visitorID = document.getElementById('clearsaleSessionId').getAttribute('value');
+                        // console.log(visitorID);
+                        // document.getElementById('antifraud_token').innerHTML = visitorID;
                         clear = true;
                     }
                     if (clear) {
@@ -124,7 +124,7 @@ require(['jquery','ko'], function () {
             f.async = true;
             // @ts-ignore
             g.parentNode.insertBefore(f, g)
-        })(window, document, 'script', '//device.clearsale.com.br/p/fp.js', 'csdp');
+        })(window, document, 'script', '//device.clearsale.com.br/p/fp.js?now=' + Date.now(), 'csdp');
         (function (a, b, c, d, e, f, g) {
             a['CsdmObject'] = e;
             a[e] = a[e] || function () {
@@ -140,7 +140,7 @@ require(['jquery','ko'], function () {
             f.async = true;
             // @ts-ignore
             g.parentNode.insertBefore(f, g);
-        })(window, document, 'script', '//device.clearsale.com.br/m/cs.js', 'csdm')
+        })(window, document, 'script', '//device.clearsale.com.br/m/cs.js?now=' + Date.now(), 'csdm')
         loadClearSale(getAntiFraudId());
     }
 
