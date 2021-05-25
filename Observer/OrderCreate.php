@@ -9,23 +9,28 @@ use Magento\Sales\Model\Order;
 class OrderCreate implements ObserverInterface
 {
     protected $_order;
-protected $_invoiceService;
-protected $_transactionFactory;
+    protected $_invoiceService;
+    protected $_transactionFactory;
+    protected $logger;
+
 
     public function __construct(
         \Magento\Sales\Api\Data\OrderInterface $order,
         \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
         \Magento\Sales\Model\Service\InvoiceService $invoiceService,
+        \Psr\Log\LoggerInterface $logger,
         \Magento\Framework\DB\TransactionFactory $transactionFactory
     )
     {
         $this->_order = $order;
         $this->_invoiceService = $invoiceService;
         $this->_transactionFactory = $transactionFactory;
+        $this->logger = $logger;
     }
 
     public function execute(\Magento\Framework\Event\Observer $observer)
     {
+        $this->logger->info("Entrou no observer");
         $order = $observer->getEvent()->getOrder();
         //  Magento 2.2.* compatibility
         if(!$order){
@@ -37,14 +42,17 @@ protected $_transactionFactory;
         $payment = $order->getPayment();
         $method = $payment->getMethod();
         if($method=="aditumcc") {
+            $this->logger->info("Observer - aditumcc");
             if($payment->getAdditionalInformation('status')=='PreAuthorized'
-                &&!$payment->getAdditionalInformation('callbackStatus') === 'Authorized') {
-                $order->setState('new')->setStatus('pending');
+                &&$payment->getAdditionalInformation('callbackStatus') !== 'Authorized') {
+                $this->logger->info("Observer - set new");
+                $order->setState('new')->setStatus('pending'); /// corrigir
                 $order->save();
             }
             if($payment->getAdditionalInformation('status')=='Authorized'
-                &&!$payment->getAdditionalInformation('callbackStatus')){
+                &&$payment->getAdditionalInformation('callbackStatus')!=='NotAuthorized'){
                 if(!$order->hasInvoices()){
+                    $this->logger->info("Observer - invoice order");
                     $this->invoiceOrder($order);
                 }
             }
@@ -63,7 +71,7 @@ protected $_transactionFactory;
             ->addObject($invoice)
             ->addObject($invoice->getOrder());
         $transaction->save();
-        $order->setState('processing')->setStatus('processing');
+        $order->setState('processing')->setStatus('processing');// corrigir
         $order->save();
     }
 }

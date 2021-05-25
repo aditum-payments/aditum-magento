@@ -43,17 +43,18 @@ class Index extends \Magento\Framework\App\Action\Action implements CsrfAwareAct
     public function execute()
     {
         $this->logger->log("INFO", "Aditum Callback starting...");
+        $json = file_get_contents('php://input');
+        $this->logger->info("Aditum callback: ".$json);
         if($auth = $this->authError()){
+            $this->logger->log("INFO", "Aditum Callback Auth Error...");
             return $auth;
         }
         try {
-            $json = file_get_contents('php://input');
             if (!$this->isJson($json)) {
                 $this->logger->info("ERROR: Aditum Callback is not json");
                 return $this->resultRaw("");
             }
             $input = json_decode($json, true);
-            $this->logger->info("Aditum callback: ".$json);
             $order = $this->getOrderByChargeId($input['ChargeId']);
             if(!$order){
                 $this->logger->info("Aditum Callback order not found: ".$input['ChargeId']);
@@ -92,18 +93,40 @@ class Index extends \Magento\Framework\App\Action\Action implements CsrfAwareAct
     {
         $merchantToken = $this->scopeConfig->getValue('payment/aditum/client_secret',
             \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
-        if($this->_request->getHeader('Authorization')!=base64_encode($merchantToken)){
+        $headers = $this->getRequestHeaders();
+        $this->logger->info("Header: ". json_encode($headers));
+        if(!isset($headers['X-Aditum-Authorization'])){
+            $this->logger->info('Header nao existe');
+            return $this->resultUnauthorized();
+        }
+        if($headers['X-Aditum-Authorization']!=base64_encode($merchantToken)){
+            $this->logger->info("Base64 token: ".base64_encode($merchantToken));
+            $this->logger->info('Header diferente');
             return $this->resultUnauthorized();
         }
         return false;
     }
+    function getRequestHeaders() {
+        $headers = array();
+        foreach($_SERVER as $key => $value) {
+            if (substr($key, 0, 5) <> 'HTTP_') {
+                continue;
+            }
+            $header = str_replace(' ', '-',
+                ucwords(str_replace('_', ' ', strtolower(substr($key, 5)))));
+            $headers[$header] = $value;
+        }
+        return $headers;
+    }
+
     public function getOrderByChargeId($chargeId)
     {
+        $chargeId = str_replace("-","",$chargeId);
         $orderCollection = $this->orderCollectionFactory->create();
         $orderCollection->addAttributeToFilter('ext_order_id',array('eq' => $chargeId));
         $orderCollection->addAttributeToSelect('*');
-        $orderCollection->addAttributeToFilter('state',array('eq' => 'new'));
-        if(!$orderCollection->getTotalCount()) {
+//        $orderCollection->addAttributeToFilter('state',array('eq' => 'new'));
+        if(!$orderCollection->count()) {
             $this->logger->info("Aditum Callback order not found: ".$chargeId);
             return $this->orderNotFound();
         }
@@ -115,7 +138,9 @@ class Index extends \Magento\Framework\App\Action\Action implements CsrfAwareAct
     }
     public function orderNotFound()
     {
-        return $this->resultRaw();
+        $result = $this->resultRaw();
+        $result->setHttpResponseCode(404);
+        return $result;
     }
     public function resultUnauthorized()
     {

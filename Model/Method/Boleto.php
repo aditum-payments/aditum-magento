@@ -71,7 +71,7 @@ class Boleto extends \Magento\Payment\Model\Method\AbstractMethod
             throw new \Magento\Framework\Validator\Exception(__($this->api->getError($result)));
         }
         $this->updateOrderRaw($order->getIncrementId());
-        $order->setExtOrderId($result['charge']['id']);
+        $order->setExtOrderId(str_replace("-","",$result['charge']['id']));
         $order->addStatusHistoryComment('ID Aditum: '.$result['charge']['id']);
         $payment->setAdditionalInformation('uuid',$result['charge']['id']);
         $payment->setAdditionalInformation('aditumNumber',$result['charge']['transactions'][0]['aditumNumber']);

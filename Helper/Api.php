@@ -132,10 +132,10 @@ class Api
         \AditumPayments\ApiSDK\Configuration::setlog(false);
 
         $gateway = new \AditumPayments\ApiSDK\Gateway;
-//        $authorization = new \AditumPayments\ApiSDK\Domains\Authorization;
+        $authorization = new \AditumPayments\ApiSDK\Domains\Authorization;
 //        if($preAuth){
 //            unset($authorization);
-            $authorization = new \AditumPayments\ApiSDK\Domains\PreAuthorization;
+//            $authorization = new \AditumPayments\ApiSDK\Domains\PreAuthorization;
 //        }
         $quote = $this->checkoutSession->getQuote();
         $billingAddress = $quote->getBillingAddress();

@@ -74,7 +74,7 @@ class CreditCard extends \Magento\Payment\Model\Method\Cc
         }
         $payment->setAdditionalInformation('status',$aditumreturn['status']);
         $this->updateOrderRaw($order->getIncrementId(),$aditumreturn);
-        $order->setExtOrderId($aditumreturn['charge']['id']);
+        $order->setExtOrderId(str_replace("-","",$aditumreturn['charge']['id']));
         $order->addStatusHistoryComment(
             'ID Aditum: '.$aditumreturn['charge']['id']."<br>\n"
             .'Cartão: '.$aditumreturn['charge']['transactions'][0]['card']['cardNumber']."<br>\n");
