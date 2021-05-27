@@ -4,12 +4,15 @@ namespace AditumPayment\Magento2\Model;
 class ConfigProvider
 {
     protected $scopeConfig;
+    protected $assetRepo;
 
     public function __construct(
-        \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
+        \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
+        \Magento\Framework\View\Asset\Repository $assetRepo
     )
     {
         $this->scopeConfig = $scopeConfig;
+        $this->assetRepo = $assetRepo;
     }
 
 
@@ -17,7 +20,8 @@ class ConfigProvider
 
     public function getTermsUrl()
     {
-        return "https://www.aditum.com.br/";
+        $fileName = "Termos-de-Uso-Portal-Aditum-V3-20210512.pdf";
+        return $this->assetRepo->getUrl("AditumPayment_Magento2::pdf/".$fileName);
     }
     public function getTermsTxt()
     {

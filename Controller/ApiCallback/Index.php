@@ -52,19 +52,33 @@ class Index extends \Magento\Framework\App\Action\Action implements CsrfAwareAct
         try {
             if (!$this->isJson($json)) {
                 $this->logger->info("ERROR: Aditum Callback is not json");
-                return $this->resultRaw("");
+                $result = $this->resultRaw();
+                $result->setHttpResponseCode(400);
+                return $result;
             }
             $input = json_decode($json, true);
             $order = $this->getOrderByChargeId($input['ChargeId']);
+            $i=0;
+            while(!$order->getPayment()->getAdditionalInformation('order_created')){
+                $this->logger->info("Aditum Callback waiting for order creation...");
+                sleep(1);
+                $i++;
+                if($i>=30){
+                    $this->logger->info("Aditum Callback timeout...");
+                    $result = $this->resultRaw();
+                    $result->setHttpResponseCode(400);
+                    return $result;
+                }
+            }
             if(!$order){
                 $this->logger->info("Aditum Callback order not found: ".$input['ChargeId']);
                 return $this->orderNotFound();
             }
             if($input['ChargeStatus']===1){
                 $this->logger->info("Aditum Callback invoicing Magento order " . $order->getIncrementId());
-                $order->getPayment()->setAdditionalInformation('status','Authorized');
-                $order->getPayment()->setAdditionalInformation('callbackStatus','Authorized');
                 if(!$order->hasInvoices()) {
+                    $order->getPayment()->setAdditionalInformation('status','Authorized');
+                    $order->getPayment()->setAdditionalInformation('callbackStatus','Authorized');
                     $this->invoiceOrder($order);
                 }
             } else if($input['ChargeStatus']===2){
@@ -73,9 +87,13 @@ class Index extends \Magento\Framework\App\Action\Action implements CsrfAwareAct
                 return $this->resultRaw("");
             }
             else {
-                $order->getPayment()->setAdditionalInformation('callbackStatus','NotAuthorized');
-                $this->logger->log("INFO", "Aditum Callback status other - cancelling. ".$order->getIncrementId());
-                $this->cancelOrder($order);
+                if($order->getPayment()->getAdditionalInformation('status')!=='NotAuthorized') {
+                    $order->getPayment()->setAdditionalInformation('callbackStatus', 'NotAuthorized');
+                    $this->logger->log("INFO", "Aditum Callback status other - cancelling. " . $order->getIncrementId());
+                    if ($order->getState() !== "canceled") {
+                        $this->cancelOrder($order);
+                    }
+                }
                 return $this->resultRaw("");
             }
         } catch (Exception $e)

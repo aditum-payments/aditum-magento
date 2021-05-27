@@ -93,7 +93,8 @@ class ConfigProviderCc extends \AditumPayment\Magento2\Model\ConfigProvider impl
         Session $customerSession,
         \Magento\Checkout\Model\Session $_checkoutSession,
         \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
-		\Magento\Framework\Pricing\Helper\Data $priceFilter
+		\Magento\Framework\Pricing\Helper\Data $priceFilter,
+        \Magento\Framework\View\Asset\Repository $assetRepo
     ) {
         $this->ccConfig = $ccConfig;
         $this->assetSource = $assetSource;
@@ -108,7 +109,7 @@ class ConfigProviderCc extends \AditumPayment\Magento2\Model\ConfigProvider impl
         foreach ($this->methodCodes as $code) {
             $this->methods[$code] = $paymentHelper->getMethodInstance($code);
         }
-        parent::__construct($scopeConfig);
+        parent::__construct($scopeConfig,$assetRepo);
     }
 
     /**

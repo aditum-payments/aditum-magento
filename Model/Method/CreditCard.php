@@ -27,6 +27,8 @@ class CreditCard extends \Magento\Payment\Model\Method\Cc
     protected $_scopeConfig;
     protected $_invoiceService;
     protected $_transactionFactory;
+    protected $resourceConnection;
+    protected $connection;
 
     public function __construct(\Magento\Framework\Model\Context $context,
                                 \Magento\Framework\Registry $registry,
@@ -44,12 +46,15 @@ class CreditCard extends \Magento\Payment\Model\Method\Cc
                                 \Psr\Log\LoggerInterface $mlogger,
                                 \Magento\Sales\Model\Service\InvoiceService $invoiceService,
                                 \Magento\Framework\DB\TransactionFactory $transactionFactory,
+                                \Magento\Framework\App\ResourceConnection $resourceConnection,
                                 array $data = [])
     {
         $this->api = $api;
         $this->adminSession = $adminSession;
         $this->mlogger = $mlogger;
         $this->_scopeConfig = $scopeConfig;
+        $this->resourceConnection = $resourceConnection;
+        $this->connection = $resourceConnection->getConnection();
         parent::__construct($context, $registry, $extensionFactory, $customAttributeFactory, $paymentData,
             $scopeConfig, $logger, $moduleList, $localeDate, $resource, $resourceCollection, $data);
     }
@@ -60,25 +65,41 @@ class CreditCard extends \Magento\Payment\Model\Method\Cc
 
         $order = $payment->getOrder();
         try {
-            $txtError = 'Houve um erro processando seu pedido. Por favor entre em contato conosco.';
             if (!$aditumreturn = json_decode(json_encode($this->api->createOrderCc($order, $info, $payment,1)),true)) {
-                throw new \Magento\Framework\Validator\Exception(__($txtError));
+                $order->addStatusHistoryComment('Erro na comunicação com a Aditum');
+                $payment->setAdditionalInformation('error','Erro na comunicação com a Aditum');
+            }
+            if(isset($aditumreturn['httpStatus'])&& $aditumreturn['httpStatus'] >= 200
+                && $aditumreturn['httpStatus'] < 300){
+                $error = 'API communication error .'.$aditumreturn['httpStatus'];
+                throw new \Magento\Framework\Webapi\Exception($error, 0,
+                    \Magento\Framework\Webapi\Exception::HTTP_INTERNAL_ERROR);
+                    \Magento\Framework\Webapi\Exception::HTTP_INTERNAL_ERROR);
             }
             if (!isset($aditumreturn['status'])||isset($aditumreturn['status'])
                 &&$aditumreturn['status'] != \AditumPayments\ApiSDK\Enum\ChargeStatus::PRE_AUTHORIZED
                 &&$aditumreturn['status'] != \AditumPayments\ApiSDK\Enum\ChargeStatus::AUTHORIZED) {
-                throw new \Magento\Framework\Validator\Exception(__($this->api->getError($aditumreturn)));
+                if($error = $this->api->getError($aditumreturn)) {
+                    $order->addStatusHistoryComment($this->api->getError($aditumreturn));
+                }
+                else{
+                    $order->addStatusHistoryComment("Retorno API status invalido: ".$aditumreturn['status']);
+                }
+                $payment->setAdditionalInformation('error',$this->api->getError($aditumreturn));
             }
         } catch (Exception $e) {
+            $txtError = 'Houve um erro processando seu pedido. Por favor entre em contato conosco.';
             throw new \Magento\Framework\Validator\Exception(__($txtError));
         }
-        $payment->setAdditionalInformation('status',$aditumreturn['status']);
-        $this->updateOrderRaw($order->getIncrementId(),$aditumreturn);
-        $order->setExtOrderId(str_replace("-","",$aditumreturn['charge']['id']));
-        $order->addStatusHistoryComment(
-            'ID Aditum: '.$aditumreturn['charge']['id']."<br>\n"
-            .'Cartão: '.$aditumreturn['charge']['transactions'][0]['card']['cardNumber']."<br>\n");
-        $payment->setAdditionalInformation('aditum_id',$aditumreturn['charge']['id']);
+        if($aditumreturn) {
+            $payment->setAdditionalInformation('status', $aditumreturn['status']);
+            $order->setExtOrderId(str_replace("-","",$aditumreturn['charge']['id']));
+            $order->addStatusHistoryComment(
+                'ID Aditum: '.$aditumreturn['charge']['id']."<br>\n"
+                .'Cartão: '.$aditumreturn['charge']['transactions'][0]['card']['cardNumber']."<br>\n");
+            $payment->setAdditionalInformation('aditum_id',$aditumreturn['charge']['id']);
+        }
+
         return $this;
     }
 
@@ -134,12 +155,10 @@ class CreditCard extends \Magento\Payment\Model\Method\Cc
         return $this;
     }
     public function updateOrderRaw($incrementId){
-        $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
-        $resource = $objectManager->get('Magento\Framework\App\ResourceConnection');
-        $connection = $resource->getConnection();
-        $tableName = $resource->getTableName('sales_order');
+        $tableName = $this->resourceConnection->getTableName('sales_order');
+//        $status = $this->_scopeConfig->getValue()
         $sql = "UPDATE " . $tableName . " SET status = 'pending', state = 'new' WHERE entity_id = " . $incrementId;
-        $connection->query($sql);
+        $this->connection->query($sql);
     }
     public function validate()
     {

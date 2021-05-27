@@ -18,14 +18,15 @@ class ConfigProviderBoleto extends \AditumPayment\Magento2\Model\ConfigProvider 
         PaymentHelper $paymentHelper,
         Escaper $escaper,
         \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
-        \Magento\Customer\Model\Session $customer
+        \Magento\Customer\Model\Session $customer,
+        \Magento\Framework\View\Asset\Repository $assetRepo
     )
     {
         $this->escaper = $escaper;
         $this->method = $paymentHelper->getMethodInstance($this->methodCode);
         $this->scopeConfig = $scopeConfig;
         $this->customer = $customer;
-        parent::__construct($scopeConfig);
+        parent::__construct($scopeConfig,$assetRepo);
     }
 
     public function getConfig()
