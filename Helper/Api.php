@@ -89,7 +89,8 @@ class Api
         $boleto->customer->phone->setType(\AditumPayments\ApiSDK\Enum\PhoneType::MOBILE);
 
 // Transactions
-        $grandTotal = (int)$order->getGrandTotal() * 100;
+        $grandTotal = $order->getGrandTotal() * 100;
+        $grandTotal = (int)$grandTotal;
         $boleto->transactions->setAmount($grandTotal);
         $boleto->transactions->setInstructions("Senhor caixa não receber após o vencimento.");
 
@@ -206,7 +207,8 @@ class Api
         if($payment->getAdditionalInformation('cc_dc_choice')!="dc") {
             $authorization->transactions->setInstallmentNumber($payment->getAdditionalInformation('installments'));
         }
-        $grandTotal = (int)$order->getGrandTotal() * 100;
+        $grandTotal = $order->getGrandTotal() * 100;
+        $grandTotal = (int)$grandTotal;
         $authorization->transactions->setAmount($grandTotal);
 
         $result = $gateway->charge($authorization);
