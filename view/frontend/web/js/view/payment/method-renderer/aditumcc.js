@@ -353,7 +353,6 @@ function (
                 }
             },
 			validate: function() {
-                return true;
 				var $form = $('#' + this.getCode() + '-form');
                 return $form.validation() && $form.validation('isValid');
             }
