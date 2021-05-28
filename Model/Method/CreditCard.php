@@ -69,11 +69,10 @@ class CreditCard extends \Magento\Payment\Model\Method\Cc
                 $order->addStatusHistoryComment('Erro na comunicação com a Aditum');
                 $payment->setAdditionalInformation('error','Erro na comunicação com a Aditum');
             }
-            if(isset($aditumreturn['httpStatus'])&& $aditumreturn['httpStatus'] >= 200
-                && $aditumreturn['httpStatus'] < 300){
+            if(isset($aditumreturn['httpStatus'])&&($aditumreturn['httpStatus'] < 200
+                || $aditumreturn['httpStatus'] >= 300)){
                 $error = 'API communication error .'.$aditumreturn['httpStatus'];
                 throw new \Magento\Framework\Webapi\Exception($error, 0,
-                    \Magento\Framework\Webapi\Exception::HTTP_INTERNAL_ERROR);
                     \Magento\Framework\Webapi\Exception::HTTP_INTERNAL_ERROR);
             }
             if (!isset($aditumreturn['status'])||isset($aditumreturn['status'])
