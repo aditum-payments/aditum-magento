@@ -1,0 +1,10 @@
+<?php
+/**
+ * @var \AditumPayment\Magento2\Block\CcSuccess $block
+ */
+
+if($block->getPaymentMethod() === "aditumcc"): ?>
+	<p>
+        Status do pedido: Pagamento sendo processado.
+	</p>
+<?php endif; ?>

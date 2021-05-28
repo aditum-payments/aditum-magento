@@ -6,10 +6,10 @@
                template="AditumPayment_Magento2::order/success/additional.phtml"
                after="-">
         </block>
-    </referenceContainer>
-    <referenceContainer name="content">
-        <block class="Test\Thankyou\Block\Thankyou" name="order.details.success" template="Test_Thankyou::order/success.phtml" after="-">
+        <block class="AditumPayment\Magento2\Block\CcSuccess"
+               name="aditumcc.order.success"
+               template="AditumPayment_Magento2::order/success/cc-additional.phtml"
+               after="aditum.order.success">
         </block>
     </referenceContainer>
-    <referenceBlock name="checkout.success" remove="true"/>
 </body>
