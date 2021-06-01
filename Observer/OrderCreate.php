@@ -70,6 +70,7 @@ class OrderCreate implements ObserverInterface
         }
         if($method=="aditumboleto") {
             $order->setState('new')->setStatus('pending');
+            $payment->setAdditionalInformation('order_created','1');
             $order->save();
         }
     }
