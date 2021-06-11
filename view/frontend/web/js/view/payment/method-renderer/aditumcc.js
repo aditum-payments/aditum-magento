@@ -19,7 +19,8 @@ define(
 	'AditumPayment_Magento2/js/model/credit-card-validation/custom',
     'mage/url',
 	'mage/calendar',
-	'mage/translate'
+	'mage/translate',
+    'domReady!'
 ],
 function (
     _,
@@ -129,6 +130,11 @@ function (
                 this.creditCardVerificationNumber.subscribe(function (value) {
                     creditCardData.cvvCode = value;
                 });
+                 $('#aditum_cc_number').attr("maxlength", 16);
+                // document.onload = function (){
+                //      document.getElementById('aditum_cc_number').onkeyup = function () {
+                //      }
+                //  };
              },
             getAntiFraudType: function() {
                 return window.checkoutConfig.payment.aditumcc.antifraud_type;
@@ -294,9 +300,9 @@ function (
 				if(value['juros'] == 0){
 					var info_interest = "sem juros";
 				} else {
-					var info_interest = "com juros total de " + value['total_juros'];
+					var info_interest = "";
 				}
-				var inst = key+' x '+ value['parcela']+' no valor total de ' + value['total_parcelado'] + ' ' + info_interest;
+				var inst = key+' x '+ value['parcela']+ ' ' + info_interest;
                     return {
                         'value': key,
                         'installments': inst
@@ -325,10 +331,11 @@ function (
                         'fullname': jQuery('#'+this.getCode()+'_fullname').val(),
                         'document': jQuery('#'+this.getCode()+'_document').val(),
                         'installments': jQuery('#'+this.getCode()+'_installments').val(),
-                        'cc_dc_choice': window.checkoutConfig.payment.aditumcc.cc_dc_choice,
+                        'cc_dc_choice': 'cc',
                         'antifraud_token': jQuery('#antifraud_token').val()
                     }
                 };
+//                'cc_dc_choice': window.checkoutConfig.payment.aditumcc.cc_dc_choice,
             },
             getFullname: function() {
                 return _.map(window.checkoutConfig.payment.aditumcc.fullname, function(value, key) {
@@ -342,7 +349,77 @@ function (
                 this.change(event.target.value);
                 return true;
             },
-            change: function(value) {
+            getStaticUrl: function () {
+                return window.checkoutConfig.payment.aditumcc.static_url;
+            },
+            getCardFlagByNumber: function (ccnumber = '') {
+                console.log('flag');
+                var cardnumber = ccnumber.replace(/[^0-9]+/g, '');
+//                    Aura: /^((?!504175))^((?!5067))(^50[0-9])/,
+//                    BaneseCard: /^636117/,
+//                    FortBrasil: /^628167/,
+//                    GrandCard: /^605032/,
+//                    PersonalCard: /^636085/,
+//                    Valecard: /^606444|^606458|^606482,
+                var cards = {
+                    amex: /^3[47][0-9]{13}$/,
+                    cabal: /(60420[1-9]|6042[1-9][0-9]|6043[0-9]{2}|604400)/,
+                    dinerclub: /(36[0-8][0-9]{3}|369[0-8][0-9]{2}|3699[0-8][0-9]|36999[0-9])/,
+                    discover: /^6(?:011|5[0-9]{2})[0-9]{12}/,
+                    elo: /^4011(78|79)|^43(1274|8935)|^45(1416|7393|763(1|2))|^50(4175|6699|67[0-6][0-9]|677[0-8]|9[0-8][0-9]{2}|99[0-8][0-9]|999[0-9])|^627780|^63(6297|6368|6369)|^65(0(0(3([1-3]|[5-9])|4([0-9])|5[0-1])|4(0[5-9]|[1-3][0-9]|8[5-9]|9[0-9])|5([0-2][0-9]|3[0-8]|4[1-9]|[5-8][0-9]|9[0-8])|7(0[0-9]|1[0-8]|2[0-7])|9(0[1-9]|[1-6][0-9]|7[0-8]))|16(5[2-9]|[6-7][0-9])|50(0[0-9]|1[0-9]|2[1-9]|[3-4][0-9]|5[0-8]))/,
+                    hipercard: /^606282|^3841(?:[0|4|6]{1})0/,
+                    JCB: /^(?:2131|1800|35\d{3})\d{11}/,
+                    mastercard: /^((5(([1-2]|[4-5])[0-9]{8}|0((1|6)([0-9]{7}))|3(0(4((0|[2-9])[0-9]{5})|([0-3]|[5-9])[0-9]{6})|[1-9][0-9]{7})))|((508116)\\d{4,10})|((502121)\\d{4,10})|((589916)\\d{4,10})|(2[0-9]{15})|(67[0-9]{14})|(506387)\\d{4,10})/,
+                    sorocred: /^627892|^636414/,
+                    visa: /^4[0-9]{15}$/
+                };
+                for (var flag in cards) {
+                    if (cards[flag].test(cardnumber)) {
+                        return flag;
+                    }
+                }
+                return '';
+            },
+            getCcBrand: function () {
+                var getCardFlagByNumber = this.getCardFlagByNumber;
+                var getStaticUrl = this.getStaticUrl;
+
+                var aditumCcNumber = $('#aditum_cc_number');
+                if (aditumCcNumber.val().length < 6) {
+                    return;
+                }
+                function handleKeyEvent()
+                {
+                    setTimeout(function () {
+
+
+                        var ccFlag = getCardFlagByNumber(aditumCcNumber.val());
+                        console.log(ccFlag);
+                        console.log('teste');
+                        if(ccFlag == ''){
+                            console.log('333');
+                            document.getElementById('aditum_cc_number').setAttribute('style', 'width:300px;max-width:300px;background-image: none !important');
+                            return true;
+                        }
+                        var staticUrl = getStaticUrl() + '/aditumccbrands/';
+                        var imageUrl = staticUrl + ccFlag + '.svg';
+                        document.getElementById('aditum_cc_number').setAttribute('style', 'width:300px;max-width:300px;background-image: url(' + imageUrl + ') !important');
+//                        aditumCcNumber.css('background-image', imageUrl);
+
+                        // $.ajax({
+                        //    url: '/rest/V1/aditum/brand/' + $('#aditum_cc_number').val(),
+                        // }).done(function(response){
+                        //     console.log(response.brand);
+                        //     var staticUrl = this.getStaticUrl() + '/Aditum_Magento2/';
+                        //     console.log(imageUrl);
+                        //     $('#aditum_cc_number').css('background-image',imageUrl);
+                        // });
+                    }, 0);
+                    return true;
+                }
+                aditumCcNumber.on('keyup',handleKeyEvent);
+            },
+            change: function (value) {
                 if(value === 'dc') {
                     window.checkoutConfig.payment.aditumcc.cc_dc_choice = "dc";
                     $('#div-installments').hide();

@@ -94,7 +94,8 @@ class ConfigProviderCc extends \AditumPayment\Magento2\Model\ConfigProvider impl
         \Magento\Checkout\Model\Session $_checkoutSession,
         \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
 		\Magento\Framework\Pricing\Helper\Data $priceFilter,
-        \Magento\Framework\View\Asset\Repository $assetRepo
+        \Magento\Framework\View\Asset\Repository $assetRepo,
+        \Magento\Store\Model\StoreManagerInterface $storeManager
     ) {
         $this->ccConfig = $ccConfig;
         $this->assetSource = $assetSource;
@@ -109,7 +110,7 @@ class ConfigProviderCc extends \AditumPayment\Magento2\Model\ConfigProvider impl
         foreach ($this->methodCodes as $code) {
             $this->methods[$code] = $paymentHelper->getMethodInstance($code);
         }
-        parent::__construct($scopeConfig,$assetRepo);
+        parent::__construct($scopeConfig,$assetRepo,$storeManager);
     }
 
     /**
@@ -140,6 +141,7 @@ class ConfigProviderCc extends \AditumPayment\Magento2\Model\ConfigProvider impl
                 $config['payment'][$code]['document'] = $this->getTaxVat();
                 $config['payment'][$code]['antifraud_type'] = $this->getAntiFraudType();
                 $config['payment'][$code]['antifraud_id'] = $this->getAntiFraudId();
+                $config['payment'][$code]['static_url'] = $this->getStaticUrl();
 			}
         }
 
@@ -211,7 +213,7 @@ class ConfigProviderCc extends \AditumPayment\Magento2\Model\ConfigProvider impl
         )['calendar']['gregorian']['monthNames']['format']['wide'];
         foreach ($months as $key => $value) {
             $monthNum = ++$key < 10 ? '0' . $key : $key;
-            $data[$key] = $monthNum . ' - ' . $value;
+            $data[$key] = $monthNum;// . ' - ' . $value;
         }
         return $data;
     }
@@ -298,7 +300,7 @@ class ConfigProviderCc extends \AditumPayment\Magento2\Model\ConfigProvider impl
 
 	public function MinInstallment()
     {
-        $parcelasMinimo = "1";//$this->scopeConfig->getValue('payment/aditum_cc/installment/min_installment');
+        $parcelasMinimo = "1";
         return $parcelasMinimo;
     }
 

@@ -30,33 +30,46 @@ class CreditCard extends \Magento\Payment\Model\Method\Cc
     protected $resourceConnection;
     protected $connection;
 
-    public function __construct(\Magento\Framework\Model\Context $context,
-                                \Magento\Framework\Registry $registry,
-                                \Magento\Framework\Api\ExtensionAttributesFactory $extensionFactory,
-                                \Magento\Framework\Api\AttributeValueFactory $customAttributeFactory,
-                                \Magento\Payment\Helper\Data $paymentData,
-                                \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
-                                \Magento\Payment\Model\Method\Logger $logger,
-                                \Magento\Framework\Module\ModuleListInterface $moduleList,
-                                \Magento\Framework\Stdlib\DateTime\TimezoneInterface $localeDate,
-                                \Magento\Framework\Model\ResourceModel\AbstractResource $resource = null,
-                                \Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null,
-                                \AditumPayment\Magento2\Helper\Api $api,
-                                \Magento\Backend\Model\Auth\Session $adminSession,
-                                \Psr\Log\LoggerInterface $mlogger,
-                                \Magento\Sales\Model\Service\InvoiceService $invoiceService,
-                                \Magento\Framework\DB\TransactionFactory $transactionFactory,
-                                \Magento\Framework\App\ResourceConnection $resourceConnection,
-                                array $data = [])
-    {
+    public function __construct(
+        \Magento\Framework\Model\Context $context,
+        \Magento\Framework\Registry $registry,
+        \Magento\Framework\Api\ExtensionAttributesFactory $extensionFactory,
+        \Magento\Framework\Api\AttributeValueFactory $customAttributeFactory,
+        \Magento\Payment\Helper\Data $paymentData,
+        \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
+        \Magento\Payment\Model\Method\Logger $logger,
+        \Magento\Framework\Module\ModuleListInterface $moduleList,
+        \Magento\Framework\Stdlib\DateTime\TimezoneInterface $localeDate,
+        \Magento\Framework\Model\ResourceModel\AbstractResource $resource = null,
+        \Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null,
+        \AditumPayment\Magento2\Helper\Api $api,
+        \Magento\Backend\Model\Auth\Session $adminSession,
+        \Psr\Log\LoggerInterface $mlogger,
+        \Magento\Sales\Model\Service\InvoiceService $invoiceService,
+        \Magento\Framework\DB\TransactionFactory $transactionFactory,
+        \Magento\Framework\App\ResourceConnection $resourceConnection,
+        array $data = []
+    ) {
         $this->api = $api;
         $this->adminSession = $adminSession;
         $this->mlogger = $mlogger;
         $this->_scopeConfig = $scopeConfig;
         $this->resourceConnection = $resourceConnection;
         $this->connection = $resourceConnection->getConnection();
-        parent::__construct($context, $registry, $extensionFactory, $customAttributeFactory, $paymentData,
-            $scopeConfig, $logger, $moduleList, $localeDate, $resource, $resourceCollection, $data);
+        parent::__construct(
+            $context,
+            $registry,
+            $extensionFactory,
+            $customAttributeFactory,
+            $paymentData,
+            $scopeConfig,
+            $logger,
+            $moduleList,
+            $localeDate,
+            $resource,
+            $resourceCollection,
+            $data
+        );
     }
     public function order(\Magento\Payment\Model\InfoInterface $payment, $amount)
     {
@@ -65,11 +78,12 @@ class CreditCard extends \Magento\Payment\Model\Method\Cc
 
         $order = $payment->getOrder();
         try {
-            if (!$aditumreturn = json_decode(json_encode($this->api->createOrderCc($order, $info, $payment,1)),true)) {
+            if (!$aditumreturn = json_decode(json_encode(
+                $this->api->createOrderCc($order, $info, $payment,1)),true)) {
                 $order->addStatusHistoryComment('Erro na comunicação com a Aditum');
                 $payment->setAdditionalInformation('error','Erro na comunicação com a Aditum');
             }
-            if(isset($aditumreturn['httpStatus'])&&($aditumreturn['httpStatus'] < 200
+            if (isset($aditumreturn['httpStatus'])&&($aditumreturn['httpStatus'] < 200
                 || $aditumreturn['httpStatus'] >= 300)){
                 $error = 'API communication error .'.$aditumreturn['httpStatus'];
                 throw new \Magento\Framework\Webapi\Exception($error, 0,

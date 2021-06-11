@@ -12,23 +12,43 @@ class Api
     protected $_storeManager;
     protected $checkoutSession;
 
-    public function __construct(\Magento\Framework\App\Helper\Context $context,
-                                \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
-                                \Psr\Log\LoggerInterface $logger,
-                                \Magento\Store\Model\StoreManagerInterface $storeManager,
-                                \Magento\Checkout\Model\Session $checkoutSession
-    )
-    {
+    public function __construct(
+        \Magento\Framework\App\Helper\Context $context,
+        \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
+        \Psr\Log\LoggerInterface $logger,
+        \Magento\Store\Model\StoreManagerInterface $storeManager,
+        \Magento\Checkout\Model\Session $checkoutSession
+    ) {
         $this->scopeConfig = $scopeConfig;
         $this->logger = $logger;
         $this->_storeManager = $storeManager;
         $this->checkoutSession = $checkoutSession;
     }
-    public function createOrderBoleto(\Magento\Sales\Model\Order\Interceptor $order,$payment)
+
+    /**
+     * Get cc Brand by ccNumber
+     * @param $cc
+     * @return string
+     */
+    public function getCcBrand($cc)
     {
-        return $this->extCreateOrderBoleto($order,$payment);
+        \AditumPayments\ApiSDK\Configuration::initialize();
+        \AditumPayments\ApiSDK\Configuration::setUrl(\AditumPayments\ApiSDK\Configuration::DEV_URL);
+        \AditumPayments\ApiSDK\Configuration::setCnpj($this->getClientId());
+        \AditumPayments\ApiSDK\Configuration::setMerchantToken($this->getClientSecret());
+        \AditumPayments\ApiSDK\Configuration::setlog(false);
+        \AditumPayments\ApiSDK\Configuration::login();
+        $response = \AditumPayments\ApiSDK\Helper\Utils::getBrandCardBin($cc);
+        if (isset($response['status']) && $response["status"] != false) {
+            return $response['brand'];
+        }
+        return "";
     }
-    public function extCreateOrderBoleto(\Magento\Sales\Model\Order\Interceptor $order,$payment)
+    public function createOrderBoleto(\Magento\Sales\Model\Order\Interceptor $order, $payment)
+    {
+        return $this->extCreateOrderBoleto($order, $payment);
+    }
+    public function extCreateOrderBoleto(\Magento\Sales\Model\Order\Interceptor $order, $payment)
     {
         \AditumPayments\ApiSDK\Configuration::initialize();
         \AditumPayments\ApiSDK\Configuration::setUrl($this->getApiUrl());
@@ -44,24 +64,21 @@ class Api
         $billingAddress = $quote->getBillingAddress();
         $boleto->setMerchantChargeId($order->getIncrementId());
 
-
         $boleto->setSessionId($payment->getAdditionalInformation('antifraud_token'));
 
-
         $boleto->setDeadline($this->scopeConfig->getValue('payment/aditum_boleto/expiration_days',
-            \Magento\Store\Model\ScopeInterface::SCOPE_STORE)); // >>>>>>>>>>>>>>>>>>
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE));
 
-// Customer
         $boleto->customer->setId($order->getIncrementId());
         $boleto->customer->setName($payment->getAdditionalInformation('boletofullname'));
         $boleto->customer->setEmail($quote->getCustomerEmail());
         $cpfCnpj = $payment->getAdditionalInformation('boletodocument');
         $cpfCnpj = filter_var($cpfCnpj, FILTER_SANITIZE_NUMBER_INT);
 
-        if(strlen($cpfCnpj)==14) {
+        if (strlen($cpfCnpj) == 14) {
             $boleto->customer->setDocumentType(\AditumPayments\ApiSDK\Enum\DocumentType::CNPJ);
         }
-        else{
+        else {
             $boleto->customer->setDocumentType(\AditumPayments\ApiSDK\Enum\DocumentType::CPF);
         }
         $boleto->customer->setDocument($cpfCnpj);
@@ -123,6 +140,7 @@ class Api
     {
         return $this->extCreateOrderCc($order,$info,$payment,$preAuth);
     }
+
     public function extCreateOrderCc(\Magento\Sales\Model\Order\Interceptor $order,$info,$payment, $preAuth=0)
     {
         \AditumPayments\ApiSDK\Configuration::initialize();
@@ -140,7 +158,6 @@ class Api
 //        }
         $quote = $this->checkoutSession->getQuote();
         $billingAddress = $quote->getBillingAddress();
-
 
         $this->logger->info("Card CCDC Type: ".$payment->getAdditionalInformation('cc_dc_choice'));
         if($payment->getAdditionalInformation('cc_dc_choice')=="dc"){

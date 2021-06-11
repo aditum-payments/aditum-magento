@@ -5,18 +5,23 @@ class ConfigProvider
 {
     protected $scopeConfig;
     protected $assetRepo;
+    protected $storeManager;
 
     public function __construct(
         \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
-        \Magento\Framework\View\Asset\Repository $assetRepo
-    )
-    {
+        \Magento\Framework\View\Asset\Repository $assetRepo,
+        \Magento\Store\Model\StoreManagerInterface $storeManager
+    ) {
         $this->scopeConfig = $scopeConfig;
         $this->assetRepo = $assetRepo;
+        $this->storeManager = $storeManager;
     }
 
-
     // Common functions
+    public function getStaticUrl()
+    {
+        return $this->assetRepo->getUrl("AditumPayment_Magento2::images");
+    }
 
     public function getTermsUrl()
     {
@@ -30,10 +35,10 @@ class ConfigProvider
     public function getAntiFraudType()
     {
         $type_id = $this->scopeConfig->getValue("payment/aditum/antifraudtype");
-        if($type_id==1){
+        if ($type_id==1) {
             return "clearsale";
         }
-        if($type_id==2){
+        if ($type_id==2) {
             return "konduto";
         }
         return false;
