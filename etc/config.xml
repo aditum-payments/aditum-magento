@@ -6,7 +6,7 @@
                 <active>1</active>
                 <payment_action>order</payment_action>
                 <model>AditumPayment\Magento2\Model\Method\CreditCard</model>
-                <title>Cartão de crédito ou débito</title>
+                <title>Cartão de crédito</title>
                 <order_status>pending</order_status>
                 <send_neworder_email>1</send_neworder_email>
                 <info_brl>1</info_brl>
