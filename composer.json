@@ -5,7 +5,7 @@
     "homepage": "https://gum.net.br",
     "require": {
         "php": ">=7.1.0",
-        "aditum-payments/aditum-api-sdk-php": "^2.2",
+        "aditum-payments/aditum-api-sdk-php": "^2.3",
         "magento/framework": "^102.0"
     },
     "type": "magento2-module",

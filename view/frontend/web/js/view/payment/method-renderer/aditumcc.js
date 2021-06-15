@@ -353,7 +353,6 @@ function (
                 return window.checkoutConfig.payment.aditumcc.static_url;
             },
             getCardFlagByNumber: function (ccnumber = '') {
-                console.log('flag');
                 var cardnumber = ccnumber.replace(/[^0-9]+/g, '');
 //                    Aura: /^((?!504175))^((?!5067))(^50[0-9])/,
 //                    BaneseCard: /^636117/,
@@ -394,10 +393,7 @@ function (
 
 
                         var ccFlag = getCardFlagByNumber(aditumCcNumber.val());
-                        console.log(ccFlag);
-                        console.log('teste');
                         if(ccFlag == ''){
-                            console.log('333');
                             document.getElementById('aditum_cc_number').setAttribute('style', 'width:300px;max-width:300px;background-image: none !important');
                             return true;
                         }

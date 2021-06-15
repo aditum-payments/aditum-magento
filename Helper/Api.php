@@ -207,6 +207,7 @@ class Api
         $authorization->transactions->card->setCardholderName($payment->getAdditionalInformation('fullname'));
         $authorization->transactions->card->setExpirationMonth($payment->getAdditionalInformation('cc_exp_month'));
         $authorization->transactions->card->setExpirationYear($payment->getAdditionalInformation('cc_exp_year'));
+        $authorization->transactions->card->setCardholderDocument($cpfCnpj);
 
         $authorization->transactions->card->billingAddress->setStreet($billingAddress
             ->getStreet()[$this->scopeConfig->getValue("payment/aditum/street")]);
