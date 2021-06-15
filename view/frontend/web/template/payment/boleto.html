@@ -26,7 +26,8 @@
                 <span>Nome</span>
             </label>
             <div class="control">
-                <input type="text" name="boletofullname" class="input-text"  value=""
+                <input type="text" name="boletofullname" class="input-text" max-width="300px"
+                       style="max-width:300px;!important" value=""
                        data-bind="attr: {
 												value: getFullName(),
 												autocomplete: off,
@@ -42,7 +43,8 @@
                 <span><!-- ko i18n: 'CPF/CNPJ'--><!-- /ko --></span>
             </label>
             <div class="control">
-                <input type="text" name="boletodocument" class="input-text"  value="" required
+                <input type="text" name="boletodocument" class="input-text" style="max-width:300px;!important"
+                       max-width="300px" value="" required
                        data-bind="attr: {
 													value: getTaxVat(),
 													autocomplete: off,
