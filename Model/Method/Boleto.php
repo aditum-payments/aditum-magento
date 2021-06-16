@@ -44,6 +44,7 @@ class Boleto extends \Magento\Payment\Model\Method\AbstractMethod
         \Magento\Framework\DB\TransactionFactory $transactionFactory,
         \Magento\Framework\Model\ResourceModel\AbstractResource $resource = null,
         \Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null,
+        \Magento\Framework\Message\ManagerInterface $messageManager,
         array $data = [],
         DirectoryHelper $directory = null
     ) {
@@ -55,20 +56,26 @@ class Boleto extends \Magento\Payment\Model\Method\AbstractMethod
         $this->_scopeConfig = $scopeConfig;
         $this->_invoiceService = $invoiceService;
         $this->_transactionFactory = $transactionFactory;
+        $this->messageManager = $messageManager;
     }
     public function order(\Magento\Payment\Model\InfoInterface $payment, $amount)
     {
         $this->logger->info('Inside Order');
-        $this->logger->info(json_encode($payment->getAdditionalInformation(),true));
+        $this->logger->info(json_encode($payment->getAdditionalInformation(), true));
         $order = $payment->getOrder();
-        if (!$result = $this->api->createOrderBoleto($order,$payment)) {
-            throw new \Magento\Framework\Validator\Exception(__('Houve um erro processando seu pedido. Por favor entre em contato conosco.'));
+        if (!$result = $this->api->createOrderBoleto($order, $payment)) {
+            $message = 'Houve um erro processando seu pedido. Por favor entre em contato conosco.';
+            $this->messageManager
+                ->addError($message);
+            throw new \Magento\Framework\Validator\Exception(__($message));
         }
         $result = json_decode(json_encode($result),true);
 
-        if ($result['status'] !== "PreAuthorized"
-            &&$result['status'] !== "Authorized") {
-            throw new \Magento\Framework\Validator\Exception(__($this->api->getError($result)));
+        if (!isset($result['status']) || $result['status'] !== "PreAuthorized"
+            && $result['status'] !== "Authorized") {
+            $message = 'Houve um erro processando seu pedido. Por favor entre em contato conosco.';
+            $this->messageManager->addError($message);
+            throw new \Magento\Framework\Validator\Exception(__($message));
         }
         $this->updateOrderRaw($order->getIncrementId());
         $order->setExtOrderId(str_replace("-","",$result['charge']['id']));
