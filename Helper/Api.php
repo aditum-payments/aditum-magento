@@ -70,7 +70,7 @@ class Api
             \Magento\Store\Model\ScopeInterface::SCOPE_STORE));
 
         $boleto->customer->setId($order->getIncrementId());
-//        $boleto->customer->setName($payment->getAdditionalInformation('boletofullname'));
+        $boleto->customer->setName($payment->getAdditionalInformation('boletofullname'));
         $boleto->customer->setEmail($quote->getCustomerEmail());
         $cpfCnpj = $payment->getAdditionalInformation('boletodocument');
         $cpfCnpj = filter_var($cpfCnpj, FILTER_SANITIZE_NUMBER_INT);
