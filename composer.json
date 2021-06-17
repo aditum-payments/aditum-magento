@@ -1,7 +1,7 @@
 {
     "name": "aditum/magento2-payment",
     "description": "Magento 2 Aditum Payment",
-    "version": "0.0.1",
+    "version": "1.0.0",
     "homepage": "https://gum.net.br",
     "require": {
         "php": ">=7.1.0",
