@@ -1,0 +1,14 @@
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Event/etc/events.xsd">
+    <event name="payment_method_assign_data_aditumcc">
+        <observer name="aditumcc_gateway_data_assign" instance="AditumPayment\Magento2\Observer\DataAssignObserver" />
+    </event>
+    <event name="payment_method_assign_data_aditumboleto">
+        <observer name="aditumboleto_gateway_data_assign" instance="AditumPayment\Magento2\Observer\DataAssignObserver" />
+    </event>
+    <event name="payment_method_is_active">
+        <observer name="disable_pg_aditum" instance="AditumPayment\Magento2\Observer\ObserverforDisabledFrontendPg" />
+    </event>
+    <event name="checkout_onepage_controller_success_action">
+        <observer name="aditum_order_create" instance="AditumPayment\Magento2\Observer\OrderCreate"  />
+    </event>
+</config>

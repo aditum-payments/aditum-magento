@@ -2,44 +2,25 @@
 
 Este módulo adiciona a forma de pagamento da Aditum Pagamentos ao Magento 2.
 
-## Instalação 
+## Instalação
 
-composer require aditum/payment
+composer require aditumpayment/magento2
 
-## Contato
-Para suporte técnico como dúvidas na instalação e/ou problemas nos contate no email: suporte@gum.net.br
+## Depois de instalar o módulo, execute os seguintes comandos:
 
-Página oficial do desenvolvedor: https://gum.net.br/
+php bin/magento setup:upgrade
 
-## Informações de licença
+php bin/magento setup:di:compile
 
-@author Gustavo Ulyssea - gustavo.ulyssea@gmail.com
+php bin/magento setup:static-content:deploy
 
-@copyright Copyright (c) 2021-2021 Aditum Pagamentos
+php bin/magento cache:flush
 
-@package GumNet AME
 
-All rights reserved.
+## Configuração
 
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions
-are met:
+Na administração do Magento vá para:
 
-1. Redistributions of source code must retain the above copyright
-   notice, this list of conditions and the following disclaimer.
+Store -> Configuration -> Sales -> Payment Methods
 
-2. Redistributions in binary form must reproduce the above copyright
-   notice, this list of conditions and the following disclaimer in the
-   documentation and/or other materials provided with the distribution.
-
-THIS SOFTWARE IS PROVIDED BY GUM Net (https://gum.net.br). AND CONTRIBUTORS
-``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
-TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE FOUNDATION OR CONTRIBUTORS
-BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-POSSIBILITY OF SUCH DAMAGE.
+Faça as configurações nas novas abas criadas com nome Aditum.

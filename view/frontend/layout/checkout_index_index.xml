@@ -1,0 +1,67 @@
+<?xml version="1.0"?>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" layout="1column" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <head>
+        <script src="AditumPayment_Magento2::js/antifraud.js"/>
+        <css src="AditumPayment_Magento2::css/aditum.css"/>
+    </head>
+    <body>
+        <referenceBlock name="checkout.root">
+            <arguments>
+                <argument name="jsLayout" xsi:type="array">
+                    <item name="components" xsi:type="array">
+                        <item name="checkout" xsi:type="array">
+                            <item name="children" xsi:type="array">
+                                <item name="steps" xsi:type="array">
+                                    <item name="children" xsi:type="array">
+                                        <item name="billing-step" xsi:type="array">
+                                            <item name="component" xsi:type="string">uiComponent</item>
+                                            <item name="children" xsi:type="array">
+                                                <item name="payment" xsi:type="array">
+                                                    <item name="children" xsi:type="array">
+                                                        <item name="additional-payment-validators" xsi:type="array">
+                                                            <item name="children" xsi:type="array">
+                                                                <!-- Declare your validation. START -->
+                                                                <item name="bvoleto-validator" xsi:type="array">
+                                                                    <item name="component" xsi:type="string">AditumPayment_Magento2/js/view/boleto-validation</item>
+                                                                </item>
+                                                                <!-- Declare your validation. END -->
+                                                            </item>
+                                                        </item>
+                                                        <item name="renders" xsi:type="array">
+                                                            <!-- merge payment method renders here -->
+                                                            <item name="children" xsi:type="array">
+                                                                <item name="aditumcc\" xsi:type="array">
+                                                                    <item name="component" xsi:type="string">AditumPayment_Magento2/js/view/payment/aditumcc</item>
+                                                                    <item name="methods" xsi:type="array">
+                                                                        <item name="aditumcc" xsi:type="array">
+                                                                            <item name="isBillingAddressRequired" xsi:type="boolean">true</item>
+                                                                        </item>
+                                                                    </item>
+                                                                </item>
+                                                                <item name="aditumboleto" xsi:type="array">
+                                                                    <item name="component" xsi:type="string">AditumPayment_Magento2/js/view/payment/aditumboleto</item>
+                                                                    <item name="methods" xsi:type="array">
+                                                                        <item name="aditumboleto" xsi:type="array">
+                                                                            <item name="isBillingAddressRequired" xsi:type="boolean">true</item>
+                                                                        </item>
+                                                                    </item>
+                                                                </item>
+                                                            </item>
+                                                        </item>
+                                                    </item>
+                                                </item>
+                                            </item>
+                                        </item>
+                                    </item>
+                                </item>
+                            </item>
+                        </item>
+                    </item>
+                </argument>
+            </arguments>
+        </referenceBlock>
+        <referenceContainer name="before.body.end">
+            <block class="AditumPayment\Magento2\Block\AntiFraud" name="aditum_antifraud_js" template="AditumPayment_Magento2::antifraud.phtml"/>
+        </referenceContainer>
+    </body>
+</page>

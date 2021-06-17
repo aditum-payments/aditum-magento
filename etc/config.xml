@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
+    <default>
+        <payment>
+            <aditumcc>
+                <active>1</active>
+                <payment_action>order</payment_action>
+                <model>AditumPayment\Magento2\Model\Method\CreditCard</model>
+                <title>Cartão de crédito</title>
+                <order_status>pending</order_status>
+                <send_neworder_email>1</send_neworder_email>
+                <info_brl>1</info_brl>
+            </aditumcc>
+            <aditumboleto>
+                <active>1</active>
+                <payment_action>order</payment_action>
+                <model>AditumPayment\Magento2\Model\Method\Boleto</model>
+                <title>Boleto bancário</title>
+                <order_status>pending</order_status>
+                <send_neworder_email>1</send_neworder_email>
+                <info_brl>1</info_brl>
+            </aditumboleto>
+        </payment>
+    </default>
+</config>

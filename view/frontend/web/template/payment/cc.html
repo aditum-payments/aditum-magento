@@ -1,0 +1,233 @@
+<div class="payment-method" data-bind="css: {'_active': (getCode() == isChecked())}">
+    <div class="payment-method-title field choice">
+        <input type="radio"
+               name="payment[method]"
+               class="radio"
+               data-bind="attr: {'id': getCode()}, value: getCode(), checked: isChecked, click: selectPaymentMethod,
+               visible: isRadioButtonVisible()"/>
+        <label data-bind="attr: {'for': getCode()}" class="label"><span data-bind="text: getTitle()"></span></label>
+    </div>
+
+    <div class="payment-method-content">
+		<div class="payment-method-billing-address">
+            <!-- ko foreach: $parent.getRegion(getBillingAddressFormName()) -->
+            <!-- ko template: getTemplate() --><!-- /ko -->
+            <!--/ko-->
+        </div>
+        <form class="form" id ="aditumcc-form" method="post">
+
+			<fieldset data-bind="attr: {class: 'fieldset payment items ccard ' + getCode(), id: 'payment_form_' + getCode()}">
+
+			   <div class="field type">
+				<div class="control">
+
+  					<input type="hidden"
+						   name="payment[aditumcc]"
+						   class="input-text"
+						   value=""
+						   data-bind="attr: {id: getCode() + '_cc_type', 'data-container': getCode() + '-cc-type'},
+						   value:creditCardType
+						   ">
+				</div>
+			</div>
+<!--
+                <div class="field" id="div_cc_dc_choice" data-bind="attr: {'click': selectCcDc}">
+                <label data-bind="attr: {for: 'cc_dc_choice'}" class="label required">
+                    <span>Tipo de cartão</span>
+                </label>
+                <div class="field choice">
+                    <input type="radio"
+                           name="cc_dc_choice"
+                           class="radio"
+                           id="aditumcc_dc_choice"
+                           data-bind="'click': click, attr:{'click': click, 'data-validate': JSON.stringify({required:true})}"
+                           value="dc">
+                    <label for="aditumcc_dc_choice" class="label"><span >Cartão de débito</span></label>
+                </div>
+                <div class="field choice">
+                    <input type="radio"
+                           name="cc_dc_choice"
+                           class="radio"
+                           id="aditumcc_cc_choice"
+                           data-bind=" 'click': click, attr: {'click': click, 'data-validate': JSON.stringify({required:true})}"
+                           value="cc" checked />
+                    <label for="aditumcc_cc_choice" class="label"><span >Cartão de crédito</span></label>
+                </div>
+                </div>
+-->
+                <div class="field name required">
+                    <label data-bind="attr: {for: getCode() + '_fullname'}" class="label">
+                        <span><!-- ko i18n: 'Nome do Titular do Cartão'--><!-- /ko --></span>
+                    </label>
+                    <div class="control">
+                        <input type="text" name="fullname" class="input-text"  style="max-width: 300px;" value=""
+                               data-bind="attr: {
+												autocomplete: off,
+												id: getCode() + '_fullname',
+												title: $t('Nome do Titular do Cartão'),
+												'data-container': getCode() + '-fullname',
+												input: getFullname(),
+												'data-validate': JSON.stringify({'required':true})}"/>
+                    </div>
+                </div>
+                <!-- ko if: (getUseDocument() == 1) -->
+                <div class="field document required">
+                    <label data-bind="attr: {for: getCode() + '_document'}" class="label">
+                        <span><!-- ko i18n: 'CPF'--><!-- /ko --></span>
+                    </label>
+                    <div class="control">
+                        <input type="text" name="document" class="input-text" style="max-width: 300px;" value=""
+                               data-bind="attr: {
+													autocomplete: off,
+													id: getCode() + '_document',
+													title: $t('CPF'),
+													'data-container': getCode() + '-document',
+													'data-validate': JSON.stringify({'required':true,'validate-cpf':'#' + getCode() + '_document'})}"/>
+                    </div>
+                </div>
+                <!--/ko-->
+				<div class="field required">
+
+					<label data-bind="attr: {for: getCode() + '_cc_number'}" class="label" style="max-width:300px;!important">
+						<span><!-- ko i18n: 'Número do Cartão'--><!-- /ko --></span>
+					</label>
+					<div class="control">
+						<input type="number" id="aditum_cc_number" name="cc_number" maxlength="16" size='16' class="input-text aditum-cc-number" style="width:300px!important;max-width:300px;!important" value=""
+					   data-bind="attr: {
+										autocomplete: off,
+										title: $t('Número do Cartão'),
+										'data-container': getCode() + '-cc-number',
+										'data-validate': JSON.stringify({'required-number':true,
+    										'validate-card-type2':getCcAvailableTypesValues(),
+    										'validate-card-number2':'#' + getCode() + '_cc_type',
+    										'validate-cc-type2':'#' + getCode() + '_cc_type'})},
+								  enable: isActive($parents),
+								  value: creditCardNumber,
+								  valueUpdate: 'keyup',
+                                event: { 'keyup': getCcBrand() }"/>
+					</div>
+				</div>
+
+
+				<div class="field date required" data-bind="attr: {id: getCode() + '_cc_type_exp_div'}">
+					<label data-bind="attr: {for: getCode() + '_expiration'}" class="label">
+						<span><!-- ko i18n: 'Data de validade'--><!-- /ko --></span>
+					</label>
+					<div class="control">
+						<div class="fields group group-2">
+							<div class="field no-label">
+								<div class="control">
+									<select  name="cc_exp_month" style="width: 60px !important;"
+											 class="select select-month"
+											data-bind="attr: {id: getCode() + '_expiration', 'data-container': getCode() + '-cc-month', 'data-validate': JSON.stringify({required:true, 'validate-cc-exp':'#' + getCode() + '_expiration_yr'})},
+												enable: isActive($parents),
+												options: getCcMonthsValues(),
+												optionsValue: 'value',
+												optionsText: 'month',
+												optionsCaption: $t('Mês'),
+												value: creditCardExpMonth">
+									</select>
+								</div>
+							</div>
+							<div class="field no-label">
+								<div class="control">
+									&nbsp;&nbsp;<select name="cc_exp_year" style="width: 60px !important;"
+											class="select select-year"
+											data-bind="attr: {id: getCode() + '_expiration_yr', 'data-container': getCode() + '-cc-year', 'data-validate': JSON.stringify({required:true})},
+											   enable: isActive($parents),
+											   options: getCcYearsValues(),
+											   optionsValue: 'value',
+											   optionsText: 'year',
+											   optionsCaption: $t('Ano'),
+											   value: creditCardExpYear">
+									</select>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<div class="field cvv required">
+					<label data-bind="attr: {for: getCode() + '_cc_cvv'}" class="label">
+						<span><!-- ko i18n: 'Número de Verificação do Cartão'--><!-- /ko --></span>
+					</label>
+					<div class="control _with-tooltip">
+						<input type="text" name="cc_cvv" class="input-text" value="" size="4" maxlength="4"
+							   data-bind="attr: {id: getCode() + '_cc_cid',
+											title: $t('Credit Card CVV'),
+											'data-container': getCode() + '-cc-cvv',
+											'data-validate': JSON.stringify({'required-number':true, 'validate-card-cvv2':'#' + getCode() + '_cc_type'})},
+											enable: isActive($parents),
+											value: creditCardVerificationNumber" />
+						            <div class="field-tooltip toggle">
+						                <span class="field-tooltip-action action-cvv"
+						                      tabindex="0"
+						                      data-toggle="dropdown"
+						                      data-bind="attr: {title: $t('What is this?')}, mageInit: {'dropdown':{'activeClass': '_active'}}">
+						                    <span><!-- ko i18n: 'What is this?'--><!-- /ko --></span>
+						                </span>
+						                <div class="field-tooltip-content"
+						                     data-target="dropdown"
+						                     data-bind="html: getCvvImageHtml()"></div>
+						            </div>
+					</div>
+				</div>
+                <!-- ko if: (getInstallmentsActive() == 1) -->
+                <div class="field installments required" id='div-installments' data-bind="visible: getInstallmentsActive()" style="display: none;">
+
+                    <label data-bind="attr: {for: getCode() + '_installments'}" class="label">
+                        <span><!-- ko i18n: 'Installments'--><!-- /ko --></span>
+                    </label>
+                    <div class="control">
+                        <select  name="installments" style="max-width: 300px;"
+                                 class="select select-installments"
+                                 data-bind="attr: {id: getCode() + '_installments',
+														'data-container': getCode() + '-installments',
+														'data-validate': JSON.stringify({required:true})},
+												   options: getInstallments(),
+												   optionsText: 'installments',
+												   optionsValue: 'value'
+												   ">
+                        </select>
+                    </div>
+
+                </div>
+                <!-- /ko -->
+                <div class="field aditumcc_terms">
+                    <label data-bind="attr: {for: getCode() + '_terms'}" class="label">
+                    </label>
+                    <div class="control">
+                        <input type="checkbox" name="aditumcc_terms" class="checkbox" value=""
+                               data-bind="attr: {
+													autocomplete: off,
+													id: getCode() + '_terms',
+													'data-container': getCode() + '-terms',
+													'data-validate': JSON.stringify({'validate-terms':'#' + getCode() + '_terms'})
+												}"/>
+                        <span data-bind="html: getTermsHtml()"></span>
+                    </div>
+                </div>
+			</fieldset>
+        </form>
+		<div class="checkout-agreements-block">
+            <!-- ko foreach: $parent.getRegion('before-place-order') -->
+            <!-- ko template: getTemplate() --><!-- /ko -->
+            <!--/ko-->
+        </div>
+        <div class="actions-toolbar" style="margin-top: 15px;">
+            <div class="primary">
+                <button class="action primary checkout"
+                        type="submit"
+                        data-bind="
+                        click: placeOrder,
+                        attr: {title: $t('Place Order')},
+                        css: {disabled: !isPlaceOrderActionAllowed()},
+                        enable: (getCode() == isChecked())
+                        "
+                        disabled>
+                    <span data-bind="text: $t('Place Order')"></span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
