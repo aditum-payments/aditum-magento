@@ -80,3 +80,6 @@ Stores > configuration > Sales > Payment Methods > others
 - **Valor fixo da multa**  `valor a ser pago na multa`
 
 - **Valor percentual da multa**  
+
+### Registrar webhook
+https://domínio/aditum/apicallback
