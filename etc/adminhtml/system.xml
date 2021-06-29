@@ -67,6 +67,7 @@
                     <source_model>AditumPayment\Magento2\Model\Config\Installments</source_model>
                 </field>
             </group>
+<!--
             <group id="aditum_dc" translate="label comment" sortOrder="350" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Aditum Cartão de Débito</label>
                 <comment>Aditum - pagamentos por cartões de débito</comment>
@@ -76,6 +77,7 @@
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
             </group>
+-->
             <group id="aditum_boleto" translate="label comment" sortOrder="360" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Aditum Boleto</label>
                 <comment>Aditum - pagamentos por boleto bancário</comment>
