@@ -1,19 +1,23 @@
 require(['jquery','ko','domReady!'], function () {
     // Konduto
     function getAntiFraudType() {
-        if (typeof window.checkoutConfig.payment.aditumboleto.antifraud_type !== 'undefined') {
+        if (typeof window.checkoutConfig.payment.aditumboleto !== 'undefined'
+            && typeof window.checkoutConfig.payment.aditumboleto.antifraud_type !== 'undefined') {
             return window.checkoutConfig.payment.aditumboleto.antifraud_type;
         }
-        else if (typeof window.checkoutConfig.payment.aditumcc.antifraud_type !== 'undefined') {
+        else if (typeof window.checkoutConfig.payment.aditumcc !== 'undefined'
+            && typeof window.checkoutConfig.payment.aditumcc.antifraud_type !== 'undefined') {
             return window.checkoutConfig.payment.aditumcc.antifraud_type;
         }
         return false;
     }
     function getAntiFraudId() {
-        if (typeof window.checkoutConfig.payment.aditumboleto.antifraud_id !== 'undefined') {
+        if (typeof window.checkoutConfig.payment.aditumboleto !== 'undefined'
+            && typeof window.checkoutConfig.payment.aditumboleto.antifraud_id !== 'undefined') {
             return window.checkoutConfig.payment.aditumboleto.antifraud_id;
         }
-        else if (typeof window.checkoutConfig.payment.aditumcc.antifraud_id !== 'undefined') {
+        else if (typeof window.checkoutConfig.payment.aditumcc !== 'undefined'
+            && typeof window.checkoutConfig.payment.aditumcc.antifraud_id !== 'undefined') {
             return window.checkoutConfig.payment.aditumcc.antifraud_id;
         }
         return false;
