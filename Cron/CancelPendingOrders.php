@@ -22,33 +22,37 @@ class CancelPendingOrders
     }
     public function execute()
     {
-        $expires_in = $this->scopeConfig->getValue('payment/aditum/order_expiration_days',
-            \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
-        if(!$expires_in) return;
-        $to_cc = date('Y-m-d H:i:s',time()-86400*$expires_in);
-        $orderCollection = $this->getOrderCollection($to_cc,'aditumcc');
+        $expires_in = $this->scopeConfig->getValue(
+            'payment/aditum/order_expiration_days',
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE
+        );
+        if (!$expires_in) {
+            return;
+        }
+        $to_cc = date('Y-m-d H:i:s', time()-86400*$expires_in);
+        $orderCollection = $this->getOrderCollection($to_cc, 'aditumcc');
         $this->cancelOrders($orderCollection);
-        $to_boleto = date('Y-m-d H:i:s',time()-86400*($expires_in+5));
-        $orderCollection = $this->getOrderCollection($to_boleto,'aditumboleto');
+        $to_boleto = date('Y-m-d H:i:s', time()-86400*($expires_in+5));
+        $orderCollection = $this->getOrderCollection($to_boleto, 'aditumboleto');
         $this->cancelOrders($orderCollection);
     }
-    public function getOrderCollection($to,$method)
+    public function getOrderCollection($to, $method)
     {
-        $orderCollection = $this->collectionFactory->create()->addFieldToSelect(array('*'));
-        $orderCollection->addFieldToFilter('created_at', array('lteq' => $to));
-        $orderCollection->addFieldToFilter('state', array('eq' => 'new'));
+        $orderCollection = $this->collectionFactory->create()->addFieldToSelect(['*']);
+        $orderCollection->addFieldToFilter('created_at', ['lteq' => $to]);
+        $orderCollection->addFieldToFilter('state', ['eq' => 'new']);
         $orderCollection->getSelect()
             ->join(
                 ["sop" => "sales_order_payment"],
                 'main_table.entity_id = sop.parent_id',
-                array('method')
+                ['method']
             )
-            ->where('sop.method = ?',[$method] );
+            ->where('sop.method = ?', [$method]);
         return $orderCollection;
     }
     public function cancelOrders($orderCollection)
     {
-        foreach($orderCollection as $item) {
+        foreach ($orderCollection as $item) {
             $order = $this->orderFactory->create()->load($item->getId());
             $order->cancel()->save();
             $this->logger->info("Aditum: automatic cancel expired order ID: ".$order->getId());

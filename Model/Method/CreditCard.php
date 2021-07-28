@@ -141,19 +141,27 @@ class CreditCard extends \Magento\Payment\Model\Method\Cc
 
     public function authorize(\Magento\Payment\Model\InfoInterface $payment, $amount)
     {
-
+        return true;
     }
 
     public function isAvailable(\Magento\Quote\Api\Data\CartInterface $quote = null)
     {
-        if(!$this->_scopeConfig->getValue('payment/aditum/enable',\Magento\Store\Model\ScopeInterface::SCOPE_STORE)){
+        if (!$this->_scopeConfig->getValue(
+            'payment/aditum/enable',
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE
+        )) {
             return false;
         }
-        if(!$this->_scopeConfig->getValue('payment/aditum_cc/enable',\Magento\Store\Model\ScopeInterface::SCOPE_STORE)){
+        if (!$this->_scopeConfig->getValue(
+            'payment/aditumcc/enable',
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE
+        )) {
             return false;
         }
         $isAvailable = $this->getConfigData('active', $quote ? $quote->getStoreId() : null);
-        if(!$isAvailable) return false;
+        if (!$isAvailable) {
+            return false;
+        }
         return true;
     }
     public function refund(\Magento\Payment\Model\InfoInterface $payment, $amount)
@@ -167,7 +175,8 @@ class CreditCard extends \Magento\Payment\Model\Method\Cc
             ->setShouldCloseParentTransaction(1);
         return $this;
     }
-    public function updateOrderRaw($incrementId){
+    public function updateOrderRaw($incrementId)
+    {
         $tableName = $this->resourceConnection->getTableName('sales_order');
 //        $status = $this->_scopeConfig->getValue()
         $sql = "UPDATE " . $tableName . " SET status = 'pending', state = 'new' WHERE entity_id = " . $incrementId;

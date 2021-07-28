@@ -8,6 +8,7 @@
                 <model>AditumPayment\Magento2\Model\Method\CreditCard</model>
                 <title>Cartão de crédito</title>
                 <order_status>pending</order_status>
+                <min_installment_value>5</min_installment_value>
                 <send_neworder_email>1</send_neworder_email>
                 <info_brl>1</info_brl>
             </aditumcc>
