@@ -235,6 +235,10 @@ class Api
 
         if ($payment->getAdditionalInformation('cc_dc_choice')!="dc") {
             $authorization->transactions->setInstallmentNumber($payment->getAdditionalInformation('installments'));
+            $authorization->transactions->setInstallmentType(\AditumPayments\ApiSDK\Enum\InstallmentType::NONE);
+            if ($payment->getAdditionalInformation('installments')>1) {
+                $authorization->transactions->setInstallmentType(\AditumPayments\ApiSDK\Enum\InstallmentType::MERCHANT);
+            }
         }
         $grandTotal = $order->getGrandTotal() * 100;
         $grandTotal = (int)$grandTotal;
