@@ -38,14 +38,6 @@
                        showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Merchant Token</label>
                 </field>
-                <field id="order_expiration_days" translate="label comment" type="text" sortOrder="40"
-                       showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Tempo de expiração do pedido</label>
-                    <comment>
-                        <![CDATA[Depois de quanto tempo o pedido pendente de pagamento deve ser cancelado.
-                        Defina em dias.]]>
-                    </comment>
-                </field>
                 <field id="new_order_status" translate="label" type="select" sortOrder="50"
                        showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Status do pedido criado</label>
