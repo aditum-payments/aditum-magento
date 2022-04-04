@@ -2,9 +2,9 @@
 
 namespace AditumPayment\Magento2\Block\Info;
 
-class Boleto extends \Magento\Payment\Block\Info
+class Pix extends \Magento\Payment\Block\Info
 {
-    protected $_template = 'AditumPayment_Magento2::info/boleto.phtml';
+    protected $_template = 'AditumPayment_Magento2::info/pix.phtml';
 
     public function getLinkPay()
     {

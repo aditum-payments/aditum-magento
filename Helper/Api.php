@@ -347,4 +347,10 @@ class Api
         $bankSlipUrl = str_replace("\\", "", $result['charge']['transactions'][0]['bankSlipUrl']);
         return $url . $bankSlipUrl;
     }
+
+    public function createOrderPix($order, $payment)
+    {
+        /** @var $order \Magento\Sales\Api\Data\OrderInterface */
+
+    }
 }

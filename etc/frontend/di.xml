@@ -8,6 +8,8 @@
                   xsi:type="object">AditumPayment\Magento2\Model\ConfigProviderCc</item>
             <item name="aditum_payment_boleto_configprovider"
                   xsi:type="object">AditumPayment\Magento2\Model\ConfigProviderBoleto</item>
+            <item name="aditum_payment_pix_configprovider"
+                  xsi:type="object">AditumPayment\Magento2\Model\ConfigProviderPix</item>
         </argument>
     </arguments>
 </type>

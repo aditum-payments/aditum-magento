@@ -11,5 +11,10 @@
                template="AditumPayment_Magento2::order/success/cc-additional.phtml"
                after="aditum.order.success">
         </block>
+        <block class="AditumPayment\Magento2\Block\PixSuccess"
+               name="aditumpix.order.success"
+               template="AditumPayment_Magento2::order/success/pix-additional.phtml"
+               after="aditum.order.success">
+        </block>
     </referenceContainer>
 </body>

@@ -7,4 +7,10 @@
             <resource ref="anonymous"/>
         </resources>
     </route>
+    <route method="GET" url="/V1/aditum/orderhasinvoices/:orderId">
+        <service class="AditumPayment\Magento2\Api\AditumApiInterface" method="hasInvoices"/>
+        <resources>
+            <resource ref="anonymous"/>
+        </resources>
+    </route>
 </routes>

@@ -21,6 +21,15 @@
                 <send_neworder_email>1</send_neworder_email>
                 <info_brl>1</info_brl>
             </aditumboleto>
+            <aditumpix>
+                <active>1</active>
+                <payment_action>order</payment_action>
+                <model>AditumPayment\Magento2\Model\Method\Pix</model>
+                <title>PIX</title>
+                <order_status>pending</order_status>
+                <send_neworder_email>1</send_neworder_email>
+                <info_brl>1</info_brl>
+            </aditumpix>
         </payment>
     </default>
 </config>

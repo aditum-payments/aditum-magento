@@ -4,9 +4,9 @@ namespace AditumPayment\Magento2\Model\Method;
 
 use Magento\Directory\Helper\Data as DirectoryHelper;
 
-class Boleto extends \Magento\Payment\Model\Method\AbstractMethod
+class Pix extends \Magento\Payment\Model\Method\AbstractMethod
 {
-    const CODE = 'aditumboleto';
+    const CODE = 'aditumpix';
 
     protected $_code = self::CODE;
     protected $_isGateway = true;
@@ -71,10 +71,13 @@ class Boleto extends \Magento\Payment\Model\Method\AbstractMethod
     }
     public function order(\Magento\Payment\Model\InfoInterface $payment, $amount)
     {
+        return $this;
+        // to be implemented
+
         $this->logger->info('Inside Order');
         $this->logger->info(json_encode($payment->getAdditionalInformation(), true));
         $order = $payment->getOrder();
-        if (!$result = $this->api->createOrderBoleto($order, $payment)) {
+        if (!$result = $this->api->createOrderPix($order, $payment)) {
             $message = 'Houve um erro processando seu pedido. Por favor entre em contato conosco.';
             $this->messageManager
                 ->addError($message);

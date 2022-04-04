@@ -32,6 +32,10 @@ class ObserverforDisabledFrontendPg implements ObserverInterface
             && !$this->scopeConfig->getValue("payment/aditum_boleto/enable")) {
             $result->setData('is_available', false);
         }
+        if ($method_instance->getCode() == 'aditumpix'
+            && !$this->scopeConfig->getValue("payment/aditum_pix/enable")) {
+            $result->setData('is_available', false);
+        }
     }
     protected function getDisableAreas()
     {

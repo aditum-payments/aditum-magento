@@ -11,4 +11,11 @@ interface AditumApiInterface
      */
 
     public function getCcBrand(string $ccNumber);
+
+    /**
+     * Check if order has invoices
+     * @param int $orderId
+     * @return bool
+     */
+    public function hasInvoices(int $orderId): bool;
 }

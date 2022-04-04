@@ -135,6 +135,17 @@
                     <comment><![CDATA[Valor percentual sobre o valor original aplicados de multa.]]></comment>
                 </field>
            </group>
+            <group id="aditum_pix" translate="label comment" sortOrder="380"
+                   showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Aditum Pix</label>
+                <comment>Aditum - pagamentos por PIX</comment>
+                <field id="enable" translate="label comment" type="select" sortOrder="10"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Ativar PIX</label>
+                    <comment>Ativar pagamentos por PIX através da Aditum</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+            </group>
         </section>
     </system>
 </config>
