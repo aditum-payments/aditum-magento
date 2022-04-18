@@ -1,7 +1,3 @@
-/**
- * Copyright © 2016 Magento. All rights reserved.
- * See COPYING.txt for license details.
- */
 /*browser:true*/
 /*global define*/
 define(
@@ -16,11 +12,11 @@ define(
                 template: 'AditumPayment_Magento2/payment/pix'
             },
             initObservable: function () {
-                // this._super()
-                //     .observe([
-                //         'boletofullname',
-                //         'boletodocument'
-                //     ]);
+                this._super()
+                    .observe([
+                        'pixfullname',
+                        'pixdocument'
+                    ]);
 
                 return this;
             },
@@ -28,29 +24,23 @@ define(
                 return {
                     'method': this.item.method,
                     'additional_data': {
-                        // 'boletofullname': jQuery('#'+this.getCode() + '_boletofullname').val(),
-                        // 'boletodocument': jQuery('#'+this.getCode() + '_boletodocument').val(),
-                        // 'antifraud_token': jQuery('#antifraud_token').val()
+                        'pixfullname': jQuery('#'+this.getCode() + '_pixfullname').val(),
+                        'pixdocument': jQuery('#'+this.getCode() + '_pixdocument').val(),
+                        'antifraud_token': jQuery('#antifraud_token').val()
                     }
                 };
             },
-            getAntiFraudType: function() {
-                return window.checkoutConfig.payment.aditumboleto.antifraud_type;
+            getAntiFraudType: function () {
+                return window.checkoutConfig.payment.aditumpix.antifraud_type;
             },
-            getAntiFraudId: function() {
-                return window.checkoutConfig.payment.aditumboleto.antifraud_id;
+            getAntiFraudId: function () {
+                return window.checkoutConfig.payment.aditumpix.antifraud_id;
             },
-            getInstruction: function() {
-                return window.checkoutConfig.payment.aditumboleto.instruction;
+            getFullName: function () {
+                return window.checkoutConfig.payment.aditumpix.fullname;
             },
-            getDue: function() {
-                return window.checkoutConfig.payment.aditumboleto.due;
-            },
-            getFullName: function() {
-                return window.checkoutConfig.payment.aditumboleto.fullname;
-            },
-            getTaxVat: function() {
-                return window.checkoutConfig.payment.aditumboleto.taxvat;
+            getTaxVat: function () {
+                return window.checkoutConfig.payment.aditumpix.taxvat;
             },
             getTermsHtml: function () {
                 return '<a target="_blank" href="' + this.getTermsUrl() +

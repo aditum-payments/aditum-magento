@@ -3,31 +3,122 @@
 namespace AditumPayment\Magento2\Model\Method;
 
 use Magento\Directory\Helper\Data as DirectoryHelper;
+use Magento\Framework\Event\ManagerInterface;
+use Magento\Payment\Gateway\Command\CommandManagerInterface;
+use Magento\Payment\Gateway\Command\CommandPoolInterface;
+use Magento\Payment\Gateway\Config\ValueHandlerPoolInterface;
+use Magento\Payment\Gateway\Data\PaymentDataObjectFactory;
+use Magento\Payment\Gateway\Validator\ValidatorPoolInterface;
+use Psr\Log\LoggerInterface;
 
 class Pix extends \Magento\Payment\Model\Method\AbstractMethod
 {
     const CODE = 'aditumpix';
 
+    /**
+     * @var string
+     */
     protected $_code = self::CODE;
+
+    /**
+     * @var bool
+     */
     protected $_isGateway = true;
+
+    /**
+     * @var bool
+     */
     protected $_canCapture = true;
+
+    /**
+     * @var bool
+     */
     protected $_canAuthorize = true;
+
+    /**
+     * @var bool
+     */
     protected $_canCapturePartial = true;
+
+    /**
+     * @var bool
+     */
     protected $_canRefund = true;
+
+    /**
+     * @var bool
+     */
     protected $_canRefundInvoicePartial = true;
+
+    /**
+     * @var
+     */
     protected $_countryFactory;
+
+    /**
+     * @var null
+     */
     protected $_minAmount = null;
+
+    /**
+     * @var null
+     */
     protected $_maxAmount = null;
+
+    /**
+     * @var string[]
+     */
     protected $_supportedCurrencyCodes = ['BRL'];
-    protected $_infoBlockType = \AditumPayment\Magento2\Block\Info\Boleto::class;
-    protected $_debugReplacePrivateDataKeys = ['number', 'exp_month', 'exp_year', 'cvc'];
+
+    /**
+     * @var string
+     */
+    protected $_infoBlockType = \AditumPayment\Magento2\Block\Info\Pix::class;
+
+    /**
+     * @var \Magento\Backend\Model\Auth\Session
+     */
     protected $adminSession;
+
+    /**
+     * @var \Magento\Framework\Message\ManagerInterface
+     */
     protected $messageManager;
+
+    /**
+     * @var \AditumPayment\Magento2\Helper\Api
+     */
     protected $api;
+
+    /**
+     * @var \Psr\Log\LoggerInterface
+     */
     protected $logger;
+
+    /**
+     * @var \Magento\Framework\App\Config\ScopeConfigInterface
+     */
     protected $_scopeConfig;
+
+    /**
+     * @var \Magento\Sales\Model\Service\InvoiceService
+     */
     protected $_invoiceService;
+
+    /**
+     * @var \Magento\Framework\DB\TransactionFactory
+     */
     protected $_transactionFactory;
+
+    /**
+     * @var \Magento\Framework\DB\Adapter\AdapterInterface
+     */
+    protected $resourceConnection;
+
+    /**
+     * @var \Magento\Framework\Filesystem
+     */
+    protected $filesystem;
 
     public function __construct(
         \Magento\Framework\Model\Context $context,
@@ -69,11 +160,15 @@ class Pix extends \Magento\Payment\Model\Method\AbstractMethod
         $this->_transactionFactory = $transactionFactory;
         $this->messageManager = $messageManager;
     }
+
+    /**
+     * @param \Magento\Payment\Model\InfoInterface $payment
+     * @param $amount
+     * @return $this|Pix
+     * @throws \Magento\Framework\Validator\Exception
+     */
     public function order(\Magento\Payment\Model\InfoInterface $payment, $amount)
     {
-        return $this;
-        // to be implemented
-
         $this->logger->info('Inside Order');
         $this->logger->info(json_encode($payment->getAdditionalInformation(), true));
         $order = $payment->getOrder();
@@ -83,7 +178,6 @@ class Pix extends \Magento\Payment\Model\Method\AbstractMethod
                 ->addError($message);
             throw new \Magento\Framework\Validator\Exception(__($message));
         }
-        $result = json_decode(json_encode($result),true);
 
         if (!isset($result['status']) || $result['status'] !== "PreAuthorized"
             && $result['status'] !== "Authorized") {
@@ -92,41 +186,74 @@ class Pix extends \Magento\Payment\Model\Method\AbstractMethod
             throw new \Magento\Framework\Validator\Exception(__($message));
         }
         $this->updateOrderRaw($order->getIncrementId());
-        $order->setExtOrderId(str_replace("-","",$result['charge']['id']));
+        $order->setExtOrderId(str_replace("-", "", $result['charge']['id']));
         $order->addStatusHistoryComment('ID Aditum: '.$result['charge']['id']);
-        $payment->setAdditionalInformation('uuid',$result['charge']['id']);
-        $payment->setAdditionalInformation('aditumNumber',$result['charge']['transactions'][0]['aditumNumber']);
-        $payment->setAdditionalInformation('transactionId',$result['charge']['transactions'][0]['transactionId']);
-        $payment->setAdditionalInformation('digitalLine',$result['charge']['transactions'][0]['digitalLine']);
-        $payment->setAdditionalInformation('barcode',$result['charge']['transactions'][0]['barcode']);
-        $payment->setAdditionalInformation('bankSlipId',$result['charge']['transactions'][0]['bankSlipId']);
-        $payment->setAdditionalInformation('bankIssuerId',$result['charge']['transactions'][0]['bankIssuerId']);
-        $payment->setAdditionalInformation('status',$result['status']);
-
-        $payment->setAdditionalInformation('boleto_url',$this->api->getBoletoUrl($result));
-        if ($result['status'] == "Authorized"){
+        $payment->setAdditionalInformation('uuid', $result['charge']['id']);
+        $payment->setAdditionalInformation('aditumNumber', $result['charge']['transactions'][0]['aditumNumber']);
+        $payment->setAdditionalInformation('qrCode', $result['charge']['transactions'][0]['qrCode']);
+        $this->storeQrCode($result['charge']['transactions'][0]['qrCodeBase64'], $order->getIncrementId());
+        $payment->setAdditionalInformation('bankIssuerId', $result['charge']['transactions'][0]['bankIssuerId']);
+        $payment->setAdditionalInformation('status', $result['status']);
+        if ($result['status'] == "Authorized") {
             $this->invoiceOrder($order);
         }
         return $this;
     }
-    public function isAvailable(\Magento\Quote\Api\Data\CartInterface $quote = null)
+
+    /**
+     * @param $qrCodeBase64
+     * @param $incrementId
+     * @return void
+     */
+    public function storeQrCode($qrCodeBase64, $incrementId)
     {
-        if(!$this->_scopeConfig->getValue('payment/aditum/enable',\Magento\Store\Model\ScopeInterface::SCOPE_STORE)){
+        $qrcode = base64_decode($qrCodeBase64);
+        $mediapath = $this->filesystem
+            ->getDirectoryRead(\Magento\Framework\App\Filesystem\DirectoryList::MEDIA)->getAbsolutePath();
+        $imageDir = $mediapath . "/aditumpix";
+        if (!file_exists($imageDir)) {
+            mkdir($imageDir);
+        }
+        $fileName = $imageDir . "/" . $incrementId . ".png";
+        file_put_contents($fileName, $qrcode);
+    }
+
+    /**
+     * @param \Magento\Quote\Api\Data\CartInterface|null $quote
+     * @return bool
+     */
+    public function isAvailable(\Magento\Quote\Api\Data\CartInterface $quote = null): bool
+    {
+        if (!$this->_scopeConfig->getValue('payment/aditum/enable', \Magento\Store\Model\ScopeInterface::SCOPE_STORE)) {
             return false;
         }
-        if(!$this->_scopeConfig->getValue('payment/aditum_boleto/enable',\Magento\Store\Model\ScopeInterface::SCOPE_STORE)){
+        if (!$this->_scopeConfig->getValue(
+            'payment/aditum_pix/enable',
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE
+        )) {
             return false;
         }
         $isAvailable = $this->getConfigData('active', $quote ? $quote->getStoreId() : null);
-        if(!$isAvailable) return false;
+        if (!$isAvailable) {
+            return false;
+        }
         return true;
     }
-    public function refund(\Magento\Payment\Model\InfoInterface $payment, $amount)
+
+    /**
+     * @param \Magento\Payment\Model\InfoInterface $payment
+     * @param $amount
+     * @return $this
+     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws \Magento\Framework\Validator\Exception
+     */
+    public function refund(\Magento\Payment\Model\InfoInterface $payment, $amount): Pix
     {
         if (!$this->canRefund()) {
             throw new \Magento\Framework\Exception\LocalizedException(__('The refund action is not available.'));
         }
         try {
+            // to do
         } catch (\Exception $e) {
             throw new \Magento\Framework\Validator\Exception(__('Payment refunding error.'));
         }
@@ -135,15 +262,25 @@ class Pix extends \Magento\Payment\Model\Method\AbstractMethod
             ->setShouldCloseParentTransaction(1);
         return $this;
     }
-    // Gambi master force update order
-    public function updateOrderRaw($incrementId){
+
+    /**
+     * @param $incrementId
+     * @return void
+     */
+    public function updateOrderRaw($incrementId)
+    {
         $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
-        $resource = $objectManager->get('Magento\Framework\App\ResourceConnection');
-        $connection = $resource->getConnection();
-        $tableName = $resource->getTableName('sales_order');
+        $connection = $this->resourceConnection->getConnection();
+        $tableName = $this->resourceConnection->getTableName('sales_order');
         $sql = "UPDATE " . $tableName . " SET status = 'pending', state = 'new' WHERE entity_id = " . $incrementId;
         $connection->query($sql);
     }
+
+    /**
+     * @param $order
+     * @return void
+     * @throws \Magento\Framework\Exception\LocalizedException
+     */
     public function invoiceOrder($order)
     {
         $invoice = $this->_invoiceService->prepareInvoice($order);
@@ -156,4 +293,5 @@ class Pix extends \Magento\Payment\Model\Method\AbstractMethod
         $order->setState('processing')->setStatus('processing');
         $order->save();
     }
+
 }

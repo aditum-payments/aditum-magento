@@ -350,7 +350,65 @@ class Api
 
     public function createOrderPix($order, $payment)
     {
+        $this->logger->info('ADITUM PIX create order started');
         /** @var $order \Magento\Sales\Api\Data\OrderInterface */
+        \AditumPayments\ApiSDK\Configuration::initialize();
+        \AditumPayments\ApiSDK\Configuration::setUrl(\AditumPayments\ApiSDK\Configuration::DEV_URL);
+        \AditumPayments\ApiSDK\Configuration::setCnpj($this->getClientId());
+        \AditumPayments\ApiSDK\Configuration::setMerchantToken($this->getClientSecret());
+        \AditumPayments\ApiSDK\Configuration::setlog(false);
+        \AditumPayments\ApiSDK\Configuration::login();
+        $gateway = new \AditumPayments\ApiSDK\Gateway;
+        $pix = new \AditumPayments\ApiSDK\Domains\Pix;
 
+        $pix->setMerchantChargeId("");
+
+// Customer
+        $pix->customer->setId($order->getIncrementId());
+        $pix->customer->setName($payment->getAdditionalInformation('boletofullname'));
+
+        $pix->customer->setEmail($order->getCustomerEmail());
+        $pix->customer->setDocumentType(\AditumPayments\ApiSDK\Enum\DocumentType::CPF);
+
+        $cpfCnpj = $payment->getAdditionalInformation('pixdocument');
+
+        $pix->customer->setDocument($cpfCnpj);
+
+// Customer->address
+        $quote = $this->checkoutSession->getQuote();
+        $billingAddress = $quote->getBillingAddress();
+
+
+        $pix->customer->address->setStreet($billingAddress
+            ->getStreet()[$this->scopeConfig->getValue("payment/aditum/street")]);
+        $pix->customer->address->setNumber($billingAddress
+            ->getStreet()[$this->scopeConfig->getValue("payment/aditum/number")]);
+        $pix->customer->address->setComplement($billingAddress
+            ->getStreet()[$this->scopeConfig->getValue("payment/aditum/complement")]);
+        $pix->customer->address->setNeighborhood($billingAddress
+            ->getStreet()[$this->scopeConfig->getValue("payment/aditum/district")]);
+        $pix->customer->address->setCity($billingAddress->getCity());
+        $pix->customer->address->setState($this->codigoUF($billingAddress->getRegion()));
+        $pix->customer->address->setCountry("BR");
+        $pix->customer->address->setZipcode($billingAddress->getPostcode());
+        $pix->customer->address->setComplement("");
+
+// Customer->phone
+        $phone_number = filter_var($billingAddress->getTelephone(), FILTER_SANITIZE_NUMBER_INT);
+        $pix->customer->phone->setCountryCode("55");
+        $pix->customer->phone->setAreaCode(substr($phone_number, 0, 2));
+        $pix->customer->phone->setNumber(substr($phone_number, 2));
+        $pix->customer->phone->setType(\AditumPayments\ApiSDK\Enum\PhoneType::MOBILE);
+
+
+
+// Transactions
+        $grandTotal = $order->getGrandTotal() * 100;
+
+        $pix->transactions->setAmount((int)$grandTotal);
+        $this->logger->info('1');
+        $result = $gateway->charge($pix);
+        $this->logger->info(json_encode($result));
+        return $result;
     }
 }
