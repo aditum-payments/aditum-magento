@@ -119,6 +119,10 @@ class Api
         $boleto->customer->phone->setNumber(substr($phone_number, 2));
         $boleto->customer->phone->setType(\AditumPayments\ApiSDK\Enum\PhoneType::MOBILE);
 
+        foreach ($order->getItems() as $item) {
+            $boleto->products->add($item->getName(), $item->getSku(), $item->getPrice() * 100, $item->getQtyOrdered());
+        }
+
 // Transactions
         $grandTotal = $order->getGrandTotal() * 100;
         $grandTotal = (int)$grandTotal;
@@ -232,6 +236,9 @@ class Api
         $authorization->transactions->card->billingAddress->setState($this->codigoUF($billingAddress->getRegion()));
         $authorization->transactions->card->billingAddress->setCountry("BR");
         $authorization->transactions->card->billingAddress->setZipcode($billingAddress->getPostcode());
+        foreach ($order->getItems() as $item) {
+            $authorization->products->add($item->getName(), $item->getSku(), $item->getPrice() * 100, $item->getQtyOrdered());
+        }
 
         if ($payment->getAdditionalInformation('cc_dc_choice')!="dc") {
             $authorization->transactions->setInstallmentNumber($payment->getAdditionalInformation('installments'));
@@ -404,8 +411,9 @@ class Api
         $pix->customer->phone->setNumber(substr($phone_number, 2));
         $pix->customer->phone->setType(\AditumPayments\ApiSDK\Enum\PhoneType::MOBILE);
 
-
-
+        foreach ($order->getItems() as $item) {
+            $pix->products->add($item->getName(), $item->getSku(), $item->getPrice() * 100, $item->getQtyOrdered());
+        }
 // Transactions
         $grandTotal = $order->getGrandTotal() * 100;
 
