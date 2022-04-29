@@ -72,6 +72,6 @@ class PixSuccess extends \Magento\Checkout\Block\Onepage\Success
     public function getQrCodeTxt()
     {
         $payment = $this->getOrder()->getPayment();
-        return $payment->getAdditionalData('qrCode');
+        return $payment->getAdditionalInformation('qrCode');
     }
 }
