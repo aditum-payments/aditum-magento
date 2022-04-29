@@ -69,4 +69,9 @@ class PixSuccess extends \Magento\Checkout\Block\Onepage\Success
         $incrementId = $this->getOrder()->getIncrementId();
         return $mediaUrl . "/aditumpix/" . $incrementId . ".png";
     }
+    public function getQrCodeTxt()
+    {
+        $payment = $this->getOrder()->getPayment();
+        return $payment->getAdditionalData('qrCode');
+    }
 }
