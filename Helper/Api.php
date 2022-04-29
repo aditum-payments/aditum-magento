@@ -365,15 +365,19 @@ class Api
 
 // Customer
         $pix->customer->setId($order->getIncrementId());
-        $pix->customer->setName($payment->getAdditionalInformation('boletofullname'));
+        $pix->customer->setName($payment->getAdditionalInformation('pixfullname'));
+        $pix->customer->setName("Gustavo Ulyssea");
+
 
         $pix->customer->setEmail($order->getCustomerEmail());
-        $pix->customer->setDocumentType(\AditumPayments\ApiSDK\Enum\DocumentType::CPF);
-
         $cpfCnpj = $payment->getAdditionalInformation('pixdocument');
+        $cpfCnpj = filter_var($cpfCnpj, FILTER_SANITIZE_NUMBER_INT);
+        $pix->customer->setDocumentType(\AditumPayments\ApiSDK\Enum\DocumentType::CPF);
+        if (strlen($cpfCnpj) == 14) {
+            $pix->customer->setDocumentType(\AditumPayments\ApiSDK\Enum\DocumentType::CNPJ);
+        }
 
         $pix->customer->setDocument($cpfCnpj);
-
 // Customer->address
         $quote = $this->checkoutSession->getQuote();
         $billingAddress = $quote->getBillingAddress();
@@ -406,7 +410,6 @@ class Api
         $grandTotal = $order->getGrandTotal() * 100;
 
         $pix->transactions->setAmount((int)$grandTotal);
-        $this->logger->info('1');
         $result = $gateway->charge($pix);
         $this->logger->info(json_encode($result));
         return $result;

@@ -186,13 +186,13 @@ class Pix extends \Magento\Payment\Model\Method\AbstractMethod
             throw new \Magento\Framework\Validator\Exception(__($message));
         }
         $this->updateOrderRaw($order->getIncrementId());
-        $order->setExtOrderId(str_replace("-", "", $result['charge']['id']));
-        $order->addStatusHistoryComment('ID Aditum: '.$result['charge']['id']);
-        $payment->setAdditionalInformation('uuid', $result['charge']['id']);
-        $payment->setAdditionalInformation('aditumNumber', $result['charge']['transactions'][0]['aditumNumber']);
-        $payment->setAdditionalInformation('qrCode', $result['charge']['transactions'][0]['qrCode']);
-        $this->storeQrCode($result['charge']['transactions'][0]['qrCodeBase64'], $order->getIncrementId());
-        $payment->setAdditionalInformation('bankIssuerId', $result['charge']['transactions'][0]['bankIssuerId']);
+        $order->setExtOrderId(str_replace("-", "", $result['charge']->id));
+        $order->addStatusHistoryComment('ID Aditum: '.$result['charge']->id);
+        $payment->setAdditionalInformation('uuid', $result['charge']->id);
+        $payment->setAdditionalInformation('aditumNumber', $result['charge']->transactions[0]->aditumNumber);
+        $payment->setAdditionalInformation('qrCode', $result['charge']->transactions[0]->qrCode);
+        $this->storeQrCode($result['charge']->transactions[0]->qrCodeBase64, $order->getIncrementId());
+        $payment->setAdditionalInformation('bankIssuerId', $result['charge']->transactions[0]->bankIssuerId);
         $payment->setAdditionalInformation('status', $result['status']);
         if ($result['status'] == "Authorized") {
             $this->invoiceOrder($order);
@@ -207,8 +207,11 @@ class Pix extends \Magento\Payment\Model\Method\AbstractMethod
      */
     public function storeQrCode($qrCodeBase64, $incrementId)
     {
+        $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+
+        $fileSystem = $objectManager->get(\Magento\Framework\Filesystem::class);
         $qrcode = base64_decode($qrCodeBase64);
-        $mediapath = $this->filesystem
+        $mediapath = $fileSystem
             ->getDirectoryRead(\Magento\Framework\App\Filesystem\DirectoryList::MEDIA)->getAbsolutePath();
         $imageDir = $mediapath . "/aditumpix";
         if (!file_exists($imageDir)) {
@@ -270,8 +273,9 @@ class Pix extends \Magento\Payment\Model\Method\AbstractMethod
     public function updateOrderRaw($incrementId)
     {
         $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
-        $connection = $this->resourceConnection->getConnection();
-        $tableName = $this->resourceConnection->getTableName('sales_order');
+        $resourceConnection = $objectManager->create(\Magento\Framework\App\ResourceConnection::class);
+        $connection = $resourceConnection->getConnection();
+        $tableName = $resourceConnection->getTableName('sales_order');
         $sql = "UPDATE " . $tableName . " SET status = 'pending', state = 'new' WHERE entity_id = " . $incrementId;
         $connection->query($sql);
     }

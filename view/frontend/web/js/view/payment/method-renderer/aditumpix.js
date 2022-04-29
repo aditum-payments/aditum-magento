@@ -25,8 +25,7 @@ define(
                     'method': this.item.method,
                     'additional_data': {
                         'pixfullname': jQuery('#'+this.getCode() + '_pixfullname').val(),
-                        'pixdocument': jQuery('#'+this.getCode() + '_pixdocument').val(),
-                        'antifraud_token': jQuery('#antifraud_token').val()
+                        'pixdocument': jQuery('#'+this.getCode() + '_pixdocument').val()
                     }
                 };
             },
