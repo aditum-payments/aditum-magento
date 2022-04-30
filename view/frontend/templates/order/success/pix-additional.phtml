@@ -1,16 +1,23 @@
 <?php
 /**
- * @var \AditumPayment\Magento2\Block\PixSuccess $block
+ * @let \AditumPayment\Magento2\Block\PixSuccess $block
  */
 
 if ($block->getPaymentMethod() === "aditumpix"):
     ?>
+<br>
+<br>
+<div id="pix-additional">
+    <center>
     <p>
         Realize o pagamento diretamente no seu aplicativo de pagamentos ou Internet Banking, para isso, escaneie o QR code abaixo:
     </p>
     <p>
         <img src="<?=$block->getQrCodeUrl()?>">
     </p>
+    <p>Código válido por:</p>
+    <p id="pix-countdown"></p>
+
     <p>Ou se preferir, copie e cole o código abaixo:</p>
     <p><input id="copyTarget" type="text" size="100" class="input-text" value="<?=$block->getQrCodeTxt()?>" readonly="readonly"></p>
     <button id="copyButton"  class="action primary continue">
@@ -23,9 +30,9 @@ if ($block->getPaymentMethod() === "aditumpix"):
 
         function copyToClipboard(elem) {
             // create hidden text element, if it doesn't already exist
-            var targetId = "_hiddenCopyText_";
-            var isInput = elem.tagName === "INPUT" || elem.tagName === "TEXTAREA";
-            var origSelectionStart, origSelectionEnd;
+            let targetId = "_hiddenCopyText_";
+            let isInput = elem.tagName === "INPUT" || elem.tagName === "TEXTAREA";
+            let origSelectionStart, origSelectionEnd;
             if (isInput) {
                 // can just use the original source element for the selection and copy
                 target = elem;
@@ -35,7 +42,7 @@ if ($block->getPaymentMethod() === "aditumpix"):
                 // must use a temporary form element for the selection and copy
                 target = document.getElementById(targetId);
                 if (!target) {
-                    var target = document.createElement("textarea");
+                    let target = document.createElement("textarea");
                     target.style.position = "absolute";
                     target.style.left = "-9999px";
                     target.style.top = "0";
@@ -45,12 +52,12 @@ if ($block->getPaymentMethod() === "aditumpix"):
                 target.textContent = elem.textContent;
             }
             // select the content
-            var currentFocus = document.activeElement;
+            let currentFocus = document.activeElement;
             target.focus();
             target.setSelectionRange(0, target.value.length);
 
             // copy the selection
-            var succeed;
+            let succeed;
             try {
                 succeed = document.execCommand("copy");
             } catch(e) {
@@ -71,5 +78,71 @@ if ($block->getPaymentMethod() === "aditumpix"):
             return succeed;
         }
     </script>
+
+    <script>
+        // Set the date we're counting down to
+        let countDownDate = new Date("<?=date("M d, Y H:i:s", time() + 1800)?>").getTime();
+
+        // Update the count down every 1 second
+        let x = setInterval(function() {
+
+            // Get today's date and time
+            let now = new Date().getTime();
+
+            // Find the distance between now and the count down date
+            let distance = countDownDate - now;
+
+            // Time calculations for days, hours, minutes and seconds
+            let days = Math.floor(distance / (1000 * 60 * 60 * 24));
+            let hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            let minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            let seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+            // Display the result in the element with id="demo"
+            document.getElementById("pix-countdown").innerHTML = "00:" + minutes + ":" + seconds;
+
+            // If the count down is finished, write some text
+            if (distance < 0) {
+                clearInterval(x);
+                document.getElementById("pix-countdown").innerHTML = "EXPIRADO";
+            }
+        }, 1000);
+    </script>
+    </center>
+</div>
+<div id="modal-pix-complete" style="display: none;text-align: center;">
+    <p><img src="<?=$block->getViewFileUrl('AditumPayment_Magento2::images/payment-success.png')?>"></p>
+    <p>Pagamento realizado com sucesso!</p>
+</div>
+<script>
+    window.orderId = <?=$block->escapeHtml($block->getOrder()->getId())?>;
+    require([
+        'jquery',
+        'mage/storage',
+    ], function (
+        $,
+        storage
+    ) {
+        'use strict';
+        return function () {
+            let updatePayment = setInterval(function() {
+                storage.get(
+                    'rest/V1/aditum/orderhasinvoices/' + window.OrderId,
+                    true
+                ).done(function (result) {
+                    if(result !== "true") {
+                        return false;
+                    }
+                    $('#modal-pix-complete').show();
+                    clearInterval(updatePayment);
+                }).fail(function () {
+                    return false;
+                });
+            }, 2000);
+        }
+    });
+</script>
+
+
 
 <?php endif; ?>
