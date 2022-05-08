@@ -116,7 +116,7 @@ class Index extends \Magento\Framework\App\Action\Action implements CsrfAwareAct
                 if ($i>=30) {
                     $this->logger->info("Aditum Callback timeout...");
                     $result = $this->resultRaw();
-                    $result->setHttpResponseCode(400);
+                    $result->setHttpResponseCode(200);
                     return $result;
                 }
             }

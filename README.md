@@ -81,5 +81,9 @@ Stores > configuration > Sales > Payment Methods > others
 
 - **Valor percentual da multa**  
 
+###  Aditum PIX
+- **Ativar  boleto** `Yes/No`
+  *Ativa ou desativa opção de PIX*
+
 ### Registrar webhook
 https://domínio/aditum/apicallback
