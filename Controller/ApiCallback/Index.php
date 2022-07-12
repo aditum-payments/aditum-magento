@@ -108,6 +108,10 @@ class Index extends \Magento\Framework\App\Action\Action implements CsrfAwareAct
             }
             $input = json_decode($json, true);
             $order = $this->getOrderByChargeId($input['ChargeId']);
+            if (!$order) {
+                $this->logger->info("Aditum Callback order not found: ".$input['ChargeId']);
+                return $this->orderNotFound();
+            }
             $i=0;
             while (!$order->getPayment()->getAdditionalInformation('order_created')) {
                 $this->logger->info("Aditum Callback waiting for order creation...");
@@ -119,10 +123,6 @@ class Index extends \Magento\Framework\App\Action\Action implements CsrfAwareAct
                     $result->setHttpResponseCode(200);
                     return $result;
                 }
-            }
-            if (!$order) {
-                $this->logger->info("Aditum Callback order not found: ".$input['ChargeId']);
-                return $this->orderNotFound();
             }
             if ($input['ChargeStatus']===1) {
                 $this->logger->info("Aditum Callback invoicing Magento order " . $order->getIncrementId());
@@ -229,7 +229,7 @@ class Index extends \Magento\Framework\App\Action\Action implements CsrfAwareAct
     public function orderNotFound()
     {
         $result = $this->resultRaw();
-        $result->setHttpResponseCode(404);
+        $result->setHttpResponseCode(204);
         return $result;
     }
 
