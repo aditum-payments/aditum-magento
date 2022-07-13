@@ -161,7 +161,7 @@ class Index extends \Magento\Framework\App\Action\Action implements CsrfAwareAct
             $this->logger->error($t->getMessage());
             $this->logger->error($t->getTraceAsString());
             $result = $this->resultRaw();
-            $result->setHttpResponseCode(204);
+            $result->setHttpResponseCode(500);
             return $result;
         }
 
