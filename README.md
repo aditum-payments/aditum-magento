@@ -1,14 +1,14 @@
 
-# Instalação o módulo magento Aditum
+# Instalação o módulo magento Safrapay
 
 
 ### Baixar módulo
-[link do packgist](https://packagist.org/packages/aditum/magento2-payment)
+[link do packgist](https://packagist.org/packages/safrapay/magento2-payment)
 
 Na raiz do projeto executar o comando:
 
 ```shell
-composer require aditum/magento2-payment
+composer require safrapay/magento2-payment
 ```
 
 ### Iniciar a configuração do módulo na loja
@@ -29,9 +29,9 @@ Na tela administrativa do magento, seguir o caminho:
 Stores > configuration > Sales > Payment Methods > others
 ```
 
-### Aditum Pagamentos
+### Safrapay Pagamentos
 - **Ativar** `Yes/No` 
-*Ativa ou desativa módulo de pagamento Aditum*
+*Ativa ou desativa módulo de pagamento Safrapay*
 
 - **Ambiente** `Produção/Homologação`
 *Seleciona entre fazer transação em produção ou em ambiente de desenvolvimento(Homologação)*
@@ -43,10 +43,10 @@ Stores > configuration > Sales > Payment Methods > others
 *ID correspondente ao anti-fraude selecionado*
 
 - **CNPJ** `número do cnpj`
-*Deve ser colocado o cnpj cadastrado na Aditum*
+*Deve ser colocado o cnpj cadastrado na Safrapay*
 
 - **Merchant Token** `id do merchant`
-*ID do merchant da Aditum*
+*ID do merchant da Safrapay*
 
 - **Tempo de expiração do pedido** `números de dias`
 *Quanto tempo depois do pedido criado sem uma confirmação do pagamento ele vai expirar*
@@ -60,14 +60,14 @@ Stores > configuration > Sales > Payment Methods > others
 - **Definições do Endereço - Bairro** `Line 3`
 
 
-### Aditum cartão de crédito
+### Safrapay cartão de crédito
 
 - **Ativar cartão de crédito** `Yes/No` 
 *Ativa ou desativa opção de crédito*
 
 - **Máximo de parcelas** `mínimo de 1 e máximo de 20`
 
-###  Aditum Boleto
+###  Safrapay Boleto
 - **Ativar  boleto** `Yes/No` 
 *Ativa ou desativa opção de boleto*
 
@@ -81,9 +81,9 @@ Stores > configuration > Sales > Payment Methods > others
 
 - **Valor percentual da multa**  
 
-###  Aditum PIX
+###  Safrapay PIX
 - **Ativar  boleto** `Yes/No`
   *Ativa ou desativa opção de PIX*
 
 ### Registrar webhook
-https://domínio/aditum/apicallback
+https://domínio/safrapay/apicallback

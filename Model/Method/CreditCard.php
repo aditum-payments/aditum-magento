@@ -82,37 +82,42 @@ class CreditCard extends \Magento\Payment\Model\Method\Cc
                 json_encode($this->api->createOrderCc($order, $info, $payment, 1)),
                 true
             )) {
-                $order->addStatusHistoryComment('Erro na comunicação com a Aditum');
-                $payment->setAdditionalInformation('error','Erro na comunicação com a Aditum');
+                $order->addStatusHistoryComment('Erro na comunicação com a Safrapay');
+                $payment->setAdditionalInformation('error', 'Erro na comunicação com a Safrapay');
             }
-            if (isset($aditumreturn['httpStatus'])&&($aditumreturn['httpStatus'] < 200
-                || $aditumreturn['httpStatus'] >= 300)){
-                $error = 'API communication error .'.$aditumreturn['httpStatus'];
-                throw new \Magento\Framework\Webapi\Exception($error, 0,
-                    __(\Magento\Framework\Webapi\Exception::HTTP_INTERNAL_ERROR));
+            if (isset($aditumreturn['httpStatus']) && ($aditumreturn['httpStatus'] < 200
+                || $aditumreturn['httpStatus'] >= 300)) {
+                $error = 'API communication error .' . $aditumreturn['httpStatus'];
+                throw new \Magento\Framework\Webapi\Exception(
+                    $error,
+                    0,
+                    __(\Magento\Framework\Webapi\Exception::HTTP_INTERNAL_ERROR)
+                );
             }
-            if (!isset($aditumreturn['status'])||isset($aditumreturn['status'])
-                &&$aditumreturn['status'] != \AditumPayments\ApiSDK\Enum\ChargeStatus::PRE_AUTHORIZED
-                &&$aditumreturn['status'] != \AditumPayments\ApiSDK\Enum\ChargeStatus::AUTHORIZED) {
-                if($error = $this->api->getError($aditumreturn)) {
+            if (
+                !isset($aditumreturn['status']) || isset($aditumreturn['status'])
+                && $aditumreturn['status'] != \AditumPayments\ApiSDK\Enum\ChargeStatus::PRE_AUTHORIZED
+                && $aditumreturn['status'] != \AditumPayments\ApiSDK\Enum\ChargeStatus::AUTHORIZED
+            ) {
+                if ($error = $this->api->getError($aditumreturn)) {
                     $order->addStatusHistoryComment($this->api->getError($aditumreturn));
+                } else {
+                    $order->addStatusHistoryComment("Retorno API status invalido: " . $aditumreturn['status']);
                 }
-                else{
-                    $order->addStatusHistoryComment("Retorno API status invalido: ".$aditumreturn['status']);
-                }
-                $payment->setAdditionalInformation('error',$this->api->getError($aditumreturn));
+                $payment->setAdditionalInformation('error', $this->api->getError($aditumreturn));
             }
         } catch (Exception $e) {
             $txtError = 'Houve um erro processando seu pedido. Por favor entre em contato conosco.';
             throw new \Magento\Framework\Validator\Exception(__($txtError));
         }
-        if($aditumreturn) {
+        if ($aditumreturn) {
             $payment->setAdditionalInformation('status', $aditumreturn['status']);
-            $order->setExtOrderId(str_replace("-","",$aditumreturn['charge']['id']));
+            $order->setExtOrderId(str_replace("-", "", $aditumreturn['charge']['id']));
             $order->addStatusHistoryComment(
-                'ID Aditum: '.$aditumreturn['charge']['id']."<br>\n"
-                .'Cartão: '.$aditumreturn['charge']['transactions'][0]['card']['cardNumber']."<br>\n");
-            $payment->setAdditionalInformation('aditum_id',$aditumreturn['charge']['id']);
+                'ID Aditum: ' . $aditumreturn['charge']['id'] . "<br>\n"
+                    . 'Cartão: ' . $aditumreturn['charge']['transactions'][0]['card']['cardNumber'] . "<br>\n"
+            );
+            $payment->setAdditionalInformation('aditum_id', $aditumreturn['charge']['id']);
         }
 
         return $this;
@@ -172,7 +177,7 @@ class CreditCard extends \Magento\Payment\Model\Method\Cc
             throw new \Magento\Framework\Exception\LocalizedException(__('The refund action is not available.'));
         }
         $payment
-//            ->setTransactionId( '-' . \Magento\Sales\Model\Order\Payment\Transaction::TYPE_REFUND)
+            //            ->setTransactionId( '-' . \Magento\Sales\Model\Order\Payment\Transaction::TYPE_REFUND)
             ->setIsTransactionClosed(1)
             ->setShouldCloseParentTransaction(1);
         return $this;
@@ -180,7 +185,7 @@ class CreditCard extends \Magento\Payment\Model\Method\Cc
     public function updateOrderRaw($incrementId)
     {
         $tableName = $this->resourceConnection->getTableName('sales_order');
-//        $status = $this->_scopeConfig->getValue()
+        //        $status = $this->_scopeConfig->getValue()
         $sql = "UPDATE " . $tableName . " SET status = 'pending', state = 'new' WHERE entity_id = " . $incrementId;
         $this->connection->query($sql);
     }
@@ -189,7 +194,7 @@ class CreditCard extends \Magento\Payment\Model\Method\Cc
         return true;
         $info = $this->getInfoInstance();
         $errorMsg = false;
-//        $availableTypes = explode(',', $this->getConfigData('cctypes'));
+        //        $availableTypes = explode(',', $this->getConfigData('cctypes'));
 
         $ccNumber = $info->getCcNumber();
 
@@ -200,12 +205,13 @@ class CreditCard extends \Magento\Payment\Model\Method\Cc
         $ccType = '';
 
         if (in_array($info->getCcType(), $availableTypes)) {
-            if ($this->validateCcNum(
+            if (
+                $this->validateCcNum(
                     $ccNumber
                 ) || $this->otherCcType(
                     $info->getCcType()
                 ) && $this->validateCcNumOther(
-                // Other credit card type number validation
+                    // Other credit card type number validation
                     $ccNumber
                 )
             ) {
@@ -253,11 +259,11 @@ class CreditCard extends \Magento\Payment\Model\Method\Cc
                 ];
 
                 $ccNumAndTypeMatches = isset(
-                        $ccTypeRegExpList[$info->getCcType()]
-                    ) && preg_match(
-                        $ccTypeRegExpList[$info->getCcType()],
-                        $ccNumber
-                    );
+                    $ccTypeRegExpList[$info->getCcType()]
+                ) && preg_match(
+                    $ccTypeRegExpList[$info->getCcType()],
+                    $ccNumber
+                );
                 $ccType = $ccNumAndTypeMatches ? $info->getCcType() : 'OT';
 
                 if (!$ccNumAndTypeMatches && !$this->otherCcType($info->getCcType())) {

@@ -5,12 +5,12 @@
         <section id="payment">
             <group id="aditum" translate="label comment" sortOrder="330" showInDefault="1"
                    showInWebsite="1" showInStore="1">
-                <label>Aditum Pagamentos</label>
-                <comment>Método de pagamento Aditum</comment>
+                <label>Safrapay Pagamentos</label>
+                <comment>Método de pagamento Safrapay</comment>
                 <field id="enable" translate="label comment" type="select" sortOrder="5"
                        showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Ativar</label>
-                    <comment>Ativar método de pagamento Aditum</comment>
+                    <comment>Ativar método de pagamento Safrapay</comment>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
                 <field id="environment" translate="label comment" type="select" sortOrder="10"
@@ -66,12 +66,12 @@
             </group>
             <group id="aditumcc" translate="label comment" sortOrder="340"
                    showInDefault="1" showInWebsite="1" showInStore="1">
-                <label>Aditum Cartão de crédito</label>
-                <comment>Aditum - pagamentos por cartões de crédito</comment>
+                <label>Safrapay Cartão de crédito</label>
+                <comment>Safrapay - pagamentos por cartões de crédito</comment>
                 <field id="enable" translate="label comment" type="select" sortOrder="10"
                        showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Ativar cartão de crédito</label>
-                    <comment>Ativar pagamentos com cartão de crédito através da Aditum</comment>
+                    <comment>Ativar pagamentos com cartão de crédito através da Safrapay</comment>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
                 <field id="installments" translate="label comment" type="select" sortOrder="20"
@@ -88,24 +88,24 @@
 <!--
             <group id="aditum_dc" translate="label comment" sortOrder="350"
             showInDefault="1" showInWebsite="1" showInStore="1">
-                <label>Aditum Cartão de Débito</label>
-                <comment>Aditum - pagamentos por cartões de débito</comment>
+                <label>Safrapay Cartão de Débito</label>
+                <comment>Safrapay - pagamentos por cartões de débito</comment>
                 <field id="enable" translate="label comment" type="select" sortOrder="10"
                 showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Ativar cartão de débito</label>
-                    <comment>Ativar pagamentos com cartão de débito através da Aditum</comment>
+                    <comment>Ativar pagamentos com cartão de débito através da Safrapay</comment>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
             </group>
 -->
             <group id="aditum_boleto" translate="label comment" sortOrder="360"
                    showInDefault="1" showInWebsite="1" showInStore="1">
-                <label>Aditum Boleto</label>
-                <comment>Aditum - pagamentos por boleto bancário</comment>
+                <label>Safrapay Boleto</label>
+                <comment>Safrapay - pagamentos por boleto bancário</comment>
                 <field id="enable" translate="label comment" type="select" sortOrder="10"
                        showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Ativar boleto</label>
-                    <comment>Ativar pagamentos com boleto bancário através da Aditum</comment>
+                    <comment>Ativar pagamentos com boleto bancário através da Safrapay</comment>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
                 <field id="expiration_days" translate="label comment" type="text" sortOrder="20"
@@ -137,12 +137,12 @@
            </group>
             <group id="aditum_pix" translate="label comment" sortOrder="380"
                    showInDefault="1" showInWebsite="1" showInStore="1">
-                <label>Aditum Pix</label>
-                <comment>Aditum - pagamentos por PIX</comment>
+                <label>Safrapay Pix</label>
+                <comment>Safrapay - pagamentos por PIX</comment>
                 <field id="enable" translate="label comment" type="select" sortOrder="10"
                        showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Ativar PIX</label>
-                    <comment>Ativar pagamentos por PIX através da Aditum</comment>
+                    <comment>Ativar pagamentos por PIX através da Safrapay</comment>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
             </group>

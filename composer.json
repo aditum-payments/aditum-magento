@@ -1,9 +1,9 @@
 {
-    "name": "aditum/magento2-payment",
-    "description": "Magento 2 Aditum Payment",
+    "name": "safrapay/magento2-payment",
+    "description": "Magento 2 Safrapay Payment",
     "require": {
         "php": ">=7.1.0",
-        "aditum-payments/aditum-api-sdk-php": "^2.12",
+        "safrapay-payments/aditum-api-sdk-php": "^2.12",
         "magento/framework": ">=102.0"
     },
     "type": "magento2-module",
