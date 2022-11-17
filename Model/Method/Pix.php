@@ -2,6 +2,7 @@
 
 namespace AditumPayment\Magento2\Model\Method;
 
+
 use Exception;
 use JsonSchema\Constraints\UndefinedConstraint;
 use Magento\Directory\Helper\Data as DirectoryHelper;
@@ -184,7 +185,6 @@ class Pix extends \Magento\Payment\Model\Method\AbstractMethod
             throw new \Magento\Framework\Validator\Exception(__($message));
         }
 
-
         $this->updateOrderRaw($order->getIncrementId());
         $order->setExtOrderId(str_replace("-", "", $result['charge']->id));
         $order->addStatusHistoryComment('ID Aditum: '.$result['charge']->id);
@@ -196,6 +196,7 @@ class Pix extends \Magento\Payment\Model\Method\AbstractMethod
             $payment->setAdditionalInformation('aditumNumber', $aditumNumber);
         }
         
+
         $payment->setAdditionalInformation('qrCode', $result['charge']->transactions[0]->qrCode);
         $this->storeQrCode($result['charge']->transactions[0]->qrCodeBase64, $order->getIncrementId());
         $payment->setAdditionalInformation('bankIssuerId', $result['charge']->transactions[0]->bankIssuerId);
@@ -203,7 +204,7 @@ class Pix extends \Magento\Payment\Model\Method\AbstractMethod
         if ($result['status'] == "Authorized") {
             $this->invoiceOrder($order);
         }
-
+        
         return $this;
     }
 
