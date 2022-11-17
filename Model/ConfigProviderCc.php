@@ -9,13 +9,10 @@ use Magento\Framework\View\Asset\Source;
 use Magento\Payment\Helper\Data as PaymentHelper;
 use Magento\Customer\Model\Session;
 
-
 class ConfigProviderCc extends \AditumPayment\Magento2\Model\ConfigProvider implements ConfigProviderInterface
 {
-	/**
-     * Years range
-     */
     const YEARS_RANGE = 20;
+
     /**
      * @var string[]
      */
@@ -23,14 +20,14 @@ class ConfigProviderCc extends \AditumPayment\Magento2\Model\ConfigProvider impl
         'aditumcc'
     ];
 
-	protected $_ccoptions = [
+    protected $_ccoptions = [
         'mastercard' => 'Mastercard',
         'visa' => 'Visa',
         'amex' => 'American Express',
-		'diners' => 'Diners',
+        'diners' => 'Diners',
         'elo' => 'Elo',
         'hipercard' => 'Hipercard',
-		'hiper' => 'HIPER'
+        'hiper' => 'HIPER'
     ];
     /**
      * @var \Magento\Payment\Model\Method\AbstractMethod[]
@@ -42,10 +39,6 @@ class ConfigProviderCc extends \AditumPayment\Magento2\Model\ConfigProvider impl
      */
     protected $escaper;
 
-    /**
-     * @param PaymentHelper $paymentHelper
-     * @param Escaper $escaper
-     */
     /**
      * @var array
      */
@@ -79,7 +72,13 @@ class ConfigProviderCc extends \AditumPayment\Magento2\Model\ConfigProvider impl
      * @var \Magento\Framework\View\Asset\Source
      */
     protected $assetSource;
+    /**
+     * @var \Magento\Framework\Pricing\Helper\Data
+     */
     protected $_priceFiler;
+    /**
+     * @var Session
+     */
     protected $_customerSession;
 
     public function __construct(
@@ -93,7 +92,7 @@ class ConfigProviderCc extends \AditumPayment\Magento2\Model\ConfigProvider impl
         Session $customerSession,
         \Magento\Checkout\Model\Session $_checkoutSession,
         \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
-		\Magento\Framework\Pricing\Helper\Data $priceFilter,
+        \Magento\Framework\Pricing\Helper\Data $priceFilter,
         \Magento\Framework\View\Asset\Repository $assetRepo,
         \Magento\Store\Model\StoreManagerInterface $storeManager
     ) {
@@ -110,7 +109,7 @@ class ConfigProviderCc extends \AditumPayment\Magento2\Model\ConfigProvider impl
         foreach ($this->methodCodes as $code) {
             $this->methods[$code] = $paymentHelper->getMethodInstance($code);
         }
-        parent::__construct($scopeConfig,$assetRepo,$storeManager);
+        parent::__construct($scopeConfig, $assetRepo, $storeManager);
     }
 
     /**
@@ -118,7 +117,7 @@ class ConfigProviderCc extends \AditumPayment\Magento2\Model\ConfigProvider impl
      */
     public function getConfig()
     {
-		$config = [];
+        $config = [];
         foreach ($this->methodCodes as $code) {
             if ($this->methods[$code]->isAvailable()) {
                 $config['payment'][$code]['ccavailabletypes'] = $this->getCcAvailableTypes();
@@ -126,11 +125,11 @@ class ConfigProviderCc extends \AditumPayment\Magento2\Model\ConfigProvider impl
                 $config['payment'][$code]['years'] = $this->getYears();
                 $config['payment'][$code]['months'] = $this->getMonths();
                 $config['payment'][$code]['icons'] = $this->getIcons();
-				$config['payment'][$code]['currency'] = $this->getCurrencyData();
-                $config['payment'][$code]['type_interest'] = $this->TypeInstallment();
-				$config['payment'][$code]['info_interest'] = $this->getInfoParcelamentoJuros();
-				$config['payment'][$code]['max_installment'] = $this->MaxInstallment();
-				$config['payment'][$code]['min_installment'] = $this->MinInstallment();
+                $config['payment'][$code]['currency'] = $this->getCurrencyData();
+                $config['payment'][$code]['type_interest'] = $this->typeInstallment();
+                $config['payment'][$code]['info_interest'] = $this->getInfoParcelamentoJuros();
+                $config['payment'][$code]['max_installment'] = $this->maxInstallment();
+                $config['payment'][$code]['min_installment'] = $this->minInstallment();
                 $config['payment'][$code]['publickey'] = $this->getPublicKey();
                 $config['payment'][$code]['image_cvv'] = $this->getCvvImg();
                 $config['payment'][$code]['get_document'] = $this->getUseDocument();
@@ -142,7 +141,7 @@ class ConfigProviderCc extends \AditumPayment\Magento2\Model\ConfigProvider impl
                 $config['payment'][$code]['antifraud_type'] = $this->getAntiFraudType();
                 $config['payment'][$code]['antifraud_id'] = $this->getAntiFraudId();
                 $config['payment'][$code]['static_url'] = $this->getStaticUrl();
-			}
+            }
         }
 
         return $config;
@@ -232,88 +231,104 @@ class ConfigProviderCc extends \AditumPayment\Magento2\Model\ConfigProvider impl
         return $years;
     }
 
-    public function getUseDocument(){
-        return $this->scopeConfig->getValue("payment/aditum_cc/document/getdocument");
+    /**
+     * @return mixed
+     */
+    public function getUseDocument()
+    {
+        return $this->scopeConfig->getValue("payment/aditumcc/document/getdocument");
     }
 
-	public function getInfoParcelamentoJuros() {
+    /**
+     * @return array
+     */
+    public function getInfoParcelamentoJuros()
+    {
+        $maxInstallment = $this->maxInstallment();
         $juros = [];
-        $juros['0'] = 0;
-		$juros['1'] = 0;
-
-        $juros['2'] = 0;// $this->scopeConfig->getValue("payment/aditum_cc/installment/installment_2");
-
-
-        $juros['3'] = 0;// $this->scopeConfig->getValue("payment/aditum_cc/installment/installment_3");
-
-
-        $juros['4'] = 0;// $this->scopeConfig->getValue("payment/aditum_cc/installment/installment_4");
-
-
-        $juros['5'] = 0;// $this->scopeConfig->getValue("payment/aditum_cc/installment/installment_5");
-
-
-        $juros['6'] = 0;// $this->scopeConfig->getValue("payment/aditum_cc/installment/installment_6");
-
-
-        $juros['7'] = 0;// $this->scopeConfig->getValue("payment/aditum_cc/installment/installment_7");
-
-
-        $juros['8'] = 0;// $this->scopeConfig->getValue("payment/aditum_cc/installment/installment_8");
-
-
-        $juros['9'] = 0;// $this->scopeConfig->getValue("payment/aditum_cc/installment/installment_9");
-
-
-        $juros['10'] = 0;// $this->scopeConfig->getValue("payment/aditum_cc/installment/installment_10");
-
-
-        $juros['11'] = 0;// $this->scopeConfig->getValue("payment/aditum_cc/installment/installment_11");
-
-
-        $juros['12'] = 0;// $this->scopeConfig->getValue("payment/aditum_cc/installment/installment_12");
-
+        for ($i=0; $i<=$maxInstallment; $i++) {
+            $juros[(string)$i] = 0;
+        }
         return $juros;
     }
+
+    /**
+     * @return string
+     */
     public function getTaxVat()
     {
-        if($this->_customerSession->isLoggedIn()) {
+        if ($this->_customerSession->isLoggedIn()) {
             return $this->_customerSession->getCustomer()->getTaxvat();
-        }
-        else{
+        } else {
             return "";
         }
     }
 
-	public function getCurrencyData()
+    /**
+     * @return mixed
+     */
+    public function getCurrencyData()
     {
         $currencySymbol = $this->_priceCurrency
             ->getCurrency()->getCurrencySymbol();
         return $currencySymbol;
     }
 
-    public function TypeInstallment()
+    /**
+     * @return string
+     */
+    public function typeInstallment()
     {
-        $type = "percent";//$this->scopeConfig->getValue('payment/aditum_cc/installment/type_interest');
+        $type = "percent";//$this->scopeConfig->getValue('payment/aditumcc/installment/type_interest');
         return $type;
     }
-
-	public function MinInstallment()
+    public function getMinInstallmentValue()
     {
-        $parcelasMinimo = "1";
-        return $parcelasMinimo;
+        return $this->scopeConfig->getValue("payment/aditumcc/document/min_installment_value");
     }
 
-	public function MaxInstallment()
+    /**
+     * @return string
+     */
+    public function minInstallment()
     {
-        return $this->scopeConfig->getValue('payment/aditum_cc/installments');
+        return "1";
     }
 
+    public function getTotalPrice()
+    {
+        return $this->_checkoutSession->getQuote()->getGrandTotal();
+    }
+
+    /**
+     * @return mixed
+     */
+    public function maxInstallment()
+    {
+        $maxInstallmentConfig = (int) $this->scopeConfig->getValue('payment/aditumcc/installments');
+        $minInstallmentValue = $this->scopeConfig->getValue("payment/aditumcc/min_installment_value");
+        $maxInstallment = 1;
+        for ($i=1; $i<=$maxInstallmentConfig; $i++) {
+            if ($this->getTotalPrice()/$i < $minInstallmentValue) {
+                break;
+            }
+            $maxInstallment = $i;
+        }
+
+        return $maxInstallment;
+    }
+
+    /**
+     * @return string
+     */
     public function getEnvironmentMode()
     {
         return "";
     }
 
+    /**
+     * @return mixed
+     */
     public function getPublicKey()
     {
         $_environment = $this->getEnvironmentMode();

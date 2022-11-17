@@ -42,14 +42,25 @@ class Boleto extends \Magento\Payment\Model\Method\AbstractMethod
         \Psr\Log\LoggerInterface $mlogger,
         \Magento\Sales\Model\Service\InvoiceService $invoiceService,
         \Magento\Framework\DB\TransactionFactory $transactionFactory,
+        \Magento\Framework\Message\ManagerInterface $messageManager,
         \Magento\Framework\Model\ResourceModel\AbstractResource $resource = null,
         \Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null,
-        \Magento\Framework\Message\ManagerInterface $messageManager,
         array $data = [],
         DirectoryHelper $directory = null
     ) {
-        parent::__construct($context, $registry, $extensionFactory, $customAttributeFactory, $paymentData, $scopeConfig,
-            $logger, $resource, $resourceCollection, $data, $directory);
+        parent::__construct(
+            $context,
+            $registry,
+            $extensionFactory,
+            $customAttributeFactory,
+            $paymentData,
+            $scopeConfig,
+            $logger,
+            $resource,
+            $resourceCollection,
+            $data,
+            $directory
+        );
         $this->api = $api;
         $this->adminSession = $adminSession;
         $this->logger = $mlogger;

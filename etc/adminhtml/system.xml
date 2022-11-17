@@ -1,106 +1,151 @@
 <?xml version="1.0"?>
-<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
     <system>
         <section id="payment">
-            <group id="aditum" translate="label comment" sortOrder="330" showInDefault="1" showInWebsite="1" showInStore="1">
+            <group id="aditum" translate="label comment" sortOrder="330" showInDefault="1"
+                   showInWebsite="1" showInStore="1">
                 <label>Aditum Pagamentos</label>
                 <comment>Método de pagamento Aditum</comment>
-                <field id="enable" translate="label comment" type="select" sortOrder="5" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="enable" translate="label comment" type="select" sortOrder="5"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Ativar</label>
                     <comment>Ativar método de pagamento Aditum</comment>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
-                <field id="environment" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="environment" translate="label comment" type="select" sortOrder="10"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Ambiente</label>
-                    <comment><![CDATA[Selecione entre homologação para testes de desenvolvimento e produção.]]></comment>
+                    <comment>
+                        <![CDATA[Selecione entre homologação para testes de desenvolvimento e produção.]]>
+                    </comment>
                     <source_model>AditumPayment\Magento2\Model\Config\Environment</source_model>
                 </field>
-                <field id="antifraudtype" translate="label comment" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="antifraudtype" translate="label comment" type="select" sortOrder="20"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Tipo de anti-fraude</label>
                     <source_model>AditumPayment\Magento2\Model\Config\AntifraudType</source_model>
                 </field>
-                <field id="antifraud_id" translate="label comment" type="text" sortOrder="25" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="antifraud_id" translate="label comment" type="text" sortOrder="25"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>ID do anti-fraude</label>
                 </field>
-                <field id="client_id" translate="label comment" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="client_id" translate="label comment" type="text" sortOrder="30"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>CNPJ</label>
                 </field>
-                <field id="client_secret" translate="label comment" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="client_secret" translate="label comment" type="text" sortOrder="30"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Merchant Token</label>
                 </field>
-                <field id="order_expiration_days" translate="label comment" type="text" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Tempo de expiração do pedido</label>
-                    <comment><![CDATA[Depois de quanto tempo o pedido pendente de pagamento deve ser cancelado. Defina em dias.]]></comment>
-                </field>
-                <field id="new_order_status" translate="label" type="select" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="new_order_status" translate="label" type="select" sortOrder="50"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Status do pedido criado</label>
                     <source_model>Magento\Sales\Model\Config\Source\Order\Status</source_model>
                 </field>
-                <field id="street" translate="label" type="select" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="street" translate="label" type="select" sortOrder="100"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Definições do Endereço - Rua</label>
                     <source_model>AditumPayment\Magento2\Model\Config\AddressLines</source_model>
                 </field>
-                <field id="number" translate="label" type="select" sortOrder="110" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="number" translate="label" type="select" sortOrder="110"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Definições do Endereço - Número</label>
                     <source_model>AditumPayment\Magento2\Model\Config\AddressLines</source_model>
                 </field>
-                <field id="complement" translate="label" type="select" sortOrder="120" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="complement" translate="label" type="select" sortOrder="120"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Definições do Endereço - Complemento</label>
                     <source_model>AditumPayment\Magento2\Model\Config\AddressLines</source_model>
                 </field>
-                <field id="district" translate="label" type="select" sortOrder="130" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="district" translate="label" type="select" sortOrder="130"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Definições do Endereço - Bairro</label>
                     <source_model>AditumPayment\Magento2\Model\Config\AddressLines</source_model>
                 </field>
             </group>
-            <group id="aditum_cc" translate="label comment" sortOrder="340" showInDefault="1" showInWebsite="1" showInStore="1">
+            <group id="aditumcc" translate="label comment" sortOrder="340"
+                   showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Aditum Cartão de crédito</label>
                 <comment>Aditum - pagamentos por cartões de crédito</comment>
-                <field id="enable" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="enable" translate="label comment" type="select" sortOrder="10"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Ativar cartão de crédito</label>
                     <comment>Ativar pagamentos com cartão de crédito através da Aditum</comment>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
-                <field id="installments" translate="label comment" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="installments" translate="label comment" type="select" sortOrder="20"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Máximo de parcelas</label>
-                    <comment><![CDATA[Selecione o número limite permitido nos cartões de crédito.]]></comment>
+                    <comment><![CDATA[Selecione o limite de parcelas permitido nos cartões de crédito.]]></comment>
                     <source_model>AditumPayment\Magento2\Model\Config\Installments</source_model>
                 </field>
+                <field id="min_installment_value" translate="label comment" type="text" sortOrder="30"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Valor mínimo da parcela</label>
+                </field>
             </group>
-            <group id="aditum_dc" translate="label comment" sortOrder="350" showInDefault="1" showInWebsite="1" showInStore="1">
+<!--
+            <group id="aditum_dc" translate="label comment" sortOrder="350"
+            showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Aditum Cartão de Débito</label>
                 <comment>Aditum - pagamentos por cartões de débito</comment>
-                <field id="enable" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="enable" translate="label comment" type="select" sortOrder="10"
+                showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Ativar cartão de débito</label>
                     <comment>Ativar pagamentos com cartão de débito através da Aditum</comment>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
             </group>
-            <group id="aditum_boleto" translate="label comment" sortOrder="360" showInDefault="1" showInWebsite="1" showInStore="1">
+-->
+            <group id="aditum_boleto" translate="label comment" sortOrder="360"
+                   showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Aditum Boleto</label>
                 <comment>Aditum - pagamentos por boleto bancário</comment>
-                <field id="enable" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="enable" translate="label comment" type="select" sortOrder="10"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Ativar boleto</label>
                     <comment>Ativar pagamentos com boleto bancário através da Aditum</comment>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
-                <field id="expiration_days" translate="label comment" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="expiration_days" translate="label comment" type="text" sortOrder="20"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Dias para vencimento do boleto</label>
-                    <comment><![CDATA[Tempo em dias para o vencimento do boleto a partir da data de geração.]]></comment>
+                    <comment>
+                        <![CDATA[Tempo em dias para o vencimento do boleto a partir da data de geração.]]>
+                    </comment>
                 </field>
-                <field id="fine_days" translate="label comment" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="fine_days" translate="label comment" type="text" sortOrder="30"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Dias para multa</label>
-                    <comment><![CDATA[Tempo em dias para a aplicacao de multa do boleto a partir da data de geração.]]></comment>
+                    <comment>
+                        <![CDATA[Tempo em dias para a aplicacao de multa do boleto a partir da data de geração.]]>
+                    </comment>
                 </field>
-                <field id="fine_amount" translate="label comment" type="text" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="fine_amount" translate="label comment" type="text" sortOrder="40"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Valor fixo da multa</label>
-                    <comment><![CDATA[Tempo em dias para a aplicacao de multa do boleto a partir da data de geração.]]></comment>
+                    <comment>
+                        <![CDATA[Tempo em dias para a aplicacao de multa do boleto a partir da data de geração.]]>
+                    </comment>
                 </field>
-                <field id="fine_percent" translate="label comment" type="text" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="fine_percent" translate="label comment" type="text" sortOrder="60"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Valor percentual da multa</label>
                     <comment><![CDATA[Valor percentual sobre o valor original aplicados de multa.]]></comment>
                 </field>
            </group>
+            <group id="aditum_pix" translate="label comment" sortOrder="380"
+                   showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Aditum Pix</label>
+                <comment>Aditum - pagamentos por PIX</comment>
+                <field id="enable" translate="label comment" type="select" sortOrder="10"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Ativar PIX</label>
+                    <comment>Ativar pagamentos por PIX através da Aditum</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+            </group>
         </section>
     </system>
 </config>

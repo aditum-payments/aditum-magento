@@ -44,10 +44,24 @@ class Api
         }
         return "";
     }
+
+    /**
+     * @param \Magento\Sales\Model\Order\Interceptor $order
+     * @param $payment
+     * @return array|null
+     */
     public function createOrderBoleto(\Magento\Sales\Model\Order\Interceptor $order, $payment)
     {
         return $this->extCreateOrderBoleto($order, $payment);
     }
+
+    /**
+     * @param \Magento\Sales\Model\Order\Interceptor $order
+     * @param $payment
+     * @return array|null
+     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     */
     public function extCreateOrderBoleto(\Magento\Sales\Model\Order\Interceptor $order, $payment)
     {
         \AditumPayments\ApiSDK\Configuration::initialize();
@@ -66,8 +80,10 @@ class Api
 
         $boleto->setSessionId($payment->getAdditionalInformation('antifraud_token'));
 
-        $boleto->setDeadline($this->scopeConfig->getValue('payment/aditum_boleto/expiration_days',
-            \Magento\Store\Model\ScopeInterface::SCOPE_STORE));
+        $boleto->setDeadline($this->scopeConfig->getValue(
+            'payment/aditum_boleto/expiration_days',
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE
+        ));
 
         $boleto->customer->setId($order->getIncrementId());
         $boleto->customer->setName($payment->getAdditionalInformation('boletofullname'));
@@ -75,11 +91,9 @@ class Api
         $cpfCnpj = $payment->getAdditionalInformation('boletodocument');
         $cpfCnpj = filter_var($cpfCnpj, FILTER_SANITIZE_NUMBER_INT);
 
+        $boleto->customer->setDocumentType(\AditumPayments\ApiSDK\Enum\DocumentType::CPF);
         if (strlen($cpfCnpj) == 14) {
             $boleto->customer->setDocumentType(\AditumPayments\ApiSDK\Enum\DocumentType::CNPJ);
-        }
-        else {
-            $boleto->customer->setDocumentType(\AditumPayments\ApiSDK\Enum\DocumentType::CPF);
         }
         $boleto->customer->setDocument($cpfCnpj);
 
@@ -101,9 +115,13 @@ class Api
 // Customer->phone
         $phone_number = filter_var($billingAddress->getTelephone(), FILTER_SANITIZE_NUMBER_INT);
         $boleto->customer->phone->setCountryCode("55");
-        $boleto->customer->phone->setAreaCode(substr($phone_number,0,2));
-        $boleto->customer->phone->setNumber(substr($phone_number,2));
+        $boleto->customer->phone->setAreaCode(substr($phone_number, 0, 2));
+        $boleto->customer->phone->setNumber(substr($phone_number, 2));
         $boleto->customer->phone->setType(\AditumPayments\ApiSDK\Enum\PhoneType::MOBILE);
+
+        foreach ($order->getItems() as $item) {
+            $boleto->products->add($item->getName(), $item->getSku(), $item->getPrice() * 100, $item->getQtyOrdered());
+        }
 
 // Transactions
         $grandTotal = $order->getGrandTotal() * 100;
@@ -112,17 +130,17 @@ class Api
         $boleto->transactions->setInstructions("Senhor caixa não receber após o vencimento.");
 
 // Transactions->fine (opcional)
-        if($this->scopeConfig->getValue("payment/aditum_boleto/fine_days")) {
+        if ($this->scopeConfig->getValue("payment/aditum_boleto/fine_days")) {
             $boleto->transactions->fine
                 ->setStartDate($this->scopeConfig->getValue("payment/aditum_boleto/fine_days"));
         }
-        if($this->scopeConfig->getValue("payment/aditum_boleto/fine_days")
-            &&$this->scopeConfig->getValue("payment/aditum_boleto/fine_amount")){
+        if ($this->scopeConfig->getValue("payment/aditum_boleto/fine_days")
+            && $this->scopeConfig->getValue("payment/aditum_boleto/fine_amount")) {
             $boleto->transactions->fine
                 ->setAmount($this->scopeConfig->getValue("payment/aditum_boleto/fine_amount"));
         }
-        if($this->scopeConfig->getValue("payment/aditum_boleto/fine_days")
-            &&$this->scopeConfig->getValue("payment/aditum_boleto/fine_percent")) {
+        if ($this->scopeConfig->getValue("payment/aditum_boleto/fine_days")
+            && $this->scopeConfig->getValue("payment/aditum_boleto/fine_percent")) {
             $boleto->transactions->fine->setInterest(10);
         }
 
@@ -138,10 +156,10 @@ class Api
     }
     public function createOrderCc(\Magento\Sales\Model\Order\Interceptor $order, $info, $payment, $preAuth = 0)
     {
-        return $this->extCreateOrderCc($order,$info,$payment,$preAuth);
+        return $this->extCreateOrderCc($order, $info, $payment, $preAuth);
     }
 
-    public function extCreateOrderCc(\Magento\Sales\Model\Order\Interceptor $order,$info,$payment, $preAuth=0)
+    public function extCreateOrderCc(\Magento\Sales\Model\Order\Interceptor $order, $info, $payment, $preAuth = 0)
     {
         \AditumPayments\ApiSDK\Configuration::initialize();
         \AditumPayments\ApiSDK\Configuration::setUrl($this->getApiUrl());
@@ -160,10 +178,9 @@ class Api
         $billingAddress = $quote->getBillingAddress();
 
         $this->logger->info("Card CCDC Type: ".$payment->getAdditionalInformation('cc_dc_choice'));
-        if($payment->getAdditionalInformation('cc_dc_choice')=="dc"){
+        if ($payment->getAdditionalInformation('cc_dc_choice')=="dc") {
             $authorization->transactions->setPaymentType(\AditumPayments\ApiSDK\Enum\PaymentType::DEBIT);
-        }
-        else {
+        } else {
             $authorization->transactions->setPaymentType(\AditumPayments\ApiSDK\Enum\PaymentType::CREDIT);
         }
         $authorization->setMerchantChargeId($order->getIncrementId());
@@ -176,18 +193,16 @@ class Api
         $cpfCnpj = $payment->getAdditionalInformation('document');
         $cpfCnpj = filter_var($cpfCnpj, FILTER_SANITIZE_NUMBER_INT);
 
-        if(strlen($cpfCnpj)==14) {
+        $authorization->customer->setDocumentType(\AditumPayments\ApiSDK\Enum\DocumentType::CPF);
+        if (strlen($cpfCnpj)==14) {
             $authorization->customer->setDocumentType(\AditumPayments\ApiSDK\Enum\DocumentType::CNPJ);
-        }
-        else{
-            $authorization->customer->setDocumentType(\AditumPayments\ApiSDK\Enum\DocumentType::CPF);
         }
         $authorization->customer->setDocument($cpfCnpj);
 
         $authorization->customer->phone->setCountryCode("55");
         $phone_number = filter_var($billingAddress->getTelephone(), FILTER_SANITIZE_NUMBER_INT);
-        $authorization->customer->phone->setAreaCode(substr($phone_number,0,2));
-        $authorization->customer->phone->setNumber(substr($phone_number,2));
+        $authorization->customer->phone->setAreaCode(substr($phone_number, 0, 2));
+        $authorization->customer->phone->setNumber(substr($phone_number, 2));
         $authorization->customer->phone->setType(\AditumPayments\ApiSDK\Enum\PhoneType::MOBILE);
         $authorization->customer->address->setStreet($billingAddress
             ->getStreet()[$this->scopeConfig->getValue("payment/aditum/street")]);
@@ -221,9 +236,16 @@ class Api
         $authorization->transactions->card->billingAddress->setState($this->codigoUF($billingAddress->getRegion()));
         $authorization->transactions->card->billingAddress->setCountry("BR");
         $authorization->transactions->card->billingAddress->setZipcode($billingAddress->getPostcode());
+        foreach ($order->getItems() as $item) {
+            $authorization->products->add($item->getName(), $item->getSku(), $item->getPrice() * 100, $item->getQtyOrdered());
+        }
 
-        if($payment->getAdditionalInformation('cc_dc_choice')!="dc") {
+        if ($payment->getAdditionalInformation('cc_dc_choice')!="dc") {
             $authorization->transactions->setInstallmentNumber($payment->getAdditionalInformation('installments'));
+            $authorization->transactions->setInstallmentType(\AditumPayments\ApiSDK\Enum\InstallmentType::NONE);
+            if ($payment->getAdditionalInformation('installments')>1) {
+                $authorization->transactions->setInstallmentType(\AditumPayments\ApiSDK\Enum\InstallmentType::MERCHANT);
+            }
         }
         $grandTotal = $order->getGrandTotal() * 100;
         $grandTotal = (int)$grandTotal;
@@ -236,29 +258,36 @@ class Api
     }
     public function getApiUrl()
     {
-        if(!$this->scopeConfig->getValue('payment/aditum/environment',
-            \Magento\Store\Model\ScopeInterface::SCOPE_STORE)){
+        if (!$this->scopeConfig->getValue(
+            'payment/aditum/environment',
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE
+        )) {
             return \AditumPayments\ApiSDK\Configuration::DEV_URL;
         }
         return \AditumPayments\ApiSDK\Configuration::PROD_URL;
     }
-    public function logError($action,$url,$output,$input="")
+    public function logError($action, $url, $output, $input = "")
     {
         $this->logger->error("Aditum Request error: ".$action." - ".$url." - ".$input." - ".$output);
         return false;
     }
     public function getClientId()
     {
-        return $this->scopeConfig->getValue('payment/aditum/client_id',
-            \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
+        return $this->scopeConfig->getValue(
+            'payment/aditum/client_id',
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE
+        );
     }
-    public function getClientSecret(){
-        return $this->scopeConfig->getValue('payment/aditum/client_secret',
-            \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
+    public function getClientSecret()
+    {
+        return $this->scopeConfig->getValue(
+            'payment/aditum/client_secret',
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE
+        );
     }
     public function codigoUF($txt_uf)
     {
-        $array_ufs = array("Rondônia" => "RO",
+        $array_ufs = ["Rondônia" => "RO",
             "Acre" => "AC",
             "Amazonas" => "AM",
             "Roraima" => "RR",
@@ -284,7 +313,7 @@ class Api
             "Mato Grosso do Sul" => "MS",
             "Mato Grosso" => "MT",
             "Goiás" => "GO",
-            "Distrito Federal" => "DF");
+            "Distrito Federal" => "DF"];
         $uf = "RJ";
         foreach ($array_ufs as $key => $value) {
             if ($key == $txt_uf) {
@@ -294,32 +323,103 @@ class Api
         }
         return $uf;
     }
-    public function getDocumentTypeId($type="cpf"){
-        if($type=="cpf"){
+    public function getDocumentTypeId($type = "cpf")
+    {
+        if ($type=="cpf") {
             return 1;
         }
-        if($type=="cnpj"){
+        if ($type=="cnpj") {
             return 2;
         }
         return 1;
     }
     public function getError($arrayReturn)
     {
-        if(!isset($arrayReturn['charge']['transactions'][0]['errorMessage'])) return "";
+        if (!isset($arrayReturn['charge']['transactions'][0]['errorMessage'])) {
+            return "";
+        }
         return $arrayReturn['charge']['transactions'][0]['errorMessage'];
     }
     public function getBoletoUrl($result)
     {
-        $env = $this->scopeConfig->getValue('payment/aditum/environment',
-            \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
-        if($env){
+        $env = $this->scopeConfig->getValue(
+            'payment/aditum/environment',
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE
+        );
+        $url = \AditumPayments\ApiSDK\Configuration::DEV_URL;
+        if ($env) {
             $url = \AditumPayments\ApiSDK\Configuration::PROD_URL;
         }
-        else{
-            $url = \AditumPayments\ApiSDK\Configuration::DEV_URL;
-        }
-        $url = str_replace("/v2/","",$url);
-        $bankSlipUrl = str_replace("\\","",$result['charge']['transactions'][0]['bankSlipUrl']);
+        $url = str_replace("/v2/", "", $url);
+        $bankSlipUrl = str_replace("\\", "", $result['charge']['transactions'][0]['bankSlipUrl']);
         return $url . $bankSlipUrl;
+    }
+
+    public function createOrderPix($order, $payment)
+    {
+        $this->logger->info('ADITUM PIX create order started');
+        /** @var $order \Magento\Sales\Api\Data\OrderInterface */
+        \AditumPayments\ApiSDK\Configuration::initialize();
+        \AditumPayments\ApiSDK\Configuration::setUrl(\AditumPayments\ApiSDK\Configuration::DEV_URL);
+        \AditumPayments\ApiSDK\Configuration::setCnpj($this->getClientId());
+        \AditumPayments\ApiSDK\Configuration::setMerchantToken($this->getClientSecret());
+        \AditumPayments\ApiSDK\Configuration::setlog(false);
+        \AditumPayments\ApiSDK\Configuration::login();
+        $gateway = new \AditumPayments\ApiSDK\Gateway;
+        $pix = new \AditumPayments\ApiSDK\Domains\Pix;
+
+        $pix->setMerchantChargeId("");
+
+// Customer
+        $pix->customer->setId($order->getIncrementId());
+        $pix->customer->setName($payment->getAdditionalInformation('pixfullname'));
+        $pix->customer->setName("Gustavo Ulyssea");
+
+
+        $pix->customer->setEmail($order->getCustomerEmail());
+        $cpfCnpj = $payment->getAdditionalInformation('pixdocument');
+        $cpfCnpj = filter_var($cpfCnpj, FILTER_SANITIZE_NUMBER_INT);
+        $pix->customer->setDocumentType(\AditumPayments\ApiSDK\Enum\DocumentType::CPF);
+        if (strlen($cpfCnpj) == 14) {
+            $pix->customer->setDocumentType(\AditumPayments\ApiSDK\Enum\DocumentType::CNPJ);
+        }
+
+        $pix->customer->setDocument($cpfCnpj);
+// Customer->address
+        $quote = $this->checkoutSession->getQuote();
+        $billingAddress = $quote->getBillingAddress();
+
+
+        $pix->customer->address->setStreet($billingAddress
+            ->getStreet()[$this->scopeConfig->getValue("payment/aditum/street")]);
+        $pix->customer->address->setNumber($billingAddress
+            ->getStreet()[$this->scopeConfig->getValue("payment/aditum/number")]);
+        $pix->customer->address->setComplement($billingAddress
+            ->getStreet()[$this->scopeConfig->getValue("payment/aditum/complement")]);
+        $pix->customer->address->setNeighborhood($billingAddress
+            ->getStreet()[$this->scopeConfig->getValue("payment/aditum/district")]);
+        $pix->customer->address->setCity($billingAddress->getCity());
+        $pix->customer->address->setState($this->codigoUF($billingAddress->getRegion()));
+        $pix->customer->address->setCountry("BR");
+        $pix->customer->address->setZipcode($billingAddress->getPostcode());
+        $pix->customer->address->setComplement("");
+
+// Customer->phone
+        $phone_number = filter_var($billingAddress->getTelephone(), FILTER_SANITIZE_NUMBER_INT);
+        $pix->customer->phone->setCountryCode("55");
+        $pix->customer->phone->setAreaCode(substr($phone_number, 0, 2));
+        $pix->customer->phone->setNumber(substr($phone_number, 2));
+        $pix->customer->phone->setType(\AditumPayments\ApiSDK\Enum\PhoneType::MOBILE);
+
+        foreach ($order->getItems() as $item) {
+            $pix->products->add($item->getName(), $item->getSku(), $item->getPrice() * 100, $item->getQtyOrdered());
+        }
+// Transactions
+        $grandTotal = $order->getGrandTotal() * 100;
+
+        $pix->transactions->setAmount((int)$grandTotal);
+        $result = $gateway->charge($pix);
+        $this->logger->info(json_encode($result));
+        return $result;
     }
 }

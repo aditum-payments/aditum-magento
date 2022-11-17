@@ -40,14 +40,14 @@ class CreditCard extends \Magento\Payment\Model\Method\Cc
         \Magento\Payment\Model\Method\Logger $logger,
         \Magento\Framework\Module\ModuleListInterface $moduleList,
         \Magento\Framework\Stdlib\DateTime\TimezoneInterface $localeDate,
-        \Magento\Framework\Model\ResourceModel\AbstractResource $resource = null,
-        \Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null,
         \AditumPayment\Magento2\Helper\Api $api,
         \Magento\Backend\Model\Auth\Session $adminSession,
         \Psr\Log\LoggerInterface $mlogger,
         \Magento\Sales\Model\Service\InvoiceService $invoiceService,
         \Magento\Framework\DB\TransactionFactory $transactionFactory,
         \Magento\Framework\App\ResourceConnection $resourceConnection,
+        \Magento\Framework\Model\ResourceModel\AbstractResource $resource = null,
+        \Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null,
         array $data = []
     ) {
         $this->api = $api;
@@ -78,8 +78,10 @@ class CreditCard extends \Magento\Payment\Model\Method\Cc
 
         $order = $payment->getOrder();
         try {
-            if (!$aditumreturn = json_decode(json_encode(
-                $this->api->createOrderCc($order, $info, $payment,1)),true)) {
+            if (!$aditumreturn = json_decode(
+                json_encode($this->api->createOrderCc($order, $info, $payment, 1)),
+                true
+            )) {
                 $order->addStatusHistoryComment('Erro na comunicação com a Aditum');
                 $payment->setAdditionalInformation('error','Erro na comunicação com a Aditum');
             }
@@ -87,7 +89,7 @@ class CreditCard extends \Magento\Payment\Model\Method\Cc
                 || $aditumreturn['httpStatus'] >= 300)){
                 $error = 'API communication error .'.$aditumreturn['httpStatus'];
                 throw new \Magento\Framework\Webapi\Exception($error, 0,
-                    \Magento\Framework\Webapi\Exception::HTTP_INTERNAL_ERROR);
+                    __(\Magento\Framework\Webapi\Exception::HTTP_INTERNAL_ERROR));
             }
             if (!isset($aditumreturn['status'])||isset($aditumreturn['status'])
                 &&$aditumreturn['status'] != \AditumPayments\ApiSDK\Enum\ChargeStatus::PRE_AUTHORIZED
@@ -141,19 +143,27 @@ class CreditCard extends \Magento\Payment\Model\Method\Cc
 
     public function authorize(\Magento\Payment\Model\InfoInterface $payment, $amount)
     {
-
+        return true;
     }
 
     public function isAvailable(\Magento\Quote\Api\Data\CartInterface $quote = null)
     {
-        if(!$this->_scopeConfig->getValue('payment/aditum/enable',\Magento\Store\Model\ScopeInterface::SCOPE_STORE)){
+        if (!$this->_scopeConfig->getValue(
+            'payment/aditum/enable',
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE
+        )) {
             return false;
         }
-        if(!$this->_scopeConfig->getValue('payment/aditum_cc/enable',\Magento\Store\Model\ScopeInterface::SCOPE_STORE)){
+        if (!$this->_scopeConfig->getValue(
+            'payment/aditumcc/enable',
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE
+        )) {
             return false;
         }
         $isAvailable = $this->getConfigData('active', $quote ? $quote->getStoreId() : null);
-        if(!$isAvailable) return false;
+        if (!$isAvailable) {
+            return false;
+        }
         return true;
     }
     public function refund(\Magento\Payment\Model\InfoInterface $payment, $amount)
@@ -167,7 +177,8 @@ class CreditCard extends \Magento\Payment\Model\Method\Cc
             ->setShouldCloseParentTransaction(1);
         return $this;
     }
-    public function updateOrderRaw($incrementId){
+    public function updateOrderRaw($incrementId)
+    {
         $tableName = $this->resourceConnection->getTableName('sales_order');
 //        $status = $this->_scopeConfig->getValue()
         $sql = "UPDATE " . $tableName . " SET status = 'pending', state = 'new' WHERE entity_id = " . $incrementId;

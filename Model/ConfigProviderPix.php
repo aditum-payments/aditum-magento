@@ -5,9 +5,9 @@ use Magento\Checkout\Model\ConfigProviderInterface;
 use Magento\Framework\Escaper;
 use Magento\Payment\Helper\Data as PaymentHelper;
 
-class ConfigProviderBoleto extends \AditumPayment\Magento2\Model\ConfigProvider implements ConfigProviderInterface
+class ConfigProviderPix extends \AditumPayment\Magento2\Model\ConfigProvider implements ConfigProviderInterface
 {
-    protected $methodCode = "aditumboleto";
+    protected $methodCode = "aditumpix";
 
     protected $method;
     protected $escaper;
@@ -26,16 +26,14 @@ class ConfigProviderBoleto extends \AditumPayment\Magento2\Model\ConfigProvider 
         $this->method = $paymentHelper->getMethodInstance($this->methodCode);
         $this->scopeConfig = $scopeConfig;
         $this->customer = $customer;
-        parent::__construct($scopeConfig,$assetRepo,$storeManager);
+        parent::__construct($scopeConfig, $assetRepo, $storeManager);
     }
 
     public function getConfig()
     {
         return $this->method->isAvailable() ? [
             'payment' => [
-                'aditumboleto' => [
-                    'instruction' =>  $this->getInstruction(),
-                    'due' => $this->getDue(),
+                'aditumpix' => [
                     'fullname' => $this->getFullName(),
                     'taxvat' => $this->getTaxVat(),
                     'terms_url' => $this->getTermsUrl(),
@@ -47,20 +45,6 @@ class ConfigProviderBoleto extends \AditumPayment\Magento2\Model\ConfigProvider 
         ] : [];
     }
 
-    protected function getInstruction()
-    {
-        return nl2br($this->escaper->escapeHtml($this->scopeConfig->getValue("payment/aditum_boleto/instruction")));
-    }
-
-    protected function getDue()
-    {
-        $day = (int)$this->scopeConfig->getValue("payment/aditum_boleto/expiration_days");
-        if ($day > 1) {
-            return nl2br(sprintf(__('Expiration in %s days'), $day));
-        } else {
-            return nl2br(sprintf(__('Expiration in %s day'), $day));
-        }
-    }
     public function getFullName()
     {
         if ($this->customer->isLoggedIn()) {

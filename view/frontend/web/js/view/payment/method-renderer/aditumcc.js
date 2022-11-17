@@ -57,7 +57,7 @@ function (
                 selectCcDc: null
             },
 
-			getCode: function() {
+            getCode: function() {
                 return 'aditumcc';
             },
 
@@ -222,9 +222,9 @@ function (
             }),
 
 			getInstall: function () {
-				var valor = quote.totals().base_grand_total;
-				var type_interest 	= window.checkoutConfig.payment.aditumcc.type_interest;
-				var info_interest 	= window.checkoutConfig.payment.aditumcc.info_interest;
+                var valor = quote.totals().base_grand_total;
+                var type_interest 	= window.checkoutConfig.payment.aditumcc.type_interest;
+                var info_interest 	= window.checkoutConfig.payment.aditumcc.info_interest;
 				var min_installment = window.checkoutConfig.payment.aditumcc.min_installment;
 				var max_installment = window.checkoutConfig.payment.aditumcc.max_installment;
 
@@ -393,7 +393,7 @@ function (
 
 
                         var ccFlag = getCardFlagByNumber(aditumCcNumber.val());
-                        if(ccFlag == ''){
+                        if (ccFlag == '') {
                             document.getElementById('aditum_cc_number').setAttribute('style', 'width:300px;max-width:300px;background-image: none !important');
                             return true;
                         }

@@ -14,7 +14,6 @@ class OrderCreate implements ObserverInterface
     protected $logger;
     protected $_orderRepository;
 
-
     public function __construct(
         \Magento\Sales\Api\Data\OrderInterface $order,
         \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
@@ -22,8 +21,7 @@ class OrderCreate implements ObserverInterface
         \Psr\Log\LoggerInterface $logger,
         \Magento\Sales\Model\OrderRepository $orderRepository,
         \Magento\Framework\DB\TransactionFactory $transactionFactory
-    )
-    {
+    ) {
         $this->_order = $order;
         $this->_invoiceService = $invoiceService;
         $this->_orderRepository = $orderRepository;
@@ -36,41 +34,41 @@ class OrderCreate implements ObserverInterface
         $this->logger->info("Entrou no observer");
         $order = $observer->getEvent()->getOrder();
         //  Magento 2.2.* compatibility
-        if(!$order){
+        if (!$order) {
             $orderids = $observer->getEvent()->getOrderIds();
-            foreach($orderids as $orderid){
+            foreach ($orderids as $orderid) {
                 $order = $this->_order->load($orderid);
             }
         }
         $order = $this->_orderRepository->get($order->getId());
         $payment = $order->getPayment();
         $method = $payment->getMethod();
-        if($method=="aditumcc") {
+        if ($method=="aditumcc") {
             $this->logger->info("Observer - aditumcc");
-            if($payment->getAdditionalInformation('status')=='PreAuthorized'
-                &&$payment->getAdditionalInformation('callbackStatus') !== 'Authorized') {
+            if ($payment->getAdditionalInformation('status')=='PreAuthorized'
+                && $payment->getAdditionalInformation('callbackStatus') !== 'Authorized') {
                 $this->logger->info("Observer - set new");
                 $order->setState('new')->setStatus('pending'); /// corrigir //////////////////////////
                 $order->save();
             }
-            if($payment->getAdditionalInformation('status')=='Authorized'
-                &&$payment->getAdditionalInformation('callbackStatus')!=='NotAuthorized'){
-                if(!$order->hasInvoices()){
+            if ($payment->getAdditionalInformation('status')=='Authorized'
+                && $payment->getAdditionalInformation('callbackStatus')!=='NotAuthorized') {
+                if (!$order->hasInvoices()) {
                     $this->invoiceOrder($order);
                 }
             }
-            if($payment->getAdditionalInformation('status')=='NotAuthorized'
-                &&$payment->getAdditionalInformation('callbackStatus') !== 'NotAuthorized'){
-                if($order->getState()!='canceled'){
+            if ($payment->getAdditionalInformation('status')=='NotAuthorized'
+                && $payment->getAdditionalInformation('callbackStatus') !== 'NotAuthorized') {
+                if ($order->getState()!='canceled') {
                     $this->cancelOrder($order);
                 }
             }
-            $payment->setAdditionalInformation('order_created','1');
+            $payment->setAdditionalInformation('order_created', '1');
             $payment->save();
         }
-        if($method=="aditumboleto") {
+        if ($method=="aditumboleto") {
             $order->setState('new')->setStatus('pending');
-            $payment->setAdditionalInformation('order_created','1');
+            $payment->setAdditionalInformation('order_created', '1');
             $order->save();
         }
     }

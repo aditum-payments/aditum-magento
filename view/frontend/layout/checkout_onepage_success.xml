@@ -1,15 +1,26 @@
 <?xml version="1.0"?>
-<body>
-    <referenceContainer name="order.success.additional.info">
-        <block class="AditumPayment\Magento2\Block\BoletoSuccess"
-               name="aditum.order.success"
-               template="AditumPayment_Magento2::order/success/additional.phtml"
-               after="-">
-        </block>
-        <block class="AditumPayment\Magento2\Block\CcSuccess"
-               name="aditumcc.order.success"
-               template="AditumPayment_Magento2::order/success/cc-additional.phtml"
-               after="aditum.order.success">
-        </block>
-    </referenceContainer>
-</body>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" layout="1column" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <head>
+        <script src="AditumPayment_Magento2::js/antifraud.js"/>
+        <css src="AditumPayment_Magento2::css/aditum.css"/>
+    </head>
+    <body>
+        <referenceContainer name="order.success.additional.info">
+            <block class="AditumPayment\Magento2\Block\BoletoSuccess"
+                   name="aditum.order.success"
+                   template="AditumPayment_Magento2::order/success/additional.phtml"
+                   after="-">
+            </block>
+            <block class="AditumPayment\Magento2\Block\CcSuccess"
+                   name="aditumcc.order.success"
+                   template="AditumPayment_Magento2::order/success/cc-additional.phtml"
+                   after="aditum.order.success">
+            </block>
+            <block class="AditumPayment\Magento2\Block\PixSuccess"
+                   name="aditumpix.order.success"
+                   template="AditumPayment_Magento2::order/success/pix-additional.phtml"
+                   after="aditum.order.success">
+            </block>
+        </referenceContainer>
+    </body>
+</page>
