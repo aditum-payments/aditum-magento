@@ -3,7 +3,7 @@
     "description": "Magento 2 Aditum Payment",
     "require": {
         "php": ">=7.1.0",
-        "aditum-payments/aditum-api-sdk-php": "^2.13.0",
+        "aditum-payments/aditum-api-sdk-php": "^2.13",
         "magento/framework": ">=102.0"
     },
     "type": "magento2-module",
