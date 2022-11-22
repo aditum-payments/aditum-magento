@@ -2,6 +2,9 @@
 
 namespace AditumPayment\Magento2\Model\Method;
 
+
+use Exception;
+use JsonSchema\Constraints\UndefinedConstraint;
 use Magento\Directory\Helper\Data as DirectoryHelper;
 use Magento\Framework\Event\ManagerInterface;
 use Magento\Payment\Gateway\Command\CommandManagerInterface;
@@ -10,6 +13,7 @@ use Magento\Payment\Gateway\Config\ValueHandlerPoolInterface;
 use Magento\Payment\Gateway\Data\PaymentDataObjectFactory;
 use Magento\Payment\Gateway\Validator\ValidatorPoolInterface;
 use Psr\Log\LoggerInterface;
+use Seld\JsonLint\Undefined;
 
 class Pix extends \Magento\Payment\Model\Method\AbstractMethod
 {
@@ -172,24 +176,27 @@ class Pix extends \Magento\Payment\Model\Method\AbstractMethod
         $this->logger->info('Inside Order');
         $this->logger->info(json_encode($payment->getAdditionalInformation(), true));
         $order = $payment->getOrder();
-        if (!$result = $this->api->createOrderPix($order, $payment)) {
-            $message = 'Houve um erro processando seu pedido. Por favor entre em contato conosco.';
-            $this->messageManager
-                ->addError($message);
-            throw new \Magento\Framework\Validator\Exception(__($message));
-        }
+        $result = $this->api->createOrderPix($order, $payment);
 
-        if (!isset($result['status']) || $result['status'] !== "PreAuthorized"
+        if (!$result || !isset($result['status']) || $result['status'] !== "PreAuthorized"
             && $result['status'] !== "Authorized") {
             $message = 'Houve um erro processando seu pedido. Por favor entre em contato conosco.';
             $this->messageManager->addError($message);
             throw new \Magento\Framework\Validator\Exception(__($message));
         }
+
         $this->updateOrderRaw($order->getIncrementId());
         $order->setExtOrderId(str_replace("-", "", $result['charge']->id));
         $order->addStatusHistoryComment('ID Aditum: '.$result['charge']->id);
         $payment->setAdditionalInformation('uuid', $result['charge']->id);
-        $payment->setAdditionalInformation('aditumNumber', $result['charge']->transactions[0]->aditumNumber);
+
+        if(property_exists($result['charge']->transactions[0], "aditumNumber"))
+        {
+            $aditumNumber = $result['charge']->transactions[0]->aditumNumber;
+            $payment->setAdditionalInformation('aditumNumber', $aditumNumber);
+        }
+        
+
         $payment->setAdditionalInformation('qrCode', $result['charge']->transactions[0]->qrCode);
         $this->storeQrCode($result['charge']->transactions[0]->qrCodeBase64, $order->getIncrementId());
         $payment->setAdditionalInformation('bankIssuerId', $result['charge']->transactions[0]->bankIssuerId);
@@ -197,6 +204,7 @@ class Pix extends \Magento\Payment\Model\Method\AbstractMethod
         if ($result['status'] == "Authorized") {
             $this->invoiceOrder($order);
         }
+        
         return $this;
     }
 
