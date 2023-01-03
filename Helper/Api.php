@@ -2,6 +2,8 @@
 
 namespace AditumPayment\Magento2\Helper;
 
+use AditumPayments\ApiSDK\Enum\OperationSource;
+
 class Api
 {
     public $enableExternalExtension = true;
@@ -73,6 +75,7 @@ class Api
 
         $gateway = new \AditumPayments\ApiSDK\Gateway;
         $boleto = new \AditumPayments\ApiSDK\Domains\Boleto;
+        $boleto->setOperationSource(OperationSource::Magento);
 
         $quote = $this->checkoutSession->getQuote();
         $billingAddress = $quote->getBillingAddress();
@@ -170,10 +173,8 @@ class Api
 
         $gateway = new \AditumPayments\ApiSDK\Gateway;
         $authorization = new \AditumPayments\ApiSDK\Domains\Authorization;
-//        if($preAuth){
-//            unset($authorization);
-//            $authorization = new \AditumPayments\ApiSDK\Domains\PreAuthorization;
-//        }
+        $authorization->setOperationSource(OperationSource::Magento);
+
         $quote = $this->checkoutSession->getQuote();
         $billingAddress = $quote->getBillingAddress();
 
@@ -253,7 +254,7 @@ class Api
 
         $result = $gateway->charge($authorization);
 
-        $this->logger->info("External Apitum API Return: ".json_encode($result));
+        $this->logger->info("External Aditum API Return: ".json_encode($result));
         return $result;
     }
     public function getApiUrl()
@@ -367,6 +368,8 @@ class Api
         \AditumPayments\ApiSDK\Configuration::login();
         $gateway = new \AditumPayments\ApiSDK\Gateway;
         $pix = new \AditumPayments\ApiSDK\Domains\Pix;
+
+        $pix->setOperationSource(OperationSource::Magento);
 
         $pix->setMerchantChargeId("");
 
