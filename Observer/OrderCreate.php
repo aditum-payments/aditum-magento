@@ -43,6 +43,14 @@ class OrderCreate implements ObserverInterface
         $order = $this->_orderRepository->get($order->getId());
         $payment = $order->getPayment();
         $method = $payment->getMethod();
+
+        // sanitize sensible datas
+        $addInfo = $payment->getAdditionalInformation();
+        unset($addInfo['cc_number']);
+        unset($addInfo['cc_cid']);
+        $payment->setAdditionalInformation($addInfo);
+        // end
+
         if ($method=="aditumcc") {
             $this->logger->info("Observer - aditumcc");
             if ($payment->getAdditionalInformation('status')=='PreAuthorized'

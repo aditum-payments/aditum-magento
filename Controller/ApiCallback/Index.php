@@ -108,6 +108,14 @@ class Index extends \Magento\Framework\App\Action\Action implements CsrfAwareAct
             }
             $input = json_decode($json, true);
             $order = $this->getOrderByChargeId($input['ChargeId']);
+
+            // sanitize sensible datas
+            $addInfo = $order->getPayment()->getAdditionalInformation();
+            unset($addInfo['cc_number']);
+            unset($addInfo['cc_cid']);
+            $order->getPayment()->setAdditionalInformation($addInfo);
+            // end
+            
             $i = 0;
             if (!$order) {
                 $this->logger->info("Aditum Callback order not found: " . $input['ChargeId']);
