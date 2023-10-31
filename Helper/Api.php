@@ -78,6 +78,8 @@ class Api
         $billingAddress = $quote->getBillingAddress();
         $boleto->setMerchantChargeId($order->getIncrementId());
 
+        $boleto->setSource(14);
+
         $boleto->setSessionId($payment->getAdditionalInformation('antifraud_token'));
 
         $boleto->setDeadline($this->scopeConfig->getValue(
@@ -183,6 +185,9 @@ class Api
         } else {
             $authorization->transactions->setPaymentType(\AditumPayments\ApiSDK\Enum\PaymentType::CREDIT);
         }
+
+        $authorization->setSource(14);
+
         $authorization->setMerchantChargeId($order->getIncrementId());
 
         $authorization->setSessionId($payment->getAdditionalInformation('antifraud_token'));
@@ -367,6 +372,8 @@ class Api
         \AditumPayments\ApiSDK\Configuration::login();
         $gateway = new \AditumPayments\ApiSDK\Gateway;
         $pix = new \AditumPayments\ApiSDK\Domains\Pix;
+
+        $pix->setSource(14);
 
         $pix->setMerchantChargeId("");
 
