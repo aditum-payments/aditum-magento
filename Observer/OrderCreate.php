@@ -1,98 +1,179 @@
 <?php
 
+declare(strict_types=1);
+
 namespace AditumPayment\Magento2\Observer;
 
-use GumNet\AME\Helper\SensediaAPI;
+use AditumPayment\Magento2\Api\Data\AditumConfigInterface;
+use AditumPayment\Magento2\Api\Data\PaymentAdditionalInformationInterface as AdditionalInfo;
+use AditumPayment\Magento2\Model\Method\Boleto;
+use AditumPayment\Magento2\Model\Method\CreditCard;
+use AditumPayment\Magento2\Model\Method\Pix;
+use Magento\Framework\App\Config\ScopeConfigInterface;
+use Magento\Framework\DB\TransactionFactory;
+use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
+use Magento\Framework\Exception\InputException;
+use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Model\Order;
+use Magento\Sales\Model\Order\Invoice;
+use Magento\Sales\Api\OrderRepositoryInterface;
+use Magento\Sales\Model\Service\InvoiceService;
+use Magento\Store\Model\ScopeInterface;
+use Psr\Log\LoggerInterface;
 
 class OrderCreate implements ObserverInterface
 {
-    protected $_order;
-    protected $_invoiceService;
-    protected $_transactionFactory;
-    protected $logger;
-    protected $_orderRepository;
+    /**
+     * @var OrderInterface
+     */
+    protected OrderInterface $order;
 
+    /**
+     * @var ScopeConfigInterface
+     */
+    protected ScopeConfigInterface $scopeConfig;
+
+    /**
+     * @var InvoiceService
+     */
+    protected InvoiceService $invoiceService;
+
+    /**
+     * @var LoggerInterface
+     */
+    protected LoggerInterface $logger;
+
+    /**
+     * @var OrderRepositoryInterface
+     */
+    protected OrderRepositoryInterface $orderRepository;
+
+    /**
+     * @var TransactionFactory
+     */
+    protected TransactionFactory $transactionFactory;
+
+    /**
+     * @param OrderInterface $order
+     * @param ScopeConfigInterface $scopeConfig
+     * @param InvoiceService $invoiceService
+     * @param LoggerInterface $logger
+     * @param OrderRepositoryInterface $orderRepository
+     * @param TransactionFactory $transactionFactory
+     */
     public function __construct(
-        \Magento\Sales\Api\Data\OrderInterface $order,
-        \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
-        \Magento\Sales\Model\Service\InvoiceService $invoiceService,
-        \Psr\Log\LoggerInterface $logger,
-        \Magento\Sales\Model\OrderRepository $orderRepository,
-        \Magento\Framework\DB\TransactionFactory $transactionFactory
+        OrderInterface $order,
+        ScopeConfigInterface $scopeConfig,
+        InvoiceService $invoiceService,
+        LoggerInterface $logger,
+        OrderRepositoryInterface $orderRepository,
+        TransactionFactory $transactionFactory
     ) {
-        $this->_order = $order;
-        $this->_invoiceService = $invoiceService;
-        $this->_orderRepository = $orderRepository;
-        $this->_transactionFactory = $transactionFactory;
+        $this->order = $order;
+        $this->scopeConfig = $scopeConfig;
+        $this->invoiceService = $invoiceService;
         $this->logger = $logger;
+        $this->orderRepository = $orderRepository;
+        $this->transactionFactory = $transactionFactory;
     }
 
-    public function execute(\Magento\Framework\Event\Observer $observer)
+    /**
+     * Main observer execution
+     *
+     * @param Observer $observer
+     * @return void
+     * @throws LocalizedException
+     */
+    public function execute(Observer $observer): void
     {
-        $this->logger->info("Entrou no observer");
+        $this->logger->info('Aditum starting create order observer...');
+
+        /** @var Order $order */
         $order = $observer->getEvent()->getOrder();
         //  Magento 2.2.* compatibility
         if (!$order) {
             $orderids = $observer->getEvent()->getOrderIds();
             foreach ($orderids as $orderid) {
-                $order = $this->_order->load($orderid);
+                $order = $this->order->load($orderid);
             }
         }
-        $order = $this->_orderRepository->get($order->getId());
+        $order = $this->orderRepository->get($order->getId());
         $payment = $order->getPayment();
         $method = $payment->getMethod();
 
-        // sanitize sensible datas
+        // sanitize sensible data
         $addInfo = $payment->getAdditionalInformation();
-        unset($addInfo['cc_number']);
-        unset($addInfo['cc_cid']);
+        unset($addInfo[AdditionalInfo::CC_NUMBER]);
+        unset($addInfo[AdditionalInfo::CC_CID]);
         $payment->setAdditionalInformation($addInfo);
         // end
 
-        if ($method=="aditumcc") {
-            $this->logger->info("Observer - aditumcc");
-            if ($payment->getAdditionalInformation('status')=='PreAuthorized'
-                && $payment->getAdditionalInformation('callbackStatus') !== 'Authorized') {
-                $this->logger->info("Observer - set new");
-                $order->setState('new')->setStatus('pending'); /// corrigir //////////////////////////
+        $statusNew = $this->scopeConfig->getValue(AditumConfigInterface::ORDER_STATUS_NEW, ScopeInterface::SCOPE_STORE);
+
+        if ($method === CreditCard::CODE) {
+            $this->logger->info('Observer - ' . $method);
+            if ($payment->getAdditionalInformation(AdditionalInfo::STATUS) === AdditionalInfo::STATUS_PRE_AUTHORIZED
+                && $payment->getAdditionalInformation(AdditionalInfo::CALLBACK_STATUS)
+                !== AdditionalInfo::STATUS_AUTHORIZED) {
+                $this->logger->info('Aditum observer - set new');
+                $order->setState(Order::STATE_NEW)->setStatus($statusNew);
                 $order->save();
             }
-            if ($payment->getAdditionalInformation('status')=='Authorized'
-                && $payment->getAdditionalInformation('callbackStatus')!=='NotAuthorized') {
+            if ($payment->getAdditionalInformation(AdditionalInfo::STATUS) === AdditionalInfo::STATUS_AUTHORIZED
+                && $payment->getAdditionalInformation(AdditionalInfo::CALLBACK_STATUS)
+                !== AdditionalInfo::STATUS_NOT_AUTHORIZED) {
                 if (!$order->hasInvoices()) {
                     $this->invoiceOrder($order);
                 }
             }
-            if ($payment->getAdditionalInformation('status')=='NotAuthorized'
-                && $payment->getAdditionalInformation('callbackStatus') !== 'NotAuthorized') {
-                if ($order->getState()!='canceled') {
+            if ($payment->getAdditionalInformation(AdditionalInfo::STATUS) === AdditionalInfo::STATUS_NOT_AUTHORIZED
+                && $payment->getAdditionalInformation(AdditionalInfo::CALLBACK_STATUS)
+                === AdditionalInfo::STATUS_NOT_AUTHORIZED) {
+                if ($order->getState() !== Order::STATE_CANCELED) {
                     $this->cancelOrder($order);
                 }
             }
-            $payment->setAdditionalInformation('order_created', '1');
+            $payment->setAdditionalInformation(AdditionalInfo::ORDER_CREATED, '1');
             $payment->save();
-        }
-        if ($method=="aditumboleto") {
-            $order->setState('new')->setStatus('pending');
-            $payment->setAdditionalInformation('order_created', '1');
+        } elseif ($method === Boleto::CODE || $method === Pix::CODE) {
+            $order->setState(Order::STATE_NEW)->setStatus($statusNew);
+            $payment->setAdditionalInformation(AdditionalInfo::ORDER_CREATED, '1');
             $order->save();
         }
     }
-    public function invoiceOrder($order)
+
+    /**
+     * Invoice order
+     *
+     * @param $order
+     * @return void
+     * @throws LocalizedException
+     */
+    public function invoiceOrder($order): void
     {
-        $invoice = $this->_invoiceService->prepareInvoice($order);
-        $invoice->setRequestedCaptureCase(\Magento\Sales\Model\Order\Invoice::CAPTURE_ONLINE);
+        $invoice = $this->invoiceService->prepareInvoice($order);
+        $invoice->setRequestedCaptureCase(Invoice::CAPTURE_ONLINE);
         $invoice->register();
-        $transaction = $this->_transactionFactory->create()
+        $transaction = $this->transactionFactory->create()
             ->addObject($invoice)
             ->addObject($invoice->getOrder());
         $transaction->save();
-        $order->setState('processing')->setStatus('processing');// corrigir
+        /** @todo implement status processing config */
+        $order->setState(Order::STATE_PROCESSING)->setStatus('processing');
         $order->save();
     }
-    public function cancelOrder($order)
+
+    /**
+     * Cancel order
+     *
+     * @param OrderInterface $order
+     * @return void
+     * @throws \Exception
+     */
+    public function cancelOrder(OrderInterface $order): void
     {
         $order->cancel()->save();
     }

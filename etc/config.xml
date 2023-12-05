@@ -2,6 +2,9 @@
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
     <default>
         <payment>
+            <aditum>
+                <new_order_status>pending</new_order_status>
+            </aditum>
             <aditumcc>
                 <active>1</active>
                 <payment_action>order</payment_action>
