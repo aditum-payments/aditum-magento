@@ -2,6 +2,11 @@
 
 namespace AditumPayment\Magento2\Helper;
 
+
+use Magento\Framework\Pricing\PriceCurrencyInterface;
+use Magento\Quote\Api\CartRepositoryInterface;
+use Magento\Sales\Model\Order;
+
 class Api
 {
     public $enableExternalExtension = true;
@@ -12,17 +17,31 @@ class Api
     protected $_storeManager;
     protected $checkoutSession;
 
+    /**
+     * @var PriceCurrencyInterface
+     */
+    protected PriceCurrencyInterface $priceCurrency;
+
+    /**
+     * @var CartRepositoryInterface
+     */
+    protected CartRepositoryInterface $quoteRepository;
+
     public function __construct(
         \Magento\Framework\App\Helper\Context $context,
         \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
         \Psr\Log\LoggerInterface $logger,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
-        \Magento\Checkout\Model\Session $checkoutSession
+        \Magento\Checkout\Model\Session $checkoutSession,
+        PriceCurrencyInterface $priceCurrency,
+        CartRepositoryInterface $quoteRepository
     ) {
         $this->scopeConfig = $scopeConfig;
         $this->logger = $logger;
         $this->_storeManager = $storeManager;
         $this->checkoutSession = $checkoutSession;
+        $this->priceCurrency = $priceCurrency;
+        $this->quoteRepository = $quoteRepository;
     }
 
     /**
@@ -56,13 +75,13 @@ class Api
     }
 
     /**
-     * @param \Magento\Sales\Model\Order\Interceptor $order
+     * @param Order $order
      * @param $payment
      * @return array|null
      * @throws \Magento\Framework\Exception\LocalizedException
      * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
-    public function extCreateOrderBoleto(\Magento\Sales\Model\Order\Interceptor $order, $payment)
+    public function extCreateOrderBoleto(Order $order, $payment)
     {
         \AditumPayments\ApiSDK\Configuration::initialize();
         \AditumPayments\ApiSDK\Configuration::setUrl($this->getApiUrl());
@@ -120,12 +139,17 @@ class Api
         $boleto->customer->phone->setType(\AditumPayments\ApiSDK\Enum\PhoneType::MOBILE);
 
         foreach ($order->getItems() as $item) {
-            $boleto->products->add($item->getName(), $item->getSku(), $item->getPrice() * 100, $item->getQtyOrdered());
+            $boleto->products->add(
+                $item->getName(),
+                $item->getSku(),
+                $this->getCentsValue($item->getPrice() - $item->getDiscountAmount()),
+                $item->getQtyOrdered()
+            );
         }
 
 // Transactions
-        $grandTotal = $order->getGrandTotal() * 100;
-        $grandTotal = (int)$grandTotal;
+        $quote = $this->quoteRepository->get($order->getQuoteId());
+        $grandTotal = $this->getCentsValue($quote->getGrandTotal());
         $boleto->transactions->setAmount($grandTotal);
         $boleto->transactions->setInstructions("Senhor caixa não receber após o vencimento.");
 
@@ -154,12 +178,21 @@ class Api
         $this->logger->info("External Apitum API Return: ".json_encode($result));
         return $result;
     }
-    public function createOrderCc(\Magento\Sales\Model\Order\Interceptor $order, $info, $payment, $preAuth = 0)
+
+    /**
+     * @param float $originalValue
+     * @return int
+     */
+    public function getCentsValue(float $originalValue): int
+    {
+        return (int)number_format($originalValue, 2, '');
+    }
+    public function createOrderCc(Order $order, $info, $payment, $preAuth = 0)
     {
         return $this->extCreateOrderCc($order, $info, $payment, $preAuth);
     }
 
-    public function extCreateOrderCc(\Magento\Sales\Model\Order\Interceptor $order, $info, $payment, $preAuth = 0)
+    public function extCreateOrderCc(Order $order, $info, $payment, $preAuth = 0)
     {
         \AditumPayments\ApiSDK\Configuration::initialize();
         \AditumPayments\ApiSDK\Configuration::setUrl($this->getApiUrl());
@@ -237,7 +270,12 @@ class Api
         $authorization->transactions->card->billingAddress->setCountry("BR");
         $authorization->transactions->card->billingAddress->setZipcode($billingAddress->getPostcode());
         foreach ($order->getItems() as $item) {
-            $authorization->products->add($item->getName(), $item->getSku(), $item->getPrice() * 100, $item->getQtyOrdered());
+            $authorization->products->add(
+                $item->getName(),
+                $item->getSku(),
+                $this->getCentsValue($item->getPrice() - $item->getDiscountAmount()),
+                $item->getQtyOrdered()
+            );
         }
 
         if ($payment->getAdditionalInformation('cc_dc_choice')!="dc") {
@@ -247,8 +285,8 @@ class Api
                 $authorization->transactions->setInstallmentType(\AditumPayments\ApiSDK\Enum\InstallmentType::MERCHANT);
             }
         }
-        $grandTotal = $order->getGrandTotal() * 100;
-        $grandTotal = (int)$grandTotal;
+        $quote = $this->quoteRepository->get($order->getQuoteId());
+        $grandTotal = $this->getCentsValue($quote->getGrandTotal());
         $authorization->transactions->setAmount($grandTotal);
 
         $result = $gateway->charge($authorization);
@@ -412,12 +450,17 @@ class Api
         $pix->customer->phone->setType(\AditumPayments\ApiSDK\Enum\PhoneType::MOBILE);
 
         foreach ($order->getItems() as $item) {
-            $pix->products->add($item->getName(), $item->getSku(), $item->getPrice() * 100, $item->getQtyOrdered());
+            $pix->products->add(
+                $item->getName(),
+                $item->getSku(),
+                $this->getCentsValue($item->getPrice() - $item->getDiscountAmount()),
+                $item->getQtyOrdered()
+            );
         }
 // Transactions
-        $grandTotal = $order->getGrandTotal() * 100;
-
-        $pix->transactions->setAmount((int)$grandTotal);
+        $quote = $this->quoteRepository->get($order->getQuoteId());
+        $grandTotal = $this->getCentsValue($quote->getGrandTotal());
+        $pix->transactions->setAmount($grandTotal);
         $result = $gateway->charge($pix);
         $this->logger->info(json_encode($result));
         return $result;
