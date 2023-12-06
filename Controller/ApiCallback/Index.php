@@ -2,75 +2,84 @@
 
 namespace AditumPayment\Magento2\Controller\ApiCallback;
 
+use Magento\Framework\App\Action\Context;
+use Magento\Framework\App\Config\ScopeConfigInterface;
 use \Magento\Framework\App\CsrfAwareActionInterface;
+use Magento\Framework\App\Request\Http;
 use \Magento\Framework\App\RequestInterface;
 use \Magento\Framework\App\Request\InvalidRequestException;
+use Magento\Framework\Controller\ResultFactory;
+use Magento\Framework\DB\TransactionFactory;
+use Magento\Sales\Model\OrderRepository;
+use Magento\Sales\Model\ResourceModel\Order\CollectionFactory;
+use Magento\Sales\Model\Service\InvoiceService;
+use Psr\Log\LoggerInterface;
 
 class Index extends \Magento\Framework\App\Action\Action implements CsrfAwareActionInterface
 {
     /**
-     * @var \Magento\Framework\App\Request\Http
+     * @var Http
      */
     protected $_request;
 
     /**
-     * @var \Magento\Sales\Model\OrderRepository
+     * @var OrderRepository
      */
     protected $_orderRepository;
 
     /**
-     * @var \Magento\Sales\Model\Service\InvoiceService
+     * @var InvoiceService
      */
     protected $_invoiceService;
 
     /**
-     * @var \Magento\Framework\DB\TransactionFactory
+     * @var TransactionFactory
      */
     protected $_transactionFactory;
 
     /**
-     * @var \Psr\Log\LoggerInterface
+     * @var LoggerInterface
      */
     protected $logger;
 
     /**
-     * @var \Magento\Framework\Controller\ResultFactory
+     * @var ResultFactory
      */
     protected $result;
 
     /**
-     * @var \Magento\Sales\Model\ResourceModel\Order\CollectionFactory
+     * @var CollectionFactory
      */
     protected $orderCollectionFactory;
 
     /**
-     * @var \Magento\Framework\App\Config\ScopeConfigInterface
+     * @var ScopeConfigInterface
      */
     protected $scopeConfig;
 
     /**
-     * @param \Magento\Framework\App\Action\Context $context
-     * @param \Magento\Framework\App\Request\Http $request
-     * @param \Magento\Sales\Model\OrderRepository $orderRepository
-     * @param \Magento\Sales\Model\Service\InvoiceService $invoiceService
-     * @param \Magento\Framework\DB\TransactionFactory $transactionFactory
-     * @param \Psr\Log\LoggerInterface $logger
-     * @param \Magento\Framework\Controller\ResultFactory $result
-     * @param \Magento\Sales\Model\ResourceModel\Order\CollectionFactory $orderCollectionFactory
-     * @param \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
+     * @param Context $context
+     * @param Http $request
+     * @param OrderRepository $orderRepository
+     * @param InvoiceService $invoiceService
+     * @param TransactionFactory $transactionFactory
+     * @param LoggerInterface $logger
+     * @param ResultFactory $result
+     * @param CollectionFactory $orderCollectionFactory
+     * @param ScopeConfigInterface $scopeConfig
      * @param array $data
      */
     public function __construct(
-        \Magento\Framework\App\Action\Context                      $context,
-        \Magento\Framework\App\Request\Http                        $request,
-        \Magento\Sales\Model\OrderRepository                       $orderRepository,
-        \Magento\Sales\Model\Service\InvoiceService                $invoiceService,
-        \Magento\Framework\DB\TransactionFactory                   $transactionFactory,
-        \Psr\Log\LoggerInterface                                   $logger,
-        \Magento\Framework\Controller\ResultFactory                $result,
-        \Magento\Sales\Model\ResourceModel\Order\CollectionFactory $orderCollectionFactory,
-        \Magento\Framework\App\Config\ScopeConfigInterface         $scopeConfig,
-        array                                                      $data = []
+        Context $context,
+        Http $request,
+        OrderRepository $orderRepository,
+        InvoiceService $invoiceService,
+        TransactionFactory $transactionFactory,
+        LoggerInterface $logger,
+        ResultFactory $result,
+        CollectionFactory $orderCollectionFactory,
+        ScopeConfigInterface $scopeConfig,
+        array $data = []
     ) {
         $this->_request = $request;
         $this->_orderRepository = $orderRepository;
@@ -115,14 +124,14 @@ class Index extends \Magento\Framework\App\Action\Action implements CsrfAwareAct
             unset($addInfo['cc_cid']);
             $order->getPayment()->setAdditionalInformation($addInfo);
             // end
-            
+
             $i = 0;
             if (!$order) {
                 $this->logger->info("Aditum Callback order not found: " . $input['ChargeId']);
                 return $this->orderNotFound();
             }
-            while (!$order->getPayment()->getAdditionalInformation('order_created')) {
-
+            $orderId = $order->getEntityId();
+            while (!$this->_orderRepository->get($orderId)->getPayment()->getAdditionalInformation('order_created')) {
                 $this->logger->info("Aditum Callback waiting for order creation...");
                 sleep(1);
                 $i++;
@@ -276,7 +285,7 @@ class Index extends \Magento\Framework\App\Action\Action implements CsrfAwareAct
      */
     public function resultRaw($txt = "")
     {
-        $resultEmpty = $this->result->create(\Magento\Framework\Controller\ResultFactory::TYPE_RAW);
+        $resultEmpty = $this->result->create(ResultFactory::TYPE_RAW);
         $resultEmpty->setContents("");
         return $resultEmpty;
     }
