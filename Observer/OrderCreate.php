@@ -142,6 +142,7 @@ class OrderCreate implements ObserverInterface
             $order->setState(Order::STATE_NEW)->setStatus($statusNew);
             $payment->setAdditionalInformation(AdditionalInfo::ORDER_CREATED, '1');
             $order->save();
+            $this->logger->info('Aditum observer - order_created status set.');
         }
     }
 
