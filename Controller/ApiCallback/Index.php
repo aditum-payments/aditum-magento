@@ -10,8 +10,11 @@ use \Magento\Framework\App\RequestInterface;
 use \Magento\Framework\App\Request\InvalidRequestException;
 use Magento\Framework\Controller\ResultFactory;
 use Magento\Framework\DB\TransactionFactory;
+use Magento\Sales\Api\Data\OrderPaymentInterface;
 use Magento\Sales\Model\OrderRepository;
 use Magento\Sales\Model\ResourceModel\Order\CollectionFactory;
+use Magento\Sales\Model\ResourceModel\Order\Payment\Collection as PaymentCollection;
+use Magento\Sales\Model\ResourceModel\Order\Payment\CollectionFactory as PaymentCollectionFactory;
 use Magento\Sales\Model\Service\InvoiceService;
 use Psr\Log\LoggerInterface;
 
@@ -57,6 +60,8 @@ class Index extends \Magento\Framework\App\Action\Action implements CsrfAwareAct
      */
     protected $scopeConfig;
 
+    protected $paymentCollectionFactory;
+
     /**
      * @param Context $context
      * @param Http $request
@@ -79,6 +84,7 @@ class Index extends \Magento\Framework\App\Action\Action implements CsrfAwareAct
         ResultFactory $result,
         CollectionFactory $orderCollectionFactory,
         ScopeConfigInterface $scopeConfig,
+        PaymentCollectionFactory $paymentCollectionFactory,
         array $data = []
     ) {
         $this->_request = $request;
@@ -89,6 +95,7 @@ class Index extends \Magento\Framework\App\Action\Action implements CsrfAwareAct
         $this->result = $result;
         $this->orderCollectionFactory = $orderCollectionFactory;
         $this->scopeConfig = $scopeConfig;
+        $this->paymentCollectionFactory = $paymentCollectionFactory;
 
         parent::__construct($context);
     }
@@ -130,8 +137,8 @@ class Index extends \Magento\Framework\App\Action\Action implements CsrfAwareAct
                 $this->logger->info("Aditum Callback order not found: " . $input['ChargeId']);
                 return $this->orderNotFound();
             }
-            $orderId = $order->getEntityId();
-            while (!$this->_orderRepository->get($orderId)->getPayment()->getAdditionalInformation('order_created')) {
+
+            while (!$this->getPayment($order->getEntityId())->getAdditionalInformation('order_created')) {
                 $this->logger->info("Aditum Callback waiting for order creation...");
                 sleep(1);
                 $i++;
@@ -184,6 +191,20 @@ class Index extends \Magento\Framework\App\Action\Action implements CsrfAwareAct
 
         $this->logger->log("INFO", "Aditum Callback ended.");
         return $this->resultRaw();
+    }
+
+    /**
+     * Get payment by order id
+     *
+     * @param int $orderId
+     * @return OrderPaymentInterface
+     */
+    public function getPayment(int $orderId): OrderPaymentInterface
+    {
+        /** @var PaymentCollection $paymentCollection */
+        $paymentCollection = $this->paymentCollectionFactory->create();
+        $paymentCollection->addFieldToFilter('parent_id', ['eq' => $orderId]);
+        return $paymentCollection->getFirstItem();
     }
 
     /**
