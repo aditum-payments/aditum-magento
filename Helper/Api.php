@@ -185,7 +185,7 @@ class Api
      */
     public function getCentsValue(float $originalValue): int
     {
-        return (int)number_format($originalValue, 2, '');
+        return (int)number_format($originalValue, 2, '', '');
     }
     public function createOrderCc(Order $order, $info, $payment, $preAuth = 0)
     {
