@@ -2,6 +2,7 @@
 
 namespace AditumPayment\Magento2\Model\Method;
 
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Payment\Observer\AbstractDataAssignObserver;
 
 class CreditCard extends \Magento\Payment\Model\Method\Cc
@@ -88,8 +89,11 @@ class CreditCard extends \Magento\Payment\Model\Method\Cc
             if (isset($aditumreturn['httpStatus'])&&($aditumreturn['httpStatus'] < 200
                 || $aditumreturn['httpStatus'] >= 300)){
                 $error = 'API communication error .'.$aditumreturn['httpStatus'];
-                throw new \Magento\Framework\Webapi\Exception($error, 0,
-                    __(\Magento\Framework\Webapi\Exception::HTTP_INTERNAL_ERROR));
+                throw new \Magento\Framework\Webapi\Exception(
+                    __($error),
+                    0,
+                    \Magento\Framework\Webapi\Exception::HTTP_INTERNAL_ERROR
+                );
             }
             if (!isset($aditumreturn['status'])||isset($aditumreturn['status'])
                 &&$aditumreturn['status'] != \AditumPayments\ApiSDK\Enum\ChargeStatus::PRE_AUTHORIZED
@@ -100,9 +104,10 @@ class CreditCard extends \Magento\Payment\Model\Method\Cc
                 else{
                     $order->addStatusHistoryComment("Retorno API status invalido: ".$aditumreturn['status']);
                 }
-                $payment->setAdditionalInformation('error',$this->api->getError($aditumreturn));
+                $payment->setAdditionalInformation('error', $this->api->getError($aditumreturn));
+                throw new LocalizedException(__($aditumreturn['status']));
             }
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $txtError = 'Houve um erro processando seu pedido. Por favor entre em contato conosco.';
             throw new \Magento\Framework\Validator\Exception(__($txtError));
         }
