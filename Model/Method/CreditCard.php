@@ -3,6 +3,7 @@
 namespace AditumPayment\Magento2\Model\Method;
 
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Message\ManagerInterface;
 use Magento\Payment\Observer\AbstractDataAssignObserver;
 
 class CreditCard extends \Magento\Payment\Model\Method\Cc
@@ -47,6 +48,7 @@ class CreditCard extends \Magento\Payment\Model\Method\Cc
         \Magento\Sales\Model\Service\InvoiceService $invoiceService,
         \Magento\Framework\DB\TransactionFactory $transactionFactory,
         \Magento\Framework\App\ResourceConnection $resourceConnection,
+        ManagerInterface $messageManager,
         \Magento\Framework\Model\ResourceModel\AbstractResource $resource = null,
         \Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null,
         array $data = []
@@ -57,6 +59,7 @@ class CreditCard extends \Magento\Payment\Model\Method\Cc
         $this->_scopeConfig = $scopeConfig;
         $this->resourceConnection = $resourceConnection;
         $this->connection = $resourceConnection->getConnection();
+        $this->messageManager = $messageManager;
         parent::__construct(
             $context,
             $registry,
@@ -109,6 +112,7 @@ class CreditCard extends \Magento\Payment\Model\Method\Cc
             }
         } catch (\Exception $e) {
             $txtError = 'Houve um erro processando seu pedido. Por favor entre em contato conosco.';
+            $this->messageManager->addErrorMessage(__($txtError));
             throw new \Magento\Framework\Validator\Exception(__($txtError));
         }
         if($aditumreturn) {
