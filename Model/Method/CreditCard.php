@@ -111,7 +111,7 @@ class CreditCard extends \Magento\Payment\Model\Method\Cc
                 throw new LocalizedException(__($aditumreturn['status']));
             }
         } catch (\Exception $e) {
-            $txtError = 'Houve um erro processando seu pedido. Por favor entre em contato conosco.';
+            $txtError = 'Transação Não Autorizada. Por favor, revise seus dados de pagamento e tente novamente. Se o erro persistir, entre em contato com a loja.';
             $this->messageManager->addErrorMessage(__($txtError));
             throw new \Magento\Framework\Validator\Exception(__($txtError));
         }
