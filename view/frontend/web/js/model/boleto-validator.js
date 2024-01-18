@@ -15,13 +15,6 @@ define(
                     messageList.addErrorMessage({ message: $t('CPF ou CNPJ inválido') });
                     return isValid;
                 }
-                if(!$('#aditumboleto_terms').is(':checked')){
-                    messageList.addErrorMessage({ message: $t('Você precisa aceitar os termos e condições') });
-                    isValid = false;
-                }
-                else{
-                    isValid = true;
-                }
                 return isValid;
                 function verifica_cpf_cnpj ( valor ) {
                     valor = valor.toString();

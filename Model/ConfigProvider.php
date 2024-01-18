@@ -30,7 +30,7 @@ class ConfigProvider
     }
     public function getTermsTxt()
     {
-        return "Aceito os termos e condições";
+        return "Ao proceder com essa compra eu aceito os ";
     }
     public function getAntiFraudType()
     {

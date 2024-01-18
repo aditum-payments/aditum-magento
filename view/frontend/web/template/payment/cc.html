@@ -197,13 +197,6 @@
                     <label data-bind="attr: {for: getCode() + '_terms'}" class="label">
                     </label>
                     <div class="control">
-                        <input type="checkbox" name="aditumcc_terms" class="checkbox" value=""
-                               data-bind="attr: {
-													autocomplete: off,
-													id: getCode() + '_terms',
-													'data-container': getCode() + '-terms',
-													'data-validate': JSON.stringify({'validate-terms':'#' + getCode() + '_terms'})
-												}"/>
                         <span data-bind="html: getTermsHtml()"></span>
                     </div>
                 </div>

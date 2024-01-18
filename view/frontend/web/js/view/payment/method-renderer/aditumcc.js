@@ -146,8 +146,8 @@ function (
 	            return window.checkoutConfig.payment.aditumcc.image_cvv;
 	        },
             getTermsHtml: function () {
-                return '<a target="_blank" href="' + this.getTermsUrl() +
-                    '">' + this.getTermsTxt() + '</a>';
+                return '<p> ' + this.getTermsTxt() + '<a target="_blank" href="' + this.getTermsUrl() +
+                    '">termos e condições</a></p>';
             },
 
             getTermsUrl: function () {

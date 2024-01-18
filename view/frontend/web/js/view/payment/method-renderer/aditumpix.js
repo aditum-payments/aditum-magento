@@ -42,8 +42,8 @@ define(
                 return window.checkoutConfig.payment.aditumpix.taxvat;
             },
             getTermsHtml: function () {
-                return '<a target="_blank" href="' + this.getTermsUrl() +
-                    '">' + this.getTermsTxt() + '</a>';
+                return '<p> ' + this.getTermsTxt() + '<a target="_blank" href="' + this.getTermsUrl() +
+                    '">termos e condições</a></p>';
             },
             getTermsUrl: function () {
                 return window.checkoutConfig.payment.aditumcc.terms_url;
