@@ -398,7 +398,7 @@ class Api
         $this->logger->info('ADITUM PIX create order started');
         /** @var $order \Magento\Sales\Api\Data\OrderInterface */
         \AditumPayments\ApiSDK\Configuration::initialize();
-        \AditumPayments\ApiSDK\Configuration::setUrl(\AditumPayments\ApiSDK\Configuration::DEV_URL);
+        \AditumPayments\ApiSDK\Configuration::setUrl($this->getApiUrl());
         \AditumPayments\ApiSDK\Configuration::setCnpj($this->getClientId());
         \AditumPayments\ApiSDK\Configuration::setMerchantToken($this->getClientSecret());
         \AditumPayments\ApiSDK\Configuration::setlog(false);
