@@ -573,6 +573,7 @@ class Api
         }
 
         if ($subTotal > $this->getCentsValue($order->getGrandTotal())) {
+            $items = [];
             $subTotal = 0;
             foreach ($order->getItems() as $item) {
                 $items[] = [
