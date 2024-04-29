@@ -471,7 +471,7 @@ class Api
     }
 
     /**
-     * Get order items
+     * Get items from best possibility
      *
      * @param OrderInterface $order
      * @return array
@@ -479,15 +479,68 @@ class Api
      */
     public function getItems(OrderInterface $order): array
     {
-        foreach ($order->getAllItems() as $item) {
+        if (!$items = $this->getItemsDiscountAlreadyApplied($order)) {
+            if (!$items = $this->getItemsDiscountNotAppliedDivideDiscount($order)) {
+                if (!$items = $this->getItemsAndApplyDiscount($order)) {
+                    if (!$items = $this->getItemsNormalizedShippingAlreadyAppliedDiscount($order)) {
+                        $items = $this->getGeneralNormalizedItems($order);
+                    }
+                }
+            }
+        }
+        return $items;
+    }
+
+    /**
+     * Get items if we can trust that discount has already been applied
+     *
+     * @param OrderInterface $order
+     * @return array|null
+     */
+    public function getItemsDiscountAlreadyApplied(OrderInterface $order): ?array
+    {
+        $grandTotal = 0;
+        foreach ($order->getItems() as $item) {
             $items[] = [
                 'name' => $item->getName(),
                 'sku' => $item->getSku(),
-                'value' => $this->getCentsValue(
-                    $item->getRowTotal() / $item->getQtyOrdered() - $item->getDiscountAmount()
-                ),
+                'value' => $this->getCentsValue($item->getPrice()),
                 'qty' => $item->getQtyOrdered()
             ];
+            $grandTotal += $this->getCentsValue($item->getPrice()) * $item->getQtyOrdered();
+        }
+        $items[] = [
+            'name' => 'Envio',
+            'sku' => 'Envio',
+            'value' => $this->getCentsValue($order->getShippingAmount()),
+            'qty' => 1
+        ];
+        $grandTotal += $this->getCentsValue($order->getShippingAmount());
+        if ($this->getCentsValue($order->getGrandTotal()) == $grandTotal) {
+            return $items;
+        }
+        return null;
+    }
+
+    /**
+     * Get items, apply discounts divided by item qty
+     *
+     * @param OrderInterface $order
+     * @return array|null
+     */
+    public function getItemsDiscountNotAppliedDivideDiscount(OrderInterface $order): ?array
+    {
+        $grandTotal = 0;
+        foreach ($order->getItems() as $item) {
+            $items[] = [
+                'name' => $item->getName(),
+                'sku' => $item->getSku(),
+                'value' => $this->getCentsValue($item->getPrice() * 0.01 * (100 - $item->getDiscountPercent())),
+                'qty' => $item->getQtyOrdered()
+            ];
+            $grandTotal += $this->getCentsValue(
+                $item->getPrice() * 0.01 * (100 - $item->getDiscountPercent())
+                ) * $item->getQtyOrdered();
         }
         $items[] = [
             'name' => 'Envio',
@@ -495,8 +548,126 @@ class Api
             'value' => $this->getCentsValue($order->getShippingAmount() - $order->getShippingDiscountAmount()),
             'qty' => 1
         ];
-        $this->logger->info('Aditum order items: ' . json_encode($items));
+        $grandTotal += $this->getCentsValue($order->getShippingAmount() - $order->getShippingDiscountAmount());
+        if ($this->getCentsValue($order->getGrandTotal()) == $grandTotal) {
+            return $items;
+        }
+        return null;
+    }
 
+    /**
+     * Get items and apply discount if subtotal and shipping values sum are OK
+     *
+     * @param OrderInterface $order
+     * @return array|null
+     */
+    public function getItemsAndApplyDiscount(OrderInterface $order): ?array
+    {
+        $grandTotal = 0;
+        foreach ($order->getItems() as $item) {
+            $items[] = [
+                'name' => $item->getName(),
+                'sku' => $item->getSku(),
+                'value' => $this->getCentsValue($item->getPrice() - $item->getDiscountAmount()),
+                'qty' => $item->getQtyOrdered()
+            ];
+            $grandTotal += $this->getCentsValue($item->getPrice() - $item->getDiscountAmount())
+                * $item->getQtyOrdered();
+        }
+        $items[] = [
+            'name' => 'Envio',
+            'sku' => 'Envio',
+            'value' => $this->getCentsValue($order->getShippingAmount() - $order->getShippingDiscountAmount()),
+            'qty' => 1
+        ];
+        $grandTotal += $this->getCentsValue($order->getShippingAmount());
+        if ($this->getCentsValue($order->getGrandTotal()) == $grandTotal) {
+            return $items;
+        }
+        return null;
+    }
+
+    /**
+     * Try values without discount, if not apply discount and forcefully add shipping
+     *
+     * @param OrderInterface $order
+     * @return array|null
+     */
+    public function getItemsNormalizedShippingAlreadyAppliedDiscount(OrderInterface $order): ?array
+    {
+        $subTotal = 0;
+        $items = [];
+        foreach ($order->getItems() as $item) {
+            $items[] = [
+                'name' => $item->getName(),
+                'sku' => $item->getSku(),
+                'value' => $this->getCentsValue($item->getPrice()),
+                'qty' => $item->getQtyOrdered()
+            ];
+            $subTotal += $this->getCentsValue($item->getPrice()) * $item->getQtyOrdered();
+        }
+
+        if ($subTotal > $this->getCentsValue($order->getGrandTotal())) {
+            $items = [];
+            $subTotal = 0;
+            foreach ($order->getItems() as $item) {
+                $items[] = [
+                    'name' => $item->getName(),
+                    'sku' => $item->getSku(),
+                    'value' => $this->getCentsValue($item->getPrice() - $item->getDiscountAmount()),
+                    'qty' => $item->getQtyOrdered()
+                ];
+                $subTotal += $this->getCentsValue($item->getPrice() - $item->getDiscountAmount())
+                    * $item->getQtyOrdered();
+            }
+            if ($subTotal > $this->getCentsValue($order->getGrandTotal())) {
+                return null;
+            }
+        }
+        if ($subTotal < $this->getCentsValue($order->getGrandTotal())) {
+            $items[] = [
+                'name' => 'Envio',
+                'sku' => 'Envio',
+                'value' => $this->getCentsValue($order->getGrandTotal()) - $subTotal,
+                'qty' => 1
+            ];
+        }
+        return $items;
+    }
+
+    /**
+     * Divide grand total by total items and adds shipping if there is a difference
+     *
+     * @param OrderInterface $order
+     * @return array
+     * @throws NoSuchEntityException
+     */
+    public function getGeneralNormalizedItems(OrderInterface $order): array
+    {
+        $quote = $this->quoteRepository->get($order->getQuoteId());
+        $grandTotal = $this->getCentsValue($quote->getGrandTotal());
+        $totalItemsQty = 0;
+        foreach ($order->getItems() as $item) {
+            $totalItemsQty += $item->getQtyOrdered();
+        }
+        $unitValue = (int)floor($grandTotal / $totalItemsQty);
+        $items = [];
+        foreach ($order->getItems() as $item) {
+            $items[] = [
+                'name' => $item->getName(),
+                'sku' => $item->getSku(),
+                'value' => $unitValue,
+                'qty' => $item->getQtyOrdered()
+            ];
+        }
+        if ($grandTotal > $totalItemsQty * $unitValue) {
+            $items[] = [
+                'name' => 'Envio',
+                'sku' => 'Envio',
+                'value' => (int)($grandTotal - $totalItemsQty * $unitValue),
+                'qty' => 1
+            ];
+        }
         return $items;
     }
 }
