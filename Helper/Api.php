@@ -509,12 +509,14 @@ class Api
             ];
             $grandTotal += $this->getCentsValue($item->getPrice()) * $item->getQtyOrdered();
         }
-        $items[] = [
-            'name' => 'Envio',
-            'sku' => 'Envio',
-            'value' => $this->getCentsValue($order->getShippingAmount()),
-            'qty' => 1
-        ];
+        if ($order->getShippingAmount() > 0.0) {
+            $items[] = [
+                'name' => 'Envio',
+                'sku' => 'Envio',
+                'value' => $this->getCentsValue($order->getShippingAmount()),
+                'qty' => 1
+            ];
+        }
         $grandTotal += $this->getCentsValue($order->getShippingAmount());
         if ($this->getCentsValue($order->getGrandTotal()) == $grandTotal) {
             return $items;
@@ -542,13 +544,16 @@ class Api
                 $item->getPrice() * 0.01 * (100 - $item->getDiscountPercent())
                 ) * $item->getQtyOrdered();
         }
-        $items[] = [
-            'name' => 'Envio',
-            'sku' => 'Envio',
-            'value' => $this->getCentsValue($order->getShippingAmount() - $order->getShippingDiscountAmount()),
-            'qty' => 1
-        ];
-        $grandTotal += $this->getCentsValue($order->getShippingAmount() - $order->getShippingDiscountAmount());
+        if ($order->getShippingAmount() - $order->getShippingDiscountAmount() > 0.0) {
+            $items[] = [
+                'name' => 'Envio',
+                'sku' => 'Envio',
+                'value' => $this->getCentsValue($order->getShippingAmount() - $order->getShippingDiscountAmount()),
+                'qty' => 1
+            ];
+            $grandTotal += $this->getCentsValue($order->getShippingAmount() - $order->getShippingDiscountAmount());
+        }
+
         if ($this->getCentsValue($order->getGrandTotal()) == $grandTotal) {
             return $items;
         }
@@ -574,13 +579,15 @@ class Api
             $grandTotal += $this->getCentsValue($item->getPrice() - $item->getDiscountAmount())
                 * $item->getQtyOrdered();
         }
-        $items[] = [
-            'name' => 'Envio',
-            'sku' => 'Envio',
-            'value' => $this->getCentsValue($order->getShippingAmount() - $order->getShippingDiscountAmount()),
-            'qty' => 1
-        ];
-        $grandTotal += $this->getCentsValue($order->getShippingAmount());
+        if ($order->getShippingAmount() - $order->getShippingDiscountAmount() > 0.0) {
+            $items[] = [
+                'name' => 'Envio',
+                'sku' => 'Envio',
+                'value' => $this->getCentsValue($order->getShippingAmount() - $order->getShippingDiscountAmount()),
+                'qty' => 1
+            ];
+            $grandTotal += $this->getCentsValue($order->getShippingAmount());
+        }
         if ($this->getCentsValue($order->getGrandTotal()) == $grandTotal) {
             return $items;
         }
