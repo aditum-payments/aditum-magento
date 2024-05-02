@@ -97,6 +97,7 @@ class Api
 
         $quote = $this->checkoutSession->getQuote();
         $billingAddress = $quote->getBillingAddress();
+        $boleto->setSource(14);
         $boleto->setMerchantChargeId($order->getIncrementId());
 
         $boleto->setSessionId($payment->getAdditionalInformation('antifraud_token'));
@@ -220,6 +221,7 @@ class Api
         } else {
             $authorization->transactions->setPaymentType(\AditumPayments\ApiSDK\Enum\PaymentType::CREDIT);
         }
+        $authorization->setSource(14);
         $authorization->setMerchantChargeId($order->getIncrementId());
 
         $authorization->setSessionId($payment->getAdditionalInformation('antifraud_token'));
@@ -409,13 +411,13 @@ class Api
         \AditumPayments\ApiSDK\Configuration::login();
         $gateway = new \AditumPayments\ApiSDK\Gateway;
         $pix = new \AditumPayments\ApiSDK\Domains\Pix;
-
-        $pix->setMerchantChargeId("");
+        
+        $pix->setSource(14);
+        $pix->setMerchantChargeId($order->getIncrementId());
 
 // Customer
         $pix->customer->setId($order->getIncrementId());
         $pix->customer->setName($payment->getAdditionalInformation('pixfullname'));
-        $pix->customer->setName("Gustavo Ulyssea");
 
 
         $pix->customer->setEmail($order->getCustomerEmail());
