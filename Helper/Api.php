@@ -411,7 +411,7 @@ class Api
         \AditumPayments\ApiSDK\Configuration::login();
         $gateway = new \AditumPayments\ApiSDK\Gateway;
         $pix = new \AditumPayments\ApiSDK\Domains\Pix;
-        
+
         $pix->setSource(14);
         $pix->setMerchantChargeId($order->getIncrementId());
 
@@ -434,14 +434,16 @@ class Api
         $billingAddress = $quote->getBillingAddress();
 
 
-        $pix->customer->address->setStreet($billingAddress
-            ->getStreet()[$this->scopeConfig->getValue("payment/aditum/street")]);
-        $pix->customer->address->setNumber($billingAddress
-            ->getStreet()[$this->scopeConfig->getValue("payment/aditum/number")]);
-        $pix->customer->address->setComplement($billingAddress
-            ->getStreet()[$this->scopeConfig->getValue("payment/aditum/complement")]);
-        $pix->customer->address->setNeighborhood($billingAddress
-            ->getStreet()[$this->scopeConfig->getValue("payment/aditum/district")]);
+        $streetArray = $billingAddress->getStreet();
+        $streetIndex = $this->scopeConfig->getValue("payment/aditum/street");
+        $numberIndex = $this->scopeConfig->getValue("payment/aditum/number");
+        $complementIndex = $this->scopeConfig->getValue("payment/aditum/complement");
+        $districtIndex = $this->scopeConfig->getValue("payment/aditum/district");
+
+        $pix->customer->address->setStreet(isset($streetArray[$streetIndex]) ? $streetArray[$streetIndex] : "");
+        $pix->customer->address->setNumber(isset($streetArray[$numberIndex]) ? $streetArray[$numberIndex] : "");
+        $pix->customer->address->setComplement(isset($streetArray[$complementIndex]) ? $streetArray[$complementIndex] : "");
+        $pix->customer->address->setNeighborhood(isset($streetArray[$districtIndex]) ? $streetArray[$districtIndex] : "");
         $pix->customer->address->setCity($billingAddress->getCity());
         $pix->customer->address->setState($this->codigoUF($billingAddress->getRegion()));
         $pix->customer->address->setCountry("BR");
