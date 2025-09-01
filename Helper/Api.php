@@ -120,14 +120,16 @@ class Api
         $boleto->customer->setDocument($cpfCnpj);
 
 // Customer->address
-        $boleto->customer->address->setStreet($billingAddress
-            ->getStreet()[$this->scopeConfig->getValue("payment/aditum/street")]);
-        $boleto->customer->address->setNumber($billingAddress
-            ->getStreet()[$this->scopeConfig->getValue("payment/aditum/number")]);
-        $boleto->customer->address->setComplement($billingAddress
-            ->getStreet()[$this->scopeConfig->getValue("payment/aditum/complement")]);
-        $boleto->customer->address->setNeighborhood($billingAddress
-            ->getStreet()[$this->scopeConfig->getValue("payment/aditum/district")]);
+        $streetArray = $billingAddress->getStreet();
+        $streetIndex = $this->scopeConfig->getValue("payment/aditum/street");
+        $numberIndex = $this->scopeConfig->getValue("payment/aditum/number");
+        $complementIndex = $this->scopeConfig->getValue("payment/aditum/complement");
+        $districtIndex = $this->scopeConfig->getValue("payment/aditum/district");
+
+        $boleto->customer->address->setStreet(isset($streetArray[$streetIndex]) ? $streetArray[$streetIndex] : "");
+        $boleto->customer->address->setNumber(isset($streetArray[$numberIndex]) ? $streetArray[$numberIndex] : "");
+        $boleto->customer->address->setComplement(isset($streetArray[$complementIndex]) ? $streetArray[$complementIndex] : "");
+        $boleto->customer->address->setNeighborhood(isset($streetArray[$districtIndex]) ? $streetArray[$districtIndex] : "");
 
         $boleto->customer->address->setCity($billingAddress->getCity());
         $boleto->customer->address->setState($this->codigoUF($billingAddress->getRegion()));
@@ -236,6 +238,8 @@ class Api
         if (strlen($cpfCnpj)==14) {
             $authorization->customer->setDocumentType(\AditumPayments\ApiSDK\Enum\DocumentType::CNPJ);
         }
+
+        //Customer
         $authorization->customer->setDocument($cpfCnpj);
 
         $authorization->customer->phone->setCountryCode("55");
@@ -243,18 +247,24 @@ class Api
         $authorization->customer->phone->setAreaCode(substr($phone_number, 0, 2));
         $authorization->customer->phone->setNumber(substr($phone_number, 2));
         $authorization->customer->phone->setType(\AditumPayments\ApiSDK\Enum\PhoneType::MOBILE);
-        $authorization->customer->address->setStreet($billingAddress
-            ->getStreet()[$this->scopeConfig->getValue("payment/aditum/street")]);
-        $authorization->customer->address->setNumber($billingAddress
-            ->getStreet()[$this->scopeConfig->getValue("payment/aditum/number")]);
-        $authorization->customer->address->setComplement($billingAddress
-            ->getStreet()[$this->scopeConfig->getValue("payment/aditum/complement")]);
-        $authorization->customer->address->setNeighborhood($billingAddress
-            ->getStreet()[$this->scopeConfig->getValue("payment/aditum/district")]);
+
+        //Address
+        $streetArray = $billingAddress->getStreet();
+        $streetIndex = $this->scopeConfig->getValue("payment/aditum/street");
+        $numberIndex = $this->scopeConfig->getValue("payment/aditum/number");
+        $complementIndex = $this->scopeConfig->getValue("payment/aditum/complement");
+        $districtIndex = $this->scopeConfig->getValue("payment/aditum/district");
+
+        $authorization->customer->address->setStreet(isset($streetArray[$streetIndex]) ? $streetArray[$streetIndex] : "");
+        $authorization->customer->address->setNumber(isset($streetArray[$numberIndex]) ? $streetArray[$numberIndex] : "");
+        $authorization->customer->address->setComplement(isset($streetArray[$complementIndex]) ? $streetArray[$complementIndex] : "");
+        $authorization->customer->address->setNeighborhood(isset($streetArray[$districtIndex]) ? $streetArray[$districtIndex] : "");
         $authorization->customer->address->setCity($billingAddress->getCity());
         $authorization->customer->address->setState($this->codigoUF($billingAddress->getRegion()));
         $authorization->customer->address->setCountry("BR");
         $authorization->customer->address->setZipcode($billingAddress->getPostcode());
+
+        //Card
         $authorization->transactions->card
             ->setCardNumber(preg_replace('/[\-\s]+/', '', $info->getCcNumber()));
         $authorization->transactions->card->setCVV($payment->getAdditionalInformation('cc_cid'));
@@ -263,14 +273,10 @@ class Api
         $authorization->transactions->card->setExpirationYear($payment->getAdditionalInformation('cc_exp_year'));
         $authorization->transactions->card->setCardholderDocument($cpfCnpj);
 
-        $authorization->transactions->card->billingAddress->setStreet($billingAddress
-            ->getStreet()[$this->scopeConfig->getValue("payment/aditum/street")]);
-        $authorization->transactions->card->billingAddress->setNumber($billingAddress
-            ->getStreet()[$this->scopeConfig->getValue("payment/aditum/number")]);
-        $authorization->transactions->card->billingAddress->setComplement($billingAddress
-            ->getStreet()[$this->scopeConfig->getValue("payment/aditum/complement")]);
-        $authorization->transactions->card->billingAddress->setNeighborhood($billingAddress
-            ->getStreet()[$this->scopeConfig->getValue("payment/aditum/district")]);
+        $authorization->transactions->card->billingAddress->setStreet(isset($streetArray[$streetIndex]) ? $streetArray[$streetIndex] : "");
+        $authorization->transactions->card->billingAddress->setNumber(isset($streetArray[$numberIndex]) ? $streetArray[$numberIndex] : "");
+        $authorization->transactions->card->billingAddress->setComplement(isset($streetArray[$complementIndex]) ? $streetArray[$complementIndex] : "");
+        $authorization->transactions->card->billingAddress->setNeighborhood(isset($streetArray[$districtIndex]) ? $streetArray[$districtIndex] : "");
         $authorization->transactions->card->billingAddress->setCity($billingAddress->getCity());
         $authorization->transactions->card->billingAddress->setState($this->codigoUF($billingAddress->getRegion()));
         $authorization->transactions->card->billingAddress->setCountry("BR");
