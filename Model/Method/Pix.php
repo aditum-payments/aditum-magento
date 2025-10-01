@@ -176,14 +176,23 @@ class Pix extends \Magento\Payment\Model\Method\AbstractMethod
         $this->logger->info('Inside Order');
         $this->logger->info(json_encode($payment->getAdditionalInformation(), true));
         $order = $payment->getOrder();
+
+        $this->logger->info('PIX ORDER - Calling API createOrderPix...');
         $result = $this->api->createOrderPix($order, $payment);
+
+        $this->logger->info('PIX ORDER - API Response received: ' . json_encode($result));
+
 
         if (!$result || !isset($result['status']) || $result['status'] !== "PreAuthorized"
             && $result['status'] !== "Authorized") {
             $message = 'Houve um erro processando seu pedido. Por favor entre em contato conosco.';
+            $this->logger->error('PIX ORDER - Payment failed. Message: ' . $message);
+
             $this->messageManager->addError($message);
             throw new \Magento\Framework\Validator\Exception(__($message));
         }
+
+        $this->logger->info('PIX ORDER - Payment successful, processing order data...');
 
         $this->updateOrderRaw($order->getIncrementId());
         $order->setExtOrderId(str_replace("-", "", $result['charge']->id));
@@ -195,16 +204,16 @@ class Pix extends \Magento\Payment\Model\Method\AbstractMethod
             $aditumNumber = $result['charge']->transactions[0]->aditumNumber;
             $payment->setAdditionalInformation('aditumNumber', $aditumNumber);
         }
-        
 
         $payment->setAdditionalInformation('qrCode', $result['charge']->transactions[0]->qrCode);
         $this->storeQrCode($result['charge']->transactions[0]->qrCodeBase64, $order->getIncrementId());
         $payment->setAdditionalInformation('bankIssuerId', $result['charge']->transactions[0]->bankIssuerId);
         $payment->setAdditionalInformation('status', $result['status']);
+        $this->logger->info('PIX ORDER - Payment status set to: ' . $result['status']);
         if ($result['status'] == "Authorized") {
             $this->invoiceOrder($order);
         }
-        
+
         return $this;
     }
 
