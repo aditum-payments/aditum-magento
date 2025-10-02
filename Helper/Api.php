@@ -85,6 +85,12 @@ class Api
      */
     public function extCreateOrderBoleto(Order $order, $payment)
     {
+        $this->logger->info('ADITUM BOLETO create order started');
+        $this->logger->info('BOLETO Order ID: ' . $order->getIncrementId());
+        $this->logger->info('BOLETO API URL: ' . $this->getApiUrl());
+        $this->logger->info('BOLETO Client ID: ' . $this->getClientId());
+        $this->logger->info('BOLETO Payment Additional Info: ' . json_encode($payment->getAdditionalInformation()));
+
         \AditumPayments\ApiSDK\Configuration::initialize();
         \AditumPayments\ApiSDK\Configuration::setUrl($this->getApiUrl());
         \AditumPayments\ApiSDK\Configuration::setCnpj($this->getClientId());
@@ -121,10 +127,14 @@ class Api
 
 // Customer->address
         $streetArray = $billingAddress->getStreet();
-        $streetIndex = $this->scopeConfig->getValue("payment/aditum/street");
-        $numberIndex = $this->scopeConfig->getValue("payment/aditum/number");
-        $complementIndex = $this->scopeConfig->getValue("payment/aditum/complement");
-        $districtIndex = $this->scopeConfig->getValue("payment/aditum/district");
+        $this->logger->info('BOLETO Street Array: ' . json_encode($streetArray));
+
+        $streetIndex = $this->scopeConfig->getValue("payment/aditum/street", \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
+        $numberIndex = $this->scopeConfig->getValue("payment/aditum/number", \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
+        $complementIndex = $this->scopeConfig->getValue("payment/aditum/complement", \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
+        $districtIndex = $this->scopeConfig->getValue("payment/aditum/district", \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
+
+        $this->logger->info('BOLETO Address Config - Street: ' . $streetIndex . ', Number: ' . $numberIndex . ', Complement: ' . $complementIndex . ', District: ' . $districtIndex);
 
         $boleto->customer->address->setStreet(isset($streetArray[$streetIndex]) ? $streetArray[$streetIndex] : "");
         $boleto->customer->address->setNumber(isset($streetArray[$numberIndex]) ? $streetArray[$numberIndex] : "");
@@ -136,7 +146,7 @@ class Api
         $boleto->customer->address->setCountry("BR");
         $boleto->customer->address->setZipcode($billingAddress->getPostcode());
 
-// Customer->phone
+        // Customer->phone
         $phone_number = filter_var($billingAddress->getTelephone(), FILTER_SANITIZE_NUMBER_INT);
         $boleto->customer->phone->setCountryCode("55");
         $boleto->customer->phone->setAreaCode(substr($phone_number, 0, 2));
@@ -178,6 +188,9 @@ class Api
 //        $boleto->transactions->discount->setAmount(200);
 //        $boleto->transactions->discount->setDeadline("1");
 
+        $this->logger->info('BOLETO Grand Total (cents): ' . $grandTotal);
+        $this->logger->info('BOLETO sending request to API...');
+
         $result = $gateway->charge($boleto);
 
         $this->logger->info("External Apitum API Return: ".json_encode($result));
@@ -201,6 +214,13 @@ class Api
 
     public function extCreateOrderCc(Order $order, $info, $payment, $preAuth = 0)
     {
+        $this->logger->info('ADITUM CC create order started');
+        $this->logger->info('CC Order ID: ' . $order->getIncrementId());
+        $this->logger->info('CC API URL: ' . $this->getApiUrl());
+        $this->logger->info('CC Client ID: ' . $this->getClientId());
+        $this->logger->info('CC Payment Additional Info: ' . json_encode($payment->getAdditionalInformation()));
+        $this->logger->info('CC PreAuth: ' . $preAuth);
+
         \AditumPayments\ApiSDK\Configuration::initialize();
         \AditumPayments\ApiSDK\Configuration::setUrl($this->getApiUrl());
         \AditumPayments\ApiSDK\Configuration::setCnpj($this->getClientId());
@@ -250,10 +270,14 @@ class Api
 
         //Address
         $streetArray = $billingAddress->getStreet();
-        $streetIndex = $this->scopeConfig->getValue("payment/aditum/street");
-        $numberIndex = $this->scopeConfig->getValue("payment/aditum/number");
-        $complementIndex = $this->scopeConfig->getValue("payment/aditum/complement");
-        $districtIndex = $this->scopeConfig->getValue("payment/aditum/district");
+        $this->logger->info('CC Street Array: ' . json_encode($streetArray));
+
+        $streetIndex = $this->scopeConfig->getValue("payment/aditum/street", \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
+        $numberIndex = $this->scopeConfig->getValue("payment/aditum/number", \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
+        $complementIndex = $this->scopeConfig->getValue("payment/aditum/complement", \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
+        $districtIndex = $this->scopeConfig->getValue("payment/aditum/district", \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
+
+        $this->logger->info('CC Address Config - Street: ' . $streetIndex . ', Number: ' . $numberIndex . ', Complement: ' . $complementIndex . ', District: ' . $districtIndex);
 
         $authorization->customer->address->setStreet(isset($streetArray[$streetIndex]) ? $streetArray[$streetIndex] : "");
         $authorization->customer->address->setNumber(isset($streetArray[$numberIndex]) ? $streetArray[$numberIndex] : "");
@@ -301,9 +325,12 @@ class Api
         $grandTotal = $this->getCentsValue($quote->getGrandTotal());
         $authorization->transactions->setAmount($grandTotal);
 
+        $this->logger->info('CC sending request to API...');
+
         $result = $gateway->charge($authorization);
 
-        $this->logger->info("External Apitum API Return: ".json_encode($result));
+        $this->logger->info("CC API Response: ".json_encode($result));
+
         return $result;
     }
     public function getApiUrl()
@@ -408,6 +435,11 @@ class Api
     public function createOrderPix($order, $payment)
     {
         $this->logger->info('ADITUM PIX create order started');
+        $this->logger->info('PIX Order ID: ' . $order->getIncrementId());
+        $this->logger->info('PIX API URL: ' . $this->getApiUrl());
+        $this->logger->info('PIX Client ID: ' . $this->getClientId());
+        $this->logger->info('PIX Payment Additional Info: ' . json_encode($payment->getAdditionalInformation()));
+
         /** @var $order \Magento\Sales\Api\Data\OrderInterface */
         \AditumPayments\ApiSDK\Configuration::initialize();
         \AditumPayments\ApiSDK\Configuration::setUrl($this->getApiUrl());
@@ -439,12 +471,11 @@ class Api
         $quote = $this->checkoutSession->getQuote();
         $billingAddress = $quote->getBillingAddress();
 
-
         $streetArray = $billingAddress->getStreet();
-        $streetIndex = $this->scopeConfig->getValue("payment/aditum/street");
-        $numberIndex = $this->scopeConfig->getValue("payment/aditum/number");
-        $complementIndex = $this->scopeConfig->getValue("payment/aditum/complement");
-        $districtIndex = $this->scopeConfig->getValue("payment/aditum/district");
+        $streetIndex = $this->scopeConfig->getValue("payment/aditum/street", \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
+        $numberIndex = $this->scopeConfig->getValue("payment/aditum/number", \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
+        $complementIndex = $this->scopeConfig->getValue("payment/aditum/complement", \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
+        $districtIndex = $this->scopeConfig->getValue("payment/aditum/district", \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
 
         $pix->customer->address->setStreet(isset($streetArray[$streetIndex]) ? $streetArray[$streetIndex] : "");
         $pix->customer->address->setNumber(isset($streetArray[$numberIndex]) ? $streetArray[$numberIndex] : "");
@@ -475,8 +506,13 @@ class Api
         $quote = $this->quoteRepository->get($order->getQuoteId());
         $grandTotal = $this->getCentsValue($quote->getGrandTotal());
         $pix->transactions->setAmount($grandTotal);
+
+        $this->logger->info('PIX Grand Total (cents): ' . $grandTotal);
+        $this->logger->info('PIX sending request to API...');
+
         $result = $gateway->charge($pix);
-        $this->logger->info(json_encode($result));
+
+        $this->logger->info('PIX API Response: ' . json_encode($result));
         return $result;
     }
 
