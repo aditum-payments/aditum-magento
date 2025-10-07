@@ -89,7 +89,10 @@ class Api
         $this->logger->info('BOLETO Order ID: ' . $order->getIncrementId());
         $this->logger->info('BOLETO API URL: ' . $this->getApiUrl());
         $this->logger->info('BOLETO Client ID: ' . $this->getClientId());
-        $this->logger->info('BOLETO Payment Additional Info: ' . json_encode($payment->getAdditionalInformation()));
+        // Log payment info with sensitive data masked
+        $paymentInfo = $payment->getAdditionalInformation();
+        $maskedInfo = $this->maskSensitiveData($paymentInfo);
+        $this->logger->info('BOLETO Payment Additional Info: ' . json_encode($maskedInfo));
 
         \AditumPayments\ApiSDK\Configuration::initialize();
         \AditumPayments\ApiSDK\Configuration::setUrl($this->getApiUrl());
@@ -218,7 +221,10 @@ class Api
         $this->logger->info('CC Order ID: ' . $order->getIncrementId());
         $this->logger->info('CC API URL: ' . $this->getApiUrl());
         $this->logger->info('CC Client ID: ' . $this->getClientId());
-        $this->logger->info('CC Payment Additional Info: ' . json_encode($payment->getAdditionalInformation()));
+        // Log payment info with sensitive data masked
+        $paymentInfo = $payment->getAdditionalInformation();
+        $maskedInfo = $this->maskSensitiveData($paymentInfo);
+        $this->logger->info('CC Payment Additional Info: ' . json_encode($maskedInfo));
         $this->logger->info('CC PreAuth: ' . $preAuth);
 
         \AditumPayments\ApiSDK\Configuration::initialize();
@@ -438,7 +444,10 @@ class Api
         $this->logger->info('PIX Order ID: ' . $order->getIncrementId());
         $this->logger->info('PIX API URL: ' . $this->getApiUrl());
         $this->logger->info('PIX Client ID: ' . $this->getClientId());
-        $this->logger->info('PIX Payment Additional Info: ' . json_encode($payment->getAdditionalInformation()));
+        // Log payment info with sensitive data masked
+        $paymentInfo = $payment->getAdditionalInformation();
+        $maskedInfo = $this->maskSensitiveData($paymentInfo);
+        $this->logger->info('PIX Payment Additional Info: ' . json_encode($maskedInfo));
 
         /** @var $order \Magento\Sales\Api\Data\OrderInterface */
         \AditumPayments\ApiSDK\Configuration::initialize();
@@ -722,5 +731,48 @@ class Api
             ];
         }
         return $items;
+    }
+
+    /**
+     * Mask sensitive data in payment information for logging
+     *
+     * @param array $paymentInfo
+     * @return array
+     */
+    private function maskSensitiveData(array $paymentInfo): array
+    {
+        $maskedInfo = $paymentInfo;
+
+        // Mask credit card number
+        if (isset($maskedInfo['cc_number'])) {
+            $ccNumber = $maskedInfo['cc_number'];
+            if (strlen($ccNumber) >= 6) {
+                $maskedInfo['cc_number'] = substr($ccNumber, 0, 4) . str_repeat('*', strlen($ccNumber) - 8) . substr($ccNumber, -4);
+            } else {
+                $maskedInfo['cc_number'] = str_repeat('*', strlen($ccNumber));
+            }
+        }
+
+        // Mask CVV
+        if (isset($maskedInfo['cc_cid'])) {
+            $maskedInfo['cc_cid'] = str_repeat('*', strlen($maskedInfo['cc_cid']));
+        }
+
+        // Mask document (CPF/CNPJ)
+        if (isset($maskedInfo['document'])) {
+            $document = preg_replace('/[^0-9]/', '', $maskedInfo['document']);
+            if (strlen($document) == 11) { // CPF
+                $maskedInfo['document'] = substr($document, 0, 3) . '.***.**' . substr($document, -2);
+            } elseif (strlen($document) == 14) { // CNPJ
+                $maskedInfo['document'] = substr($document, 0, 2) . '.***.***/****-' . substr($document, -2);
+            } else {
+                $maskedInfo['document'] = str_repeat('*', strlen($maskedInfo['document']));
+            }
+        }
+
+        // Keep other fields as-is (cc_type, cc_exp_month, cc_exp_year, fullname, installments, etc.)
+        // These are not considered sensitive for logging purposes
+
+        return $maskedInfo;
     }
 }
