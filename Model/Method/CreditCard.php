@@ -195,6 +195,14 @@ class CreditCard extends \Magento\Payment\Model\Method\Cc
     }
     public function validate()
     {
+        // Validação do campo documento obrigatório
+        $info = $this->getInfoInstance();
+        $additionalData = $info->getAdditionalInformation();
+
+        if (!isset($additionalData['document']) || empty(trim($additionalData['document']))) {
+            throw new \Magento\Framework\Exception\LocalizedException(__('O campo CPF é obrigatório'));
+        }
+
         return true;
         $info = $this->getInfoInstance();
         $errorMsg = false;

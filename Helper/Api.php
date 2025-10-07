@@ -758,7 +758,7 @@ class Api
             $maskedInfo['cc_cid'] = str_repeat('*', strlen($maskedInfo['cc_cid']));
         }
 
-        // Mask document (CPF/CNPJ)
+        // Mask document (CPF/CNPJ) - for CC payments
         if (isset($maskedInfo['document'])) {
             $document = preg_replace('/[^0-9]/', '', $maskedInfo['document']);
             if (strlen($document) == 11) { // CPF
@@ -767,6 +767,30 @@ class Api
                 $maskedInfo['document'] = substr($document, 0, 2) . '.***.***/****-' . substr($document, -2);
             } else {
                 $maskedInfo['document'] = str_repeat('*', strlen($maskedInfo['document']));
+            }
+        }
+
+        // Mask PIX document (CPF/CNPJ) - for PIX payments
+        if (isset($maskedInfo['pixdocument'])) {
+            $document = preg_replace('/[^0-9]/', '', $maskedInfo['pixdocument']);
+            if (strlen($document) == 11) { // CPF
+                $maskedInfo['pixdocument'] = substr($document, 0, 3) . '.***.**' . substr($document, -2);
+            } elseif (strlen($document) == 14) { // CNPJ
+                $maskedInfo['pixdocument'] = substr($document, 0, 2) . '.***.***/****-' . substr($document, -2);
+            } else {
+                $maskedInfo['pixdocument'] = str_repeat('*', strlen($maskedInfo['pixdocument']));
+            }
+        }
+
+        // Mask Boleto document (CPF/CNPJ) - for Boleto payments
+        if (isset($maskedInfo['boletodocument'])) {
+            $document = preg_replace('/[^0-9]/', '', $maskedInfo['boletodocument']);
+            if (strlen($document) == 11) { // CPF
+                $maskedInfo['boletodocument'] = substr($document, 0, 3) . '.***.**' . substr($document, -2);
+            } elseif (strlen($document) == 14) { // CNPJ
+                $maskedInfo['boletodocument'] = substr($document, 0, 2) . '.***.***/****-' . substr($document, -2);
+            } else {
+                $maskedInfo['boletodocument'] = str_repeat('*', strlen($maskedInfo['boletodocument']));
             }
         }
 

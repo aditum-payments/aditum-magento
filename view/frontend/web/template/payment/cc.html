@@ -70,22 +70,21 @@
 												'data-validate': JSON.stringify({'required':true})}"/>
                     </div>
                 </div>
-                <!-- ko if: (getUseDocument() == 1) -->
                 <div class="field document required">
                     <label data-bind="attr: {for: getCode() + '_document'}" class="label">
-                        <span><!-- ko i18n: 'CPF'--><!-- /ko --></span>
+                        <span><!-- ko i18n: 'CPF'--><!-- /ko --> <span class="required">*</span>
                     </label>
                     <div class="control">
-                        <input type="text" name="document" class="input-text" style="max-width: 300px;" value=""
+                        <input type="text" name="document" class="input-text" style="max-width: 300px;" value="" required
                                data-bind="attr: {
 													autocomplete: off,
+													required: true,
 													id: getCode() + '_document',
 													title: $t('CPF'),
 													'data-container': getCode() + '-document',
 													'data-validate': JSON.stringify({'required':true,'validate-cpf':'#' + getCode() + '_document'})}"/>
                     </div>
                 </div>
-                <!--/ko-->
 				<div class="field required">
 
 					<label data-bind="attr: {for: getCode() + '_cc_number'}" class="label" style="max-width:300px;!important">
