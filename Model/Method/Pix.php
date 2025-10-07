@@ -173,6 +173,14 @@ class Pix extends \Magento\Payment\Model\Method\AbstractMethod
      */
     public function order(\Magento\Payment\Model\InfoInterface $payment, $amount)
     {
+        // Validação do campo documento obrigatório
+        $additionalData = $payment->getAdditionalInformation();
+        if (!isset($additionalData['pixdocument']) || empty(trim($additionalData['pixdocument']))) {
+            $message = 'O campo CPF/CNPJ é obrigatório';
+            $this->messageManager->addError($message);
+            throw new \Magento\Framework\Validator\Exception(__($message));
+        }
+
         $this->logger->info('Inside Order');
         $this->logger->info(json_encode($payment->getAdditionalInformation(), true));
         $order = $payment->getOrder();

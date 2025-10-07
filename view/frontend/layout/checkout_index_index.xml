@@ -24,6 +24,12 @@
                                                                 <item name="bvoleto-validator" xsi:type="array">
                                                                     <item name="component" xsi:type="string">AditumPayment_Magento2/js/view/boleto-validation</item>
                                                                 </item>
+                                                                <item name="cc-validator" xsi:type="array">
+                                                                    <item name="component" xsi:type="string">AditumPayment_Magento2/js/view/cc-validation</item>
+                                                                </item>
+                                                                <item name="pix-validator" xsi:type="array">
+                                                                    <item name="component" xsi:type="string">AditumPayment_Magento2/js/view/pix-validation</item>
+                                                                </item>
                                                                 <!-- Declare your validation. END -->
                                                             </item>
                                                         </item>
