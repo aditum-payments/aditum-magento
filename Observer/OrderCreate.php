@@ -23,6 +23,7 @@ use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\Service\InvoiceService;
 use Magento\Store\Model\ScopeInterface;
 use Psr\Log\LoggerInterface;
+use AditumPayment\Magento2\Logger\ApiLogger;
 
 class OrderCreate implements ObserverInterface
 {
@@ -47,6 +48,11 @@ class OrderCreate implements ObserverInterface
     protected LoggerInterface $logger;
 
     /**
+     * @var ApiLogger
+     */
+    protected ApiLogger $apiLogger;
+
+    /**
      * @var OrderRepositoryInterface
      */
     protected OrderRepositoryInterface $orderRepository;
@@ -61,6 +67,7 @@ class OrderCreate implements ObserverInterface
      * @param ScopeConfigInterface $scopeConfig
      * @param InvoiceService $invoiceService
      * @param LoggerInterface $logger
+     * @param ApiLogger $apiLogger
      * @param OrderRepositoryInterface $orderRepository
      * @param TransactionFactory $transactionFactory
      */
@@ -69,6 +76,7 @@ class OrderCreate implements ObserverInterface
         ScopeConfigInterface $scopeConfig,
         InvoiceService $invoiceService,
         LoggerInterface $logger,
+        ApiLogger $apiLogger,
         OrderRepositoryInterface $orderRepository,
         TransactionFactory $transactionFactory
     ) {
@@ -76,8 +84,40 @@ class OrderCreate implements ObserverInterface
         $this->scopeConfig = $scopeConfig;
         $this->invoiceService = $invoiceService;
         $this->logger = $logger;
+        $this->apiLogger = $apiLogger;
         $this->orderRepository = $orderRepository;
         $this->transactionFactory = $transactionFactory;
+    }
+
+    /**
+     * Log to API-specific log file
+     * @param string $level
+     * @param string $message
+     * @param array $context
+     */
+    private function logApi($level, $message, $context = [])
+    {
+        if ($this->apiLogger) {
+            switch ($level) {
+                case 'info':
+                    $this->apiLogger->info($message, $context);
+                    break;
+                case 'error':
+                    $this->apiLogger->error($message, $context);
+                    break;
+                case 'warning':
+                    $this->apiLogger->warning($message, $context);
+                    break;
+                case 'debug':
+                    $this->apiLogger->debug($message, $context);
+                    break;
+                default:
+                    $this->apiLogger->info($message, $context);
+            }
+        } else {
+            // Fallback to system logger with API prefix
+            $this->logger->info('[ADITUM API] ' . $message, $context);
+        }
     }
 
     /**
@@ -89,7 +129,7 @@ class OrderCreate implements ObserverInterface
      */
     public function execute(Observer $observer): void
     {
-        $this->logger->info('Aditum starting create order observer...');
+        $this->logApi('info', 'Aditum starting create order observer...');
 
         /** @var Order $order */
         $order = $observer->getEvent()->getOrder();
@@ -114,11 +154,11 @@ class OrderCreate implements ObserverInterface
         $statusNew = $this->scopeConfig->getValue(AditumConfigInterface::ORDER_STATUS_NEW, ScopeInterface::SCOPE_STORE);
 
         if ($method === CreditCard::CODE) {
-            $this->logger->info('Observer - ' . $method);
+            $this->logApi('info', 'Observer - ' . $method);
             if ($payment->getAdditionalInformation(AdditionalInfo::STATUS) === AdditionalInfo::STATUS_PRE_AUTHORIZED
                 && $payment->getAdditionalInformation(AdditionalInfo::CALLBACK_STATUS)
                 !== AdditionalInfo::STATUS_AUTHORIZED) {
-                $this->logger->info('Aditum observer - set new');
+                $this->logApi('info', 'Aditum observer - set new');
                 $order->setState(Order::STATE_NEW)->setStatus($statusNew);
                 $order->save();
             }
@@ -142,7 +182,7 @@ class OrderCreate implements ObserverInterface
             $order->setState(Order::STATE_NEW)->setStatus($statusNew);
             $payment->setAdditionalInformation(AdditionalInfo::ORDER_CREATED, '1');
             $order->save();
-            $this->logger->info('Aditum observer - order_created status set.');
+            $this->logApi('info', 'Aditum observer - order_created status set.');
         }
     }
 

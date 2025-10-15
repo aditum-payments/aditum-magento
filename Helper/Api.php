@@ -29,6 +29,8 @@ class Api
      */
     protected CartRepositoryInterface $quoteRepository;
 
+    protected $apiLogger;
+
     public function __construct(
         \Magento\Framework\App\Helper\Context $context,
         \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
@@ -36,7 +38,8 @@ class Api
         \Magento\Store\Model\StoreManagerInterface $storeManager,
         \Magento\Checkout\Model\Session $checkoutSession,
         PriceCurrencyInterface $priceCurrency,
-        CartRepositoryInterface $quoteRepository
+        CartRepositoryInterface $quoteRepository,
+        \AditumPayment\Magento2\Logger\ApiLogger $apiLogger
     ) {
         $this->scopeConfig = $scopeConfig;
         $this->logger = $logger;
@@ -44,6 +47,7 @@ class Api
         $this->checkoutSession = $checkoutSession;
         $this->priceCurrency = $priceCurrency;
         $this->quoteRepository = $quoteRepository;
+        $this->apiLogger = $apiLogger;
     }
 
     /**
@@ -85,14 +89,14 @@ class Api
      */
     public function extCreateOrderBoleto(Order $order, $payment)
     {
-        $this->logger->info('ADITUM BOLETO create order started');
-        $this->logger->info('BOLETO Order ID: ' . $order->getIncrementId());
-        $this->logger->info('BOLETO API URL: ' . $this->getApiUrl());
-        $this->logger->info('BOLETO Client ID: ' . $this->getClientId());
+        $this->logApi('info', 'ADITUM BOLETO create order started');
+        $this->logApi('info', 'BOLETO Order ID: ' . $order->getIncrementId());
+        $this->logApi('info', 'BOLETO API URL: ' . $this->getApiUrl());
+        $this->logApi('info', 'BOLETO Client ID: ' . $this->getClientId());
         // Log payment info with sensitive data masked
         $paymentInfo = $payment->getAdditionalInformation();
         $maskedInfo = $this->maskSensitiveData($paymentInfo);
-        $this->logger->info('BOLETO Payment Additional Info: ' . json_encode($maskedInfo));
+        $this->logApi('info', 'BOLETO Payment Additional Info: ' . json_encode($maskedInfo));
 
         \AditumPayments\ApiSDK\Configuration::initialize();
         \AditumPayments\ApiSDK\Configuration::setUrl($this->getApiUrl());
@@ -130,14 +134,14 @@ class Api
 
 // Customer->address
         $streetArray = $billingAddress->getStreet();
-        $this->logger->info('BOLETO Street Array: ' . json_encode($streetArray));
+        $this->logApi('info', 'BOLETO Street Array: ' . json_encode($streetArray));
 
         $streetIndex = $this->scopeConfig->getValue("payment/aditum/street", \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
         $numberIndex = $this->scopeConfig->getValue("payment/aditum/number", \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
         $complementIndex = $this->scopeConfig->getValue("payment/aditum/complement", \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
         $districtIndex = $this->scopeConfig->getValue("payment/aditum/district", \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
 
-        $this->logger->info('BOLETO Address Config - Street: ' . $streetIndex . ', Number: ' . $numberIndex . ', Complement: ' . $complementIndex . ', District: ' . $districtIndex);
+        $this->logApi('info', 'BOLETO Address Config - Street: ' . $streetIndex . ', Number: ' . $numberIndex . ', Complement: ' . $complementIndex . ', District: ' . $districtIndex);
 
         $boleto->customer->address->setStreet(isset($streetArray[$streetIndex]) ? $streetArray[$streetIndex] : "");
         $boleto->customer->address->setNumber(isset($streetArray[$numberIndex]) ? $streetArray[$numberIndex] : "");
@@ -191,12 +195,12 @@ class Api
 //        $boleto->transactions->discount->setAmount(200);
 //        $boleto->transactions->discount->setDeadline("1");
 
-        $this->logger->info('BOLETO Grand Total (cents): ' . $grandTotal);
-        $this->logger->info('BOLETO sending request to API...');
+        $this->logApi('info', 'BOLETO Grand Total (cents): ' . $grandTotal);
+        $this->logApi('info', 'BOLETO sending request to API...');
 
         $result = $gateway->charge($boleto);
 
-        $this->logger->info("External Apitum API Return: ".json_encode($result));
+        $this->logApi('info', "External Apitum API Return: ".json_encode($result));
         return $result;
     }
 
@@ -217,15 +221,15 @@ class Api
 
     public function extCreateOrderCc(Order $order, $info, $payment, $preAuth = 0)
     {
-        $this->logger->info('ADITUM CC create order started');
-        $this->logger->info('CC Order ID: ' . $order->getIncrementId());
-        $this->logger->info('CC API URL: ' . $this->getApiUrl());
-        $this->logger->info('CC Client ID: ' . $this->getClientId());
+        $this->logApi('info', 'ADITUM CC create order started');
+        $this->logApi('info', 'CC Order ID: ' . $order->getIncrementId());
+        $this->logApi('info', 'CC API URL: ' . $this->getApiUrl());
+        $this->logApi('info', 'CC Client ID: ' . $this->getClientId());
         // Log payment info with sensitive data masked
         $paymentInfo = $payment->getAdditionalInformation();
         $maskedInfo = $this->maskSensitiveData($paymentInfo);
-        $this->logger->info('CC Payment Additional Info: ' . json_encode($maskedInfo));
-        $this->logger->info('CC PreAuth: ' . $preAuth);
+        $this->logApi('info', 'CC Payment Additional Info: ' . json_encode($maskedInfo));
+        $this->logApi('info', 'CC PreAuth: ' . $preAuth);
 
         \AditumPayments\ApiSDK\Configuration::initialize();
         \AditumPayments\ApiSDK\Configuration::setUrl($this->getApiUrl());
@@ -243,7 +247,7 @@ class Api
         $quote = $this->checkoutSession->getQuote();
         $billingAddress = $quote->getBillingAddress();
 
-        $this->logger->info("Card CCDC Type: ".$payment->getAdditionalInformation('cc_dc_choice'));
+        $this->logApi('info', "Card CCDC Type: ".$payment->getAdditionalInformation('cc_dc_choice'));
         if ($payment->getAdditionalInformation('cc_dc_choice')=="dc") {
             $authorization->transactions->setPaymentType(\AditumPayments\ApiSDK\Enum\PaymentType::DEBIT);
         } else {
@@ -276,14 +280,14 @@ class Api
 
         //Address
         $streetArray = $billingAddress->getStreet();
-        $this->logger->info('CC Street Array: ' . json_encode($streetArray));
+        $this->logApi('info', 'CC Street Array: ' . json_encode($streetArray));
 
         $streetIndex = $this->scopeConfig->getValue("payment/aditum/street", \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
         $numberIndex = $this->scopeConfig->getValue("payment/aditum/number", \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
         $complementIndex = $this->scopeConfig->getValue("payment/aditum/complement", \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
         $districtIndex = $this->scopeConfig->getValue("payment/aditum/district", \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
 
-        $this->logger->info('CC Address Config - Street: ' . $streetIndex . ', Number: ' . $numberIndex . ', Complement: ' . $complementIndex . ', District: ' . $districtIndex);
+        $this->logApi('info', 'CC Address Config - Street: ' . $streetIndex . ', Number: ' . $numberIndex . ', Complement: ' . $complementIndex . ', District: ' . $districtIndex);
 
         $authorization->customer->address->setStreet(isset($streetArray[$streetIndex]) ? $streetArray[$streetIndex] : "");
         $authorization->customer->address->setNumber(isset($streetArray[$numberIndex]) ? $streetArray[$numberIndex] : "");
@@ -331,11 +335,11 @@ class Api
         $grandTotal = $this->getCentsValue($quote->getGrandTotal());
         $authorization->transactions->setAmount($grandTotal);
 
-        $this->logger->info('CC sending request to API...');
+        $this->logApi('info', 'CC sending request to API...');
 
         $result = $gateway->charge($authorization);
 
-        $this->logger->info("CC API Response: ".json_encode($result));
+        $this->logApi('info', "CC API Response: ".json_encode($result));
 
         return $result;
     }
@@ -351,7 +355,7 @@ class Api
     }
     public function logError($action, $url, $output, $input = "")
     {
-        $this->logger->error("Aditum Request error: ".$action." - ".$url." - ".$input." - ".$output);
+        $this->logApi('error', "Aditum Request error: ".$action." - ".$url." - ".$input." - ".$output);
         return false;
     }
     public function getClientId()
@@ -440,14 +444,14 @@ class Api
 
     public function createOrderPix($order, $payment)
     {
-        $this->logger->info('ADITUM PIX create order started');
-        $this->logger->info('PIX Order ID: ' . $order->getIncrementId());
-        $this->logger->info('PIX API URL: ' . $this->getApiUrl());
-        $this->logger->info('PIX Client ID: ' . $this->getClientId());
+        $this->logApi('info', 'ADITUM PIX create order started');
+        $this->logApi('info', 'PIX Order ID: ' . $order->getIncrementId());
+        $this->logApi('info', 'PIX API URL: ' . $this->getApiUrl());
+        $this->logApi('info', 'PIX Client ID: ' . $this->getClientId());
         // Log payment info with sensitive data masked
         $paymentInfo = $payment->getAdditionalInformation();
         $maskedInfo = $this->maskSensitiveData($paymentInfo);
-        $this->logger->info('PIX Payment Additional Info: ' . json_encode($maskedInfo));
+        $this->logApi('info', 'PIX Payment Additional Info: ' . json_encode($maskedInfo));
 
         /** @var $order \Magento\Sales\Api\Data\OrderInterface */
         \AditumPayments\ApiSDK\Configuration::initialize();
@@ -516,12 +520,12 @@ class Api
         $grandTotal = $this->getCentsValue($quote->getGrandTotal());
         $pix->transactions->setAmount($grandTotal);
 
-        $this->logger->info('PIX Grand Total (cents): ' . $grandTotal);
-        $this->logger->info('PIX sending request to API...');
+        $this->logApi('info', 'PIX Grand Total (cents): ' . $grandTotal);
+        $this->logApi('info', 'PIX sending request to API...');
 
         $result = $gateway->charge($pix);
 
-        $this->logger->info('PIX API Response: ' . json_encode($result));
+        $this->logApi('info', 'PIX API Response: ' . json_encode($result));
         return $result;
     }
 
@@ -555,7 +559,13 @@ class Api
     public function getItemsDiscountAlreadyApplied(OrderInterface $order): ?array
     {
         $grandTotal = 0;
+        $items = [];
         foreach ($order->getItems() as $item) {
+            // Skip child items of configurable/bundle products to avoid duplication
+            if ($item->getParentItem()) {
+                continue;
+            }
+
             $items[] = [
                 'name' => $item->getName(),
                 'sku' => $item->getSku(),
@@ -588,7 +598,13 @@ class Api
     public function getItemsDiscountNotAppliedDivideDiscount(OrderInterface $order): ?array
     {
         $grandTotal = 0;
+        $items = [];
         foreach ($order->getItems() as $item) {
+            // Skip child items of configurable/bundle products to avoid duplication
+            if ($item->getParentItem()) {
+                continue;
+            }
+
             $items[] = [
                 'name' => $item->getName(),
                 'sku' => $item->getSku(),
@@ -624,7 +640,13 @@ class Api
     public function getItemsAndApplyDiscount(OrderInterface $order): ?array
     {
         $grandTotal = 0;
+        $items = [];
         foreach ($order->getItems() as $item) {
+            // Skip child items of configurable/bundle products to avoid duplication
+            if ($item->getParentItem()) {
+                continue;
+            }
+
             $items[] = [
                 'name' => $item->getName(),
                 'sku' => $item->getSku(),
@@ -660,6 +682,11 @@ class Api
         $subTotal = 0;
         $items = [];
         foreach ($order->getItems() as $item) {
+            // Skip child items of configurable/bundle products to avoid duplication
+            if ($item->getParentItem()) {
+                continue;
+            }
+
             $items[] = [
                 'name' => $item->getName(),
                 'sku' => $item->getSku(),
@@ -673,6 +700,11 @@ class Api
             $items = [];
             $subTotal = 0;
             foreach ($order->getItems() as $item) {
+                // Skip child items of configurable/bundle products to avoid duplication
+                if ($item->getParentItem()) {
+                    continue;
+                }
+
                 $items[] = [
                     'name' => $item->getName(),
                     'sku' => $item->getSku(),
@@ -709,19 +741,48 @@ class Api
         $quote = $this->quoteRepository->get($order->getQuoteId());
         $grandTotal = $this->getCentsValue($quote->getGrandTotal());
         $totalItemsQty = 0;
+        $processedItems = [];
+
+        // Debug log - items count before filtering
+        $this->logApi('debug', 'getGeneralNormalizedItems - Total items in order: ' . count($order->getItems()));
+
+        // First pass: calculate total quantity, avoiding duplicates
         foreach ($order->getItems() as $item) {
+            // Skip child items of configurable/bundle products to avoid duplication
+            if ($item->getParentItem()) {
+                $this->logApi('debug', 'Skipping child item: ' . $item->getSku() . ' (parent: ' . $item->getParentItem()->getSku() . ')');
+                continue;
+            }
+
+            $this->logApi('debug', 'Processing item: ' . $item->getSku() . ' - Qty: ' . $item->getQtyOrdered());
             $totalItemsQty += $item->getQtyOrdered();
         }
+
         $unitValue = (int)floor($grandTotal / $totalItemsQty);
         $items = [];
+
+        // Second pass: build items array
         foreach ($order->getItems() as $item) {
+            // Skip child items of configurable/bundle products to avoid duplication
+            if ($item->getParentItem()) {
+                continue;
+            }
+
+            // Avoid duplicate SKUs
+            if (isset($processedItems[$item->getSku()])) {
+                continue;
+            }
+
             $items[] = [
                 'name' => $item->getName(),
                 'sku' => $item->getSku(),
                 'value' => $unitValue,
                 'qty' => $item->getQtyOrdered()
             ];
+
+            $processedItems[$item->getSku()] = true;
         }
+
         if ($grandTotal > $totalItemsQty * $unitValue) {
             $items[] = [
                 'name' => 'Envio',
@@ -798,5 +859,37 @@ class Api
         // These are not considered sensitive for logging purposes
 
         return $maskedInfo;
+    }
+
+    /**
+     * Log to API-specific log file
+     * @param string $level
+     * @param string $message
+     * @param array $context
+     */
+    public function logApi($level, $message, $context = [])
+    {
+        // If API logger is available, use it; otherwise fallback to system logger
+        if ($this->apiLogger) {
+            switch ($level) {
+                case 'info':
+                    $this->apiLogger->info($message, $context);
+                    break;
+                case 'error':
+                    $this->apiLogger->error($message, $context);
+                    break;
+                case 'warning':
+                    $this->apiLogger->warning($message, $context);
+                    break;
+                case 'debug':
+                    $this->apiLogger->debug($message, $context);
+                    break;
+                default:
+                    $this->apiLogger->info($message, $context);
+            }
+        } else {
+            // Fallback to system logger with API prefix
+            $this->logger->info('[ADITUM API] ' . $message, $context);
+        }
     }
 }

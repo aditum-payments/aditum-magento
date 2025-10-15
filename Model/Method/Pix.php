@@ -181,26 +181,26 @@ class Pix extends \Magento\Payment\Model\Method\AbstractMethod
             throw new \Magento\Framework\Validator\Exception(__($message));
         }
 
-        $this->logger->info('Inside Order');
-        $this->logger->info(json_encode($payment->getAdditionalInformation(), true));
+        $this->api->logApi('info', 'PIX Inside Order');
+        $this->api->logApi('info', 'PIX Payment Additional Info: ' . json_encode($payment->getAdditionalInformation(), true));
         $order = $payment->getOrder();
 
-        $this->logger->info('PIX ORDER - Calling API createOrderPix...');
+        $this->api->logApi('info', 'PIX ORDER - Calling API createOrderPix...');
         $result = $this->api->createOrderPix($order, $payment);
 
-        $this->logger->info('PIX ORDER - API Response received: ' . json_encode($result));
+        $this->api->logApi('info', 'PIX ORDER - API Response received: ' . json_encode($result));
 
 
         if (!$result || !isset($result['status']) || $result['status'] !== "PreAuthorized"
             && $result['status'] !== "Authorized") {
             $message = 'Houve um erro processando seu pedido. Por favor entre em contato conosco.';
-            $this->logger->error('PIX ORDER - Payment failed. Message: ' . $message);
+            $this->api->logApi('error', 'PIX ORDER - Payment failed. Message: ' . $message);
 
             $this->messageManager->addError($message);
             throw new \Magento\Framework\Validator\Exception(__($message));
         }
 
-        $this->logger->info('PIX ORDER - Payment successful, processing order data...');
+        $this->api->logApi('info', 'PIX ORDER - Payment successful, processing order data...');
 
         $this->updateOrderRaw($order->getIncrementId());
         $order->setExtOrderId(str_replace("-", "", $result['charge']->id));
@@ -217,7 +217,7 @@ class Pix extends \Magento\Payment\Model\Method\AbstractMethod
         $this->storeQrCode($result['charge']->transactions[0]->qrCodeBase64, $order->getIncrementId());
         $payment->setAdditionalInformation('bankIssuerId', $result['charge']->transactions[0]->bankIssuerId);
         $payment->setAdditionalInformation('status', $result['status']);
-        $this->logger->info('PIX ORDER - Payment status set to: ' . $result['status']);
+        $this->api->logApi('info', 'PIX ORDER - Payment status set to: ' . $result['status']);
         if ($result['status'] == "Authorized") {
             $this->invoiceOrder($order);
         }

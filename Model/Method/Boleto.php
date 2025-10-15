@@ -79,8 +79,8 @@ class Boleto extends \Magento\Payment\Model\Method\AbstractMethod
             throw new \Magento\Framework\Validator\Exception(__($message));
         }
 
-        $this->logger->info('Inside Order');
-        $this->logger->info(json_encode($payment->getAdditionalInformation(), true));
+        $this->api->logApi('info', 'BOLETO Inside Order');
+        $this->api->logApi('info', 'BOLETO Payment Additional Info: ' . json_encode($payment->getAdditionalInformation(), true));
         $order = $payment->getOrder();
         if (!$result = $this->api->createOrderBoleto($order, $payment)) {
             $message = 'Houve um erro processando seu pedido. Por favor entre em contato conosco.';

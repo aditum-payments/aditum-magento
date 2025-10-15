@@ -17,6 +17,7 @@ use Magento\Sales\Model\ResourceModel\Order\Payment\Collection as PaymentCollect
 use Magento\Sales\Model\ResourceModel\Order\Payment\CollectionFactory as PaymentCollectionFactory;
 use Magento\Sales\Model\Service\InvoiceService;
 use Psr\Log\LoggerInterface;
+use AditumPayment\Magento2\Logger\ApiLogger;
 
 class Index extends \Magento\Framework\App\Action\Action implements CsrfAwareActionInterface
 {
@@ -46,6 +47,11 @@ class Index extends \Magento\Framework\App\Action\Action implements CsrfAwareAct
     protected $logger;
 
     /**
+     * @var ApiLogger
+     */
+    protected $apiLogger;
+
+    /**
      * @var ResultFactory
      */
     protected $result;
@@ -69,6 +75,7 @@ class Index extends \Magento\Framework\App\Action\Action implements CsrfAwareAct
      * @param InvoiceService $invoiceService
      * @param TransactionFactory $transactionFactory
      * @param LoggerInterface $logger
+     * @param ApiLogger $apiLogger
      * @param ResultFactory $result
      * @param CollectionFactory $orderCollectionFactory
      * @param ScopeConfigInterface $scopeConfig
@@ -81,6 +88,7 @@ class Index extends \Magento\Framework\App\Action\Action implements CsrfAwareAct
         InvoiceService $invoiceService,
         TransactionFactory $transactionFactory,
         LoggerInterface $logger,
+        ApiLogger $apiLogger,
         ResultFactory $result,
         CollectionFactory $orderCollectionFactory,
         ScopeConfigInterface $scopeConfig,
@@ -92,12 +100,44 @@ class Index extends \Magento\Framework\App\Action\Action implements CsrfAwareAct
         $this->_invoiceService = $invoiceService;
         $this->_transactionFactory = $transactionFactory;
         $this->logger = $logger;
+        $this->apiLogger = $apiLogger;
         $this->result = $result;
         $this->orderCollectionFactory = $orderCollectionFactory;
         $this->scopeConfig = $scopeConfig;
         $this->paymentCollectionFactory = $paymentCollectionFactory;
 
         parent::__construct($context);
+    }
+
+    /**
+     * Log to API-specific log file
+     * @param string $level
+     * @param string $message
+     * @param array $context
+     */
+    private function logApi($level, $message, $context = [])
+    {
+        if ($this->apiLogger) {
+            switch ($level) {
+                case 'info':
+                    $this->apiLogger->info($message, $context);
+                    break;
+                case 'error':
+                    $this->apiLogger->error($message, $context);
+                    break;
+                case 'warning':
+                    $this->apiLogger->warning($message, $context);
+                    break;
+                case 'debug':
+                    $this->apiLogger->debug($message, $context);
+                    break;
+                default:
+                    $this->apiLogger->info($message, $context);
+            }
+        } else {
+            // Fallback to system logger with API prefix
+            $this->logger->info('[ADITUM API] ' . $message, $context);
+        }
     }
 
     /**
@@ -108,16 +148,16 @@ class Index extends \Magento\Framework\App\Action\Action implements CsrfAwareAct
      */
     public function execute()
     {
-        $this->logger->log("INFO", "Aditum Callback starting...");
+        $this->logApi('info', "Aditum Callback starting...");
         $json = file_get_contents('php://input');
-        $this->logger->info("Aditum callback: " . $json);
+        $this->logApi('info', "Aditum callback: " . $json);
         if ($auth = $this->authError()) {
-            $this->logger->log("INFO", "Aditum Callback Auth Error...");
+            $this->logApi('info', "Aditum Callback Auth Error...");
             return $auth;
         }
         try {
             if (!$this->isJson($json)) {
-                $this->logger->info("ERROR: Aditum Callback is not json");
+                $this->logApi('error', "ERROR: Aditum Callback is not json");
                 $result = $this->resultRaw();
                 $result->setHttpResponseCode(400);
                 return $result;
@@ -134,16 +174,16 @@ class Index extends \Magento\Framework\App\Action\Action implements CsrfAwareAct
 
             $i = 0;
             if (!$order) {
-                $this->logger->info("Aditum Callback order not found: " . $input['ChargeId']);
+                $this->logApi('info', "Aditum Callback order not found: " . $input['ChargeId']);
                 return $this->orderNotFound();
             }
 
             while (!$this->getPayment($order->getEntityId())->getAdditionalInformation('order_created')) {
-                $this->logger->info("Aditum Callback waiting for order creation...");
+                $this->logApi('info', "Aditum Callback waiting for order creation...");
                 sleep(1);
                 $i++;
                 if ($i >= 30) {
-                    $this->logger->info("Aditum Callback timeout...");
+                    $this->logApi('info', "Aditum Callback timeout...");
                     $result = $this->resultRaw();
                     $result->setHttpResponseCode(200);
                     return $result;
@@ -151,7 +191,7 @@ class Index extends \Magento\Framework\App\Action\Action implements CsrfAwareAct
             }
             if ($input['ChargeStatus'] === 1) {
 
-                $this->logger->info("Aditum Callback invoicing Magento order " . $order->getIncrementId());
+                $this->logApi('info', "Aditum Callback invoicing Magento order " . $order->getIncrementId());
                 if (!$order->hasInvoices()) {
                     $order->getPayment()->setAdditionalInformation('status', 'Authorized');
                     $order->getPayment()->setAdditionalInformation('callbackStatus', 'Authorized');
@@ -160,12 +200,12 @@ class Index extends \Magento\Framework\App\Action\Action implements CsrfAwareAct
             } elseif ($input['ChargeStatus'] === 2) {
 
                 $order->getPayment()->setAdditionalInformation('callbackStatus', 'PreAuthorized');
-                $this->logger->log("INFO", "Aditum Callback status PreAuthorized.");
+                $this->logApi('info', "Aditum Callback status PreAuthorized.");
                 return $this->resultRaw("");
             } elseif ($input['ChargeStatus'] === 4) {
 
                 $order->getPayment()->setAdditionalInformation('callbackStatus', 'Canceled');
-                $this->logger->log("INFO", "Aditum Callback status canceled");
+                $this->logApi('info', "Aditum Callback status canceled");
                 if ($order->getState() !== "canceled") {
                     $this->cancelOrder($order);
                 }
@@ -173,7 +213,7 @@ class Index extends \Magento\Framework\App\Action\Action implements CsrfAwareAct
             } elseif ($order->getPayment()->getAdditionalInformation('status') !== 'NotAuthorized') {
 
                 $order->getPayment()->setAdditionalInformation('callbackStatus', 'NotAuthorized');
-                $this->logger->log("INFO", "Aditum Callback status other - cancelling. " . $order->getIncrementId());
+                $this->logApi('info', "Aditum Callback status other - cancelling. " . $order->getIncrementId());
                 if ($order->getState() !== "canceled") {
                     $this->cancelOrder($order);
                 }
@@ -181,15 +221,15 @@ class Index extends \Magento\Framework\App\Action\Action implements CsrfAwareAct
 
             return $this->resultRaw("");
         } catch (\Throwable $t) {
-            $this->logger->error("An unexpected error was raised while handling the webhook request.");
-            $this->logger->error($t->getMessage());
-            $this->logger->error($t->getTraceAsString());
+            $this->logApi('error', "An unexpected error was raised while handling the webhook request.");
+            $this->logApi('error', $t->getMessage());
+            $this->logApi('error', $t->getTraceAsString());
             $result = $this->resultRaw();
             $result->setHttpResponseCode(500);
             return $result;
         }
 
-        $this->logger->log("INFO", "Aditum Callback ended.");
+        $this->logApi('info', "Aditum Callback ended.");
         return $this->resultRaw();
     }
 
@@ -219,16 +259,16 @@ class Index extends \Magento\Framework\App\Action\Action implements CsrfAwareAct
 
         $headers = $this->getRequestHeaders();
 
-        $this->logger->info("Header: " . json_encode($headers));
+        $this->logApi('info', "Header: " . json_encode($headers));
 
         if (!isset($headers['X-Aditum-Authorization'])) {
-            $this->logger->info('Header nao existe');
+            $this->logApi('info', 'Header nao existe');
             return $this->resultUnauthorized();
         }
 
         if ($headers['X-Aditum-Authorization'] != base64_encode($merchantToken)) {
-            $this->logger->info("Base64 token: " . base64_encode($merchantToken));
-            $this->logger->info('Header diferente');
+            $this->logApi('info', "Base64 token: " . base64_encode($merchantToken));
+            $this->logApi('info', 'Header diferente');
             return $this->resultUnauthorized();
         }
 

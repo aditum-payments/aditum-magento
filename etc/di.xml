@@ -3,4 +3,20 @@
         xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
     <preference for="AditumPayment\Magento2\Api\AditumApiInterface" type="AditumPayment\Magento2\Model\AditumApi"/>
     <preference for="AditumPayment\Magento2\Api\Data\BrandInterface" type="AditumPayment\Magento2\Model\Data\Brand"/>
+
+    <!-- API Logger Configuration -->
+    <type name="AditumPayment\Magento2\Logger\ApiHandler">
+        <arguments>
+            <argument name="filesystem" xsi:type="object">Magento\Framework\Filesystem\Driver\File</argument>
+        </arguments>
+    </type>
+
+    <type name="AditumPayment\Magento2\Logger\ApiLogger">
+        <arguments>
+            <argument name="name" xsi:type="string">aditumApiLogger</argument>
+            <argument name="handlers" xsi:type="array">
+                <item name="system" xsi:type="object">AditumPayment\Magento2\Logger\ApiHandler</item>
+            </argument>
+        </arguments>
+    </type>
 </config>
