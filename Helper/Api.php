@@ -555,7 +555,20 @@ class Api
     public function getItemsDiscountAlreadyApplied(OrderInterface $order): ?array
     {
         $grandTotal = 0;
+        $items = [];
+        $processedSkus = [];
+
         foreach ($order->getItems() as $item) {
+            // Skip child items of configurable/bundle products to avoid duplication
+            if ($item->getParentItem()) {
+                continue;
+            }
+
+            // Skip if SKU was already processed (prevent duplicates)
+            if (isset($processedSkus[$item->getSku()])) {
+                continue;
+            }
+
             $items[] = [
                 'name' => $item->getName(),
                 'sku' => $item->getSku(),
@@ -563,6 +576,7 @@ class Api
                 'qty' => $item->getQtyOrdered()
             ];
             $grandTotal += $this->getCentsValue($item->getPrice()) * $item->getQtyOrdered();
+            $processedSkus[$item->getSku()] = true;
         }
         if ($order->getShippingAmount() > 0.0) {
             $items[] = [
@@ -588,7 +602,20 @@ class Api
     public function getItemsDiscountNotAppliedDivideDiscount(OrderInterface $order): ?array
     {
         $grandTotal = 0;
+        $items = [];
+        $processedSkus = [];
+
         foreach ($order->getItems() as $item) {
+            // Skip child items of configurable/bundle products to avoid duplication
+            if ($item->getParentItem()) {
+                continue;
+            }
+
+            // Skip if SKU was already processed (prevent duplicates)
+            if (isset($processedSkus[$item->getSku()])) {
+                continue;
+            }
+
             $items[] = [
                 'name' => $item->getName(),
                 'sku' => $item->getSku(),
@@ -598,6 +625,7 @@ class Api
             $grandTotal += $this->getCentsValue(
                 $item->getPrice() * 0.01 * (100 - $item->getDiscountPercent())
                 ) * $item->getQtyOrdered();
+            $processedSkus[$item->getSku()] = true;
         }
         if ($order->getShippingAmount() - $order->getShippingDiscountAmount() > 0.0) {
             $items[] = [
@@ -624,7 +652,20 @@ class Api
     public function getItemsAndApplyDiscount(OrderInterface $order): ?array
     {
         $grandTotal = 0;
+        $items = [];
+        $processedSkus = [];
+
         foreach ($order->getItems() as $item) {
+            // Skip child items of configurable/bundle products to avoid duplication
+            if ($item->getParentItem()) {
+                continue;
+            }
+
+            // Skip if SKU was already processed (prevent duplicates)
+            if (isset($processedSkus[$item->getSku()])) {
+                continue;
+            }
+
             $items[] = [
                 'name' => $item->getName(),
                 'sku' => $item->getSku(),
@@ -633,6 +674,7 @@ class Api
             ];
             $grandTotal += $this->getCentsValue($item->getPrice() - $item->getDiscountAmount())
                 * $item->getQtyOrdered();
+            $processedSkus[$item->getSku()] = true;
         }
         if ($order->getShippingAmount() - $order->getShippingDiscountAmount() > 0.0) {
             $items[] = [
@@ -659,7 +701,19 @@ class Api
     {
         $subTotal = 0;
         $items = [];
+        $processedSkus = [];
+
         foreach ($order->getItems() as $item) {
+            // Skip child items of configurable/bundle products to avoid duplication
+            if ($item->getParentItem()) {
+                continue;
+            }
+
+            // Skip if SKU was already processed (prevent duplicates)
+            if (isset($processedSkus[$item->getSku()])) {
+                continue;
+            }
+
             $items[] = [
                 'name' => $item->getName(),
                 'sku' => $item->getSku(),
@@ -667,12 +721,25 @@ class Api
                 'qty' => $item->getQtyOrdered()
             ];
             $subTotal += $this->getCentsValue($item->getPrice()) * $item->getQtyOrdered();
+            $processedSkus[$item->getSku()] = true;
         }
 
         if ($subTotal > $this->getCentsValue($order->getGrandTotal())) {
             $items = [];
             $subTotal = 0;
+            $processedSkus = []; // Reset processed SKUs
+
             foreach ($order->getItems() as $item) {
+                // Skip child items of configurable/bundle products to avoid duplication
+                if ($item->getParentItem()) {
+                    continue;
+                }
+
+                // Skip if SKU was already processed (prevent duplicates)
+                if (isset($processedSkus[$item->getSku()])) {
+                    continue;
+                }
+
                 $items[] = [
                     'name' => $item->getName(),
                     'sku' => $item->getSku(),
@@ -681,6 +748,7 @@ class Api
                 ];
                 $subTotal += $this->getCentsValue($item->getPrice() - $item->getDiscountAmount())
                     * $item->getQtyOrdered();
+                $processedSkus[$item->getSku()] = true;
             }
             if ($subTotal > $this->getCentsValue($order->getGrandTotal())) {
                 return null;
@@ -709,18 +777,42 @@ class Api
         $quote = $this->quoteRepository->get($order->getQuoteId());
         $grandTotal = $this->getCentsValue($quote->getGrandTotal());
         $totalItemsQty = 0;
+        $processedSkus = [];
+
+        // First pass: calculate total quantity, avoiding duplicates
         foreach ($order->getItems() as $item) {
+            // Skip child items of configurable/bundle products to avoid duplication
+            if ($item->getParentItem()) {
+                continue;
+            }
+
             $totalItemsQty += $item->getQtyOrdered();
         }
+
         $unitValue = (int)floor($grandTotal / $totalItemsQty);
         $items = [];
+        $processedSkus = []; // Reset processed SKUs for second pass
+
+        // Second pass: build items array, avoiding duplicates
         foreach ($order->getItems() as $item) {
+            // Skip child items of configurable/bundle products to avoid duplication
+            if ($item->getParentItem()) {
+                continue;
+            }
+
+            // Skip if SKU was already processed (prevent duplicates)
+            if (isset($processedSkus[$item->getSku()])) {
+                continue;
+            }
+
             $items[] = [
                 'name' => $item->getName(),
                 'sku' => $item->getSku(),
                 'value' => $unitValue,
                 'qty' => $item->getQtyOrdered()
             ];
+
+            $processedSkus[$item->getSku()] = true;
         }
         if ($grandTotal > $totalItemsQty * $unitValue) {
             $items[] = [
