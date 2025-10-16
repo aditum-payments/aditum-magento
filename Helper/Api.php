@@ -561,11 +561,13 @@ class Api
         foreach ($order->getItems() as $item) {
             // Skip child items of configurable/bundle products to avoid duplication
             if ($item->getParentItem()) {
+                $this->logger->info('ADITUM DUPLICATE DETECTION: Skipping child item - SKU: ' . $item->getSku() . ', Name: ' . $item->getName() . ', Parent SKU: ' . $item->getParentItem()->getSku());
                 continue;
             }
 
             // Skip if SKU was already processed (prevent duplicates)
             if (isset($processedSkus[$item->getSku()])) {
+                $this->logger->info('ADITUM DUPLICATE DETECTION: Skipping duplicate SKU - SKU: ' . $item->getSku() . ', Name: ' . $item->getName() . ' (already processed)');
                 continue;
             }
 
@@ -577,6 +579,7 @@ class Api
             ];
             $grandTotal += $this->getCentsValue($item->getPrice()) * $item->getQtyOrdered();
             $processedSkus[$item->getSku()] = true;
+            $this->logger->info('ADITUM ITEM PROCESSED: SKU: ' . $item->getSku() . ', Name: ' . $item->getName() . ', Qty: ' . $item->getQtyOrdered() . ', Price: ' . $item->getPrice());
         }
         if ($order->getShippingAmount() > 0.0) {
             $items[] = [
@@ -608,11 +611,13 @@ class Api
         foreach ($order->getItems() as $item) {
             // Skip child items of configurable/bundle products to avoid duplication
             if ($item->getParentItem()) {
+                $this->logger->info('ADITUM DUPLICATE DETECTION: Skipping child item - SKU: ' . $item->getSku() . ', Name: ' . $item->getName() . ', Parent SKU: ' . $item->getParentItem()->getSku());
                 continue;
             }
 
             // Skip if SKU was already processed (prevent duplicates)
             if (isset($processedSkus[$item->getSku()])) {
+                $this->logger->info('ADITUM DUPLICATE DETECTION: Skipping duplicate SKU - SKU: ' . $item->getSku() . ', Name: ' . $item->getName() . ' (already processed)');
                 continue;
             }
 
@@ -626,6 +631,7 @@ class Api
                 $item->getPrice() * 0.01 * (100 - $item->getDiscountPercent())
                 ) * $item->getQtyOrdered();
             $processedSkus[$item->getSku()] = true;
+            $this->logger->info('ADITUM ITEM PROCESSED: SKU: ' . $item->getSku() . ', Name: ' . $item->getName() . ', Qty: ' . $item->getQtyOrdered() . ', Discount %: ' . $item->getDiscountPercent());
         }
         if ($order->getShippingAmount() - $order->getShippingDiscountAmount() > 0.0) {
             $items[] = [
@@ -658,11 +664,13 @@ class Api
         foreach ($order->getItems() as $item) {
             // Skip child items of configurable/bundle products to avoid duplication
             if ($item->getParentItem()) {
+                $this->logger->info('ADITUM DUPLICATE DETECTION: Skipping child item - SKU: ' . $item->getSku() . ', Name: ' . $item->getName() . ', Parent SKU: ' . $item->getParentItem()->getSku());
                 continue;
             }
 
             // Skip if SKU was already processed (prevent duplicates)
             if (isset($processedSkus[$item->getSku()])) {
+                $this->logger->info('ADITUM DUPLICATE DETECTION: Skipping duplicate SKU - SKU: ' . $item->getSku() . ', Name: ' . $item->getName() . ' (already processed)');
                 continue;
             }
 
@@ -675,6 +683,7 @@ class Api
             $grandTotal += $this->getCentsValue($item->getPrice() - $item->getDiscountAmount())
                 * $item->getQtyOrdered();
             $processedSkus[$item->getSku()] = true;
+            $this->logger->info('ADITUM ITEM PROCESSED: SKU: ' . $item->getSku() . ', Name: ' . $item->getName() . ', Qty: ' . $item->getQtyOrdered() . ', Price after discount: ' . ($item->getPrice() - $item->getDiscountAmount()));
         }
         if ($order->getShippingAmount() - $order->getShippingDiscountAmount() > 0.0) {
             $items[] = [
@@ -706,11 +715,13 @@ class Api
         foreach ($order->getItems() as $item) {
             // Skip child items of configurable/bundle products to avoid duplication
             if ($item->getParentItem()) {
+                $this->logger->info('ADITUM DUPLICATE DETECTION: Skipping child item - SKU: ' . $item->getSku() . ', Name: ' . $item->getName() . ', Parent SKU: ' . $item->getParentItem()->getSku());
                 continue;
             }
 
             // Skip if SKU was already processed (prevent duplicates)
             if (isset($processedSkus[$item->getSku()])) {
+                $this->logger->info('ADITUM DUPLICATE DETECTION: Skipping duplicate SKU - SKU: ' . $item->getSku() . ', Name: ' . $item->getName() . ' (already processed)');
                 continue;
             }
 
@@ -722,6 +733,7 @@ class Api
             ];
             $subTotal += $this->getCentsValue($item->getPrice()) * $item->getQtyOrdered();
             $processedSkus[$item->getSku()] = true;
+            $this->logger->info('ADITUM ITEM PROCESSED: SKU: ' . $item->getSku() . ', Name: ' . $item->getName() . ', Qty: ' . $item->getQtyOrdered() . ', Price: ' . $item->getPrice());
         }
 
         if ($subTotal > $this->getCentsValue($order->getGrandTotal())) {
@@ -783,6 +795,7 @@ class Api
         foreach ($order->getItems() as $item) {
             // Skip child items of configurable/bundle products to avoid duplication
             if ($item->getParentItem()) {
+                $this->logger->info('ADITUM DUPLICATE DETECTION (1st pass): Skipping child item - SKU: ' . $item->getSku() . ', Name: ' . $item->getName() . ', Parent SKU: ' . $item->getParentItem()->getSku());
                 continue;
             }
 
@@ -797,11 +810,13 @@ class Api
         foreach ($order->getItems() as $item) {
             // Skip child items of configurable/bundle products to avoid duplication
             if ($item->getParentItem()) {
+                $this->logger->info('ADITUM DUPLICATE DETECTION (2nd pass): Skipping child item - SKU: ' . $item->getSku() . ', Name: ' . $item->getName() . ', Parent SKU: ' . $item->getParentItem()->getSku());
                 continue;
             }
 
             // Skip if SKU was already processed (prevent duplicates)
             if (isset($processedSkus[$item->getSku()])) {
+                $this->logger->info('ADITUM DUPLICATE DETECTION (2nd pass): Skipping duplicate SKU - SKU: ' . $item->getSku() . ', Name: ' . $item->getName() . ' (already processed)');
                 continue;
             }
 
@@ -813,6 +828,7 @@ class Api
             ];
 
             $processedSkus[$item->getSku()] = true;
+            $this->logger->info('ADITUM ITEM PROCESSED (normalized): SKU: ' . $item->getSku() . ', Name: ' . $item->getName() . ', Qty: ' . $item->getQtyOrdered() . ', Normalized Value: ' . $unitValue);
         }
         if ($grandTotal > $totalItemsQty * $unitValue) {
             $items[] = [
