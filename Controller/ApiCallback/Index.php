@@ -123,6 +123,7 @@ class Index extends \Magento\Framework\App\Action\Action implements CsrfAwareAct
                 return $result;
             }
             $input = json_decode($json, true);
+            $this->logger->info("Aditum Callback received ChargeStatus: " . $input['ChargeStatus'] . " for ChargeId: " . $input['ChargeId']);
             $order = $this->getOrderByChargeId($input['ChargeId']);
 
             // sanitize sensible datas
@@ -155,7 +156,15 @@ class Index extends \Magento\Framework\App\Action\Action implements CsrfAwareAct
                 if (!$order->hasInvoices()) {
                     $order->getPayment()->setAdditionalInformation('status', 'Authorized');
                     $order->getPayment()->setAdditionalInformation('callbackStatus', 'Authorized');
+                    $this->logger->info("Aditum Callback generating invoice for order " . $order->getIncrementId());
                     $this->invoiceOrder($order);
+                    $this->logger->info("Aditum Callback invoice generated successfully for order " . $order->getIncrementId());
+
+                    // Debug: Verificar se realmente foi gerada
+                    $invoiceCount = $order->getInvoiceCollection()->count();
+                    $this->logger->info("Aditum Debug: Order " . $order->getIncrementId() . " now has " . $invoiceCount . " invoices");
+                } else {
+                    $this->logger->info("Aditum Callback order " . $order->getIncrementId() . " already has invoices - skipping invoice generation");
                 }
             } elseif ($input['ChargeStatus'] === 2) {
 
@@ -166,6 +175,14 @@ class Index extends \Magento\Framework\App\Action\Action implements CsrfAwareAct
 
                 $order->getPayment()->setAdditionalInformation('callbackStatus', 'Canceled');
                 $this->logger->log("INFO", "Aditum Callback status canceled");
+                if ($order->getState() !== "canceled") {
+                    $this->cancelOrder($order);
+                }
+                return $this->resultRaw("");
+            } elseif ($input['ChargeStatus'] === 8) {
+
+                $order->getPayment()->setAdditionalInformation('callbackStatus', 'Expired');
+                $this->logger->log("INFO", "Aditum Callback status expired - cancelling order " . $order->getIncrementId());
                 if ($order->getState() !== "canceled") {
                     $this->cancelOrder($order);
                 }
