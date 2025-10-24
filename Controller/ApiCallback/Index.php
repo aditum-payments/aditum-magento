@@ -170,6 +170,14 @@ class Index extends \Magento\Framework\App\Action\Action implements CsrfAwareAct
                     $this->cancelOrder($order);
                 }
                 return $this->resultRaw("");
+            } elseif ($input['ChargeStatus'] === 8) {
+
+                $order->getPayment()->setAdditionalInformation('callbackStatus', 'Expired');
+                $this->logger->log("INFO", "Aditum Callback status expired - cancelling order " . $order->getIncrementId());
+                if ($order->getState() !== "canceled") {
+                    $this->cancelOrder($order);
+                }
+                return $this->resultRaw("");
             } elseif ($order->getPayment()->getAdditionalInformation('status') !== 'NotAuthorized') {
 
                 $order->getPayment()->setAdditionalInformation('callbackStatus', 'NotAuthorized');
