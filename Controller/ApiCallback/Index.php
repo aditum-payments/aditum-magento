@@ -205,9 +205,6 @@ class Index extends \Magento\Framework\App\Action\Action implements CsrfAwareAct
             $result->setHttpResponseCode(500);
             return $result;
         }
-
-        $this->logger->log("INFO", "Aditum Callback ended.");
-        return $this->resultRaw();
     }
 
     /**
@@ -333,7 +330,68 @@ class Index extends \Magento\Framework\App\Action\Action implements CsrfAwareAct
      */
     public function cancelOrder($order)
     {
-        $order->cancel()->save();
+        try {
+            $currentState = $order->getState();
+            $this->logger->info("Aditum Callback attempting to cancel order " . $order->getIncrementId() . " with current state: " . $currentState);
+
+            // Verificar se o pedido pode ser cancelado
+            if (!$order->canCancel()) {
+                $this->logger->warning("Aditum Callback: Order " . $order->getIncrementId() . " cannot be canceled (state: " . $currentState . ")");
+
+                // Se tem fatura, criar credit memo (estorno)
+                if ($order->hasInvoices() && $order->getState() === 'processing') {
+                    $this->logger->info("Aditum Callback: Order " . $order->getIncrementId() . " has invoices, attempting refund instead of cancel");
+                    $this->refundOrder($order);
+                    return;
+                }
+
+                $this->logger->info("Aditum Callback: Order " . $order->getIncrementId() . " cannot be canceled or refunded");
+                return;
+            }
+
+            // Cancelar normalmente
+            $order->cancel()->save();
+            $this->logger->info("Aditum Callback: Order " . $order->getIncrementId() . " canceled successfully");
+
+        } catch (\Exception $e) {
+            $this->logger->error("Aditum Callback Error canceling order " . $order->getIncrementId() . ": " . $e->getMessage());
+            $this->logger->error("Aditum Callback Error stack trace: " . $e->getTraceAsString());
+        }
+    }
+
+    /**
+     * Create refund (credit memo) for orders that cannot be canceled
+     * @param $order
+     */
+    public function refundOrder($order)
+    {
+        try {
+            // Para pedidos com fatura, criar credit memo (estorno)
+            $invoices = $order->getInvoiceCollection();
+            foreach ($invoices as $invoice) {
+                if ($invoice->canRefund()) {
+                    $this->logger->info("Aditum Callback: Creating refund for invoice " . $invoice->getIncrementId());
+
+                    // Criar credit memo automático
+                    $creditmemo = $this->_invoiceService->prepareInvoiceCreditmemo($invoice);
+                    if ($creditmemo) {
+                        $creditmemo->register();
+                        $transaction = $this->_transactionFactory->create()
+                            ->addObject($creditmemo)
+                            ->addObject($creditmemo->getOrder());
+                        $transaction->save();
+
+                        $this->logger->info("Aditum Callback: Refund created successfully for order " . $order->getIncrementId());
+                        return;
+                    }
+                }
+            }
+
+            $this->logger->warning("Aditum Callback: No refundable invoices found for order " . $order->getIncrementId());
+
+        } catch (\Exception $e) {
+            $this->logger->error("Aditum Callback Error creating refund for order " . $order->getIncrementId() . ": " . $e->getMessage());
+        }
     }
 
     /**
