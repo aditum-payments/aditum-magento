@@ -205,9 +205,6 @@ class Index extends \Magento\Framework\App\Action\Action implements CsrfAwareAct
             $result->setHttpResponseCode(500);
             return $result;
         }
-
-        // $this->logger->log("INFO", "Aditum Callback ended."); // unreachable code removed
-        // return $this->resultRaw(); // unreachable code removed
     }
 
     /**
