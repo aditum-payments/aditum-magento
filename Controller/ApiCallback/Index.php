@@ -16,6 +16,7 @@ use Magento\Sales\Model\ResourceModel\Order\CollectionFactory;
 use Magento\Sales\Model\ResourceModel\Order\Payment\Collection as PaymentCollection;
 use Magento\Sales\Model\ResourceModel\Order\Payment\CollectionFactory as PaymentCollectionFactory;
 use Magento\Sales\Model\Service\InvoiceService;
+use Magento\Sales\Model\Order\CreditmemoFactory;
 use Psr\Log\LoggerInterface;
 
 class Index extends \Magento\Framework\App\Action\Action implements CsrfAwareActionInterface
@@ -34,6 +35,11 @@ class Index extends \Magento\Framework\App\Action\Action implements CsrfAwareAct
      * @var InvoiceService
      */
     protected $_invoiceService;
+
+    /**
+     * @var CreditmemoFactory
+     */
+    protected $_creditmemoFactory;
 
     /**
      * @var TransactionFactory
@@ -67,6 +73,7 @@ class Index extends \Magento\Framework\App\Action\Action implements CsrfAwareAct
      * @param Http $request
      * @param OrderRepository $orderRepository
      * @param InvoiceService $invoiceService
+     * @param CreditmemoFactory $creditmemoFactory
      * @param TransactionFactory $transactionFactory
      * @param LoggerInterface $logger
      * @param ResultFactory $result
@@ -79,6 +86,7 @@ class Index extends \Magento\Framework\App\Action\Action implements CsrfAwareAct
         Http $request,
         OrderRepository $orderRepository,
         InvoiceService $invoiceService,
+        CreditmemoFactory $creditmemoFactory,
         TransactionFactory $transactionFactory,
         LoggerInterface $logger,
         ResultFactory $result,
@@ -90,6 +98,7 @@ class Index extends \Magento\Framework\App\Action\Action implements CsrfAwareAct
         $this->_request = $request;
         $this->_orderRepository = $orderRepository;
         $this->_invoiceService = $invoiceService;
+        $this->_creditmemoFactory = $creditmemoFactory;
         $this->_transactionFactory = $transactionFactory;
         $this->logger = $logger;
         $this->result = $result;
@@ -370,18 +379,33 @@ class Index extends \Magento\Framework\App\Action\Action implements CsrfAwareAct
             $invoices = $order->getInvoiceCollection();
             foreach ($invoices as $invoice) {
                 if ($invoice->canRefund()) {
-                    $this->logger->info("Aditum Callback: Creating refund for invoice " . $invoice->getIncrementId());
+                    $this->logger->info("Aditum Callback: Creating refund for invoice " . $invoice->getIncrementId() . " (Order: " . $order->getIncrementId() . ")");
 
-                    // Criar credit memo automático
-                    $creditmemo = $this->_invoiceService->prepareInvoiceCreditmemo($invoice);
+                    // Criar credit memo usando CreditmemoFactory
+                    $creditmemo = $this->_creditmemoFactory->createByInvoice($invoice);
                     if ($creditmemo) {
-                        $creditmemo->register();
+                        // Definir estado do credit memo
+                        $creditmemo->setState(\Magento\Sales\Model\Order\Creditmemo::STATE_REFUNDED);
+
+                        // Salvar o credit memo usando transação
                         $transaction = $this->_transactionFactory->create()
                             ->addObject($creditmemo)
                             ->addObject($creditmemo->getOrder());
                         $transaction->save();
 
-                        $this->logger->info("Aditum Callback: Refund created successfully for order " . $order->getIncrementId());
+                        $this->logger->info("Aditum Callback: Credit Memo created successfully - ID: " . $creditmemo->getIncrementId() . " with state REFUNDED");
+
+                        // Adicionar comentário no histórico do pedido
+                        $order->addCommentToStatusHistory(
+                            'Estorno criado automaticamente via Aditum Callback (ChargeStatus = Canceled/Expired). Credit Memo: ' . $creditmemo->getIncrementId()
+                        )->setIsCustomerNotified(false);
+
+                        // Atualizar o pedido para closed
+                        $order->setState(\Magento\Sales\Model\Order::STATE_CLOSED);
+                        $order->setStatus('closed');
+                        $order->save();
+
+                        $this->logger->info("Aditum Callback: Order " . $order->getIncrementId() . " updated to 'closed' status");
                         return;
                     }
                 }
@@ -391,6 +415,7 @@ class Index extends \Magento\Framework\App\Action\Action implements CsrfAwareAct
 
         } catch (\Exception $e) {
             $this->logger->error("Aditum Callback Error creating refund for order " . $order->getIncrementId() . ": " . $e->getMessage());
+            $this->logger->error("Aditum Callback Error stack trace: " . $e->getTraceAsString());
         }
     }
 
